@@ -1,0 +1,81 @@
+⚠ [3060/3063] Replayed Collatz.CyclotomicBridge
+warning: Collatz/CyclotomicBridge.lean:134:37: unused variable `hd_pos`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Collatz/CyclotomicBridge.lean:208:48: unused variable `hd_ge_2`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Collatz/CyclotomicBridge.lean:247:54: This simp argument is unused:
+  Nat.cast_zero
+
+Hint: Omit it from the simp argument list.
+  simp [h_FW_def r, Nat.cast_sum, Nat.cast_ite,̵ ̵N̵a̵t̵.̵c̵a̵s̵t̵_̵z̵e̵r̵o̵]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Collatz/CyclotomicBridge.lean:257:21: This simp argument is unused:
+  Fin.val_mk
+
+Hint: Omit it from the simp argument list.
+  simp only [̵F̵i̵n̵.̵v̵a̵l̵_̵m̵k̵,̵ ̵i̵t̵e̵_̵t̵r̵u̵e̵]̵[̲i̲t̲e̲_̲t̲r̲u̲e̲]̲
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Collatz/CyclotomicBridge.lean:369:26: unused variable `hd_dvd`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Collatz/CyclotomicBridge.lean:593:44: unused variable `hd`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Collatz/CyclotomicBridge.lean:800:2: Try this: intro L hL h_round
+warning: Collatz/CyclotomicBridge.lean:969:31: This simp argument is unused:
+  Polynomial.aeval_C
+
+Hint: Omit it from the simp argument list.
+  simp only [map_sum, map_mul, Polynomial.aeval_C̵,̵ ̵P̵o̵l̵y̵n̵o̵m̵i̵a̵l̵.̵a̵e̵v̵a̵l̵_̵X_pow, map_natCast]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Collatz/CyclotomicBridge.lean:1018:36: This simp argument is unused:
+  Polynomial.aeval_C
+
+Hint: Omit it from the simp argument list.
+  simp only [α, map_sub, map_mul, Polynomial.aeval_C̵,̵ ̵P̵o̵l̵y̵n̵o̵m̵i̵a̵l̵.̵a̵e̵v̵a̵l̵_̵X, map_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Collatz/CyclotomicBridge.lean:1034:61: This simp argument is unused:
+  Polynomial.eval₂_C
+
+Hint: Omit it from the simp argument list.
+  simp [ev, α, Polynomial.eval₂_sub, Polynomial.eval₂_mul, Polynomial.eval₂_C̵,̵ ̵P̵o̵l̵y̵n̵o̵m̵i̵a̵l̵.̵e̵v̵a̵l̵₂̵_̵X]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Collatz/CyclotomicBridge.lean:1035:4: 'push_cast' tactic does nothing
+
+Note: This linter can be disabled with `set_option linter.unusedTactic false`
+⚠ [3061/3063] Replayed Collatz.CyclotomicDrift
+warning: Collatz/CyclotomicDrift.lean:374:34: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+✖ [3063/3063] Building Collatz.DriftContradiction (5.0s)
+trace: .> LEAN_PATH=/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/Cli/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/batteries/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/Qq/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/aesop/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/proofwidgets/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/importGraph/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/plausible/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/packages/mathlib/.lake/build/lib/lean:/Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/build/lib/lean /Users/samuellavery/.elan/toolchains/leanprover--lean4---v4.26.0/bin/lean /Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/Collatz/DriftContradiction.lean -o /Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/build/lib/lean/Collatz/DriftContradiction.olean -i /Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/build/lib/lean/Collatz/DriftContradiction.ilean -c /Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/build/ir/Collatz/DriftContradiction.c --setup /Users/samuellavery/work/claudecrypt/dr/go/examples_aowfs/protos/rs_man/v2/finallean2/.lake/build/ir/Collatz/DriftContradiction.setup.json --json
+error: Collatz/DriftContradiction.lean:69:32: Application type mismatch: The argument
+  2
+has type
+  ℝ
+of sort `Type` but is expected to have type
+  0 ≤ ?m.57
+of sort `Prop` in the application
+  Real.rpow_natCast_mul 2
+error: Collatz/DriftContradiction.lean:69:41: Type mismatch
+  -base2_offset P
+has type
+  ℝ
+but is expected to have type
+  ℕ
+error: Collatz/DriftContradiction.lean:93:19: Unknown constant `Real.rpow_lt_rpow_left`
+error: Collatz/DriftContradiction.lean:94:8: No goals to be solved
+error: Collatz/DriftContradiction.lean:100:19: Unknown constant `Real.rpow_lt_rpow_left`
+error: Collatz/DriftContradiction.lean:101:8: No goals to be solved
+error: Collatz/DriftContradiction.lean:138:52: No goals to be solved
+error: Lean exited with code 1
+Some required targets logged failures:
+- Collatz.DriftContradiction
+error: build failed
