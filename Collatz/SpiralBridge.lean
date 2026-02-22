@@ -39,6 +39,7 @@ import Collatz.SpiralTactics
 -- import Collatz.FloorTail
 -- import Collatz.TailBound
 import Collatz.BeurlingCounterexample
+import PrimeNumberTheoremAnd.Consequences
 import Collatz.BakerUncertainty
 import Collatz.ResonanceBridge
 import Collatz.VortexFiber
@@ -147,15 +148,153 @@ theorem exists_favorable_integer (t : ℝ) (ht : t ≠ 0) (M : ℕ) :
     ⟨h1, h2, by rwa [add_zero] at h3⟩
 
 /-- Favorable prime existence: for any t ≠ 0 and M, there exists a
-    prime p > M with cos(t·log p) ≥ -1 + δ for some δ > 0.
+    prime p ≥ M with cos(t·log p) ≥ 0.
 
-    This is WEAKER than cos ≥ 0 but sufficient: it prevents the sum
-    from reaching the worst case -Σ p^{-σ}.
+    Proof: by PNT (`prime_between`), for small ε > 0, eventually every interval
+    (x, (1+ε)x) contains a prime. So consecutive primes p_n satisfy
+    log(p_{n+1}/p_n) < log(1+ε) ≤ ε, giving step |t|·ε in the cos argument.
+    Choose ε = π/(2|t|) so steps < π. Since t·log(p_n) → ∞ with steps < π,
+    the stepping argument (as in `exists_favorable_cos`) produces a prime
+    in [2kπ - π/2, 2kπ + π/2] where cos ≥ 0. -/
+private lemma log_one_add_le {ε : ℝ} (hε : 0 < ε) : Real.log (1 + ε) ≤ ε := by
+  linarith [Real.log_le_sub_one_of_pos (by linarith : (0:ℝ) < 1 + ε)]
 
-    Proof requires PNT + favorable cos gap propagation. -/
-axiom exists_favorable_prime_cos :
+theorem exists_favorable_prime_cos :
     ∀ (t : ℝ), t ≠ 0 → ∀ (M : ℕ),
-    ∃ (p : ℕ), Nat.Prime p ∧ M ≤ p ∧ 0 ≤ Real.cos (t * Real.log p)
+    ∃ (p : ℕ), Nat.Prime p ∧ M ≤ p ∧ 0 ≤ Real.cos (t * Real.log p) := by
+  intro t ht M
+  -- WLOG t > 0
+  wlog ht_pos : 0 < t with H
+  · push_neg at ht_pos
+    have ht_neg : t < 0 := lt_of_le_of_ne ht_pos ht
+    obtain ⟨p, hp, hpM, hcos⟩ := H (-t) (neg_ne_zero.mpr ht) M (neg_pos.mpr ht_neg)
+    exact ⟨p, hp, hpM, by rwa [show t * Real.log ↑p = -((-t) * Real.log ↑p) from by ring,
+      Real.cos_neg]⟩
+  -- Choose ε = π/(2t), so t·log(1+ε) ≤ t·ε = π/2 < π
+  set ε := Real.pi / (2 * t) with hε_def
+  have hε_pos : 0 < ε := div_pos Real.pi_pos (by positivity)
+  have hlog_le : Real.log (1 + ε) ≤ ε := log_one_add_le hε_pos
+  have hstep : t * Real.log (1 + ε) < Real.pi := by
+    calc t * Real.log (1 + ε) ≤ t * ε := by nlinarith
+      _ = Real.pi / 2 := by rw [hε_def]; field_simp
+      _ < Real.pi := half_lt_self Real.pi_pos
+  -- By prime_between, eventually (x, (1+ε)x) contains a prime
+  have hpb := prime_between hε_pos
+  rw [Filter.eventually_atTop] at hpb
+  obtain ⟨X₀, hX₀⟩ := hpb
+  -- Get a starting prime p₀ ≥ max(M, ⌈X₀*(1+ε)⌉+1)
+  -- This ensures p₀/(1+ε) ≥ X₀, so prime_between applies to p/(1+ε) for any p ≥ p₀.
+  obtain ⟨p₀, hp₀_ge, hp₀_prime⟩ :=
+    Nat.exists_infinite_primes (max M (⌈X₀ * (1 + ε)⌉₊ + 1))
+  have hp₀_M : M ≤ p₀ := le_trans (le_max_left _ _) hp₀_ge
+  have hε1 : (0:ℝ) < 1 + ε := by linarith
+  have hp₀_Xε : X₀ * (1 + ε) ≤ (p₀ : ℝ) := by
+    calc X₀ * (1 + ε) ≤ ↑⌈X₀ * (1 + ε)⌉₊ := Nat.le_ceil _
+      _ ≤ ↑(⌈X₀ * (1 + ε)⌉₊ + 1) := by exact_mod_cast Nat.le_succ _
+      _ ≤ ↑p₀ := by exact_mod_cast le_trans (le_max_right _ _) hp₀_ge
+  have hp₀_X : X₀ ≤ (p₀ : ℝ) := by
+    by_cases hX : 0 ≤ X₀
+    · exact le_trans (le_mul_of_one_le_right hX (by linarith)) hp₀_Xε
+    · exact le_trans (by linarith [not_le.mp hX]) (Nat.cast_nonneg _)
+  -- Find a threshold above t·log p₀
+  obtain ⟨k, hk⟩ : ∃ k : ℤ, t * Real.log ↑p₀ < 2 * ↑k * Real.pi - Real.pi / 2 := by
+    obtain ⟨m, hm⟩ := exists_int_gt ((t * Real.log ↑p₀ + Real.pi / 2) / (2 * Real.pi))
+    exact ⟨m, by linarith [(div_lt_iff₀ (by positivity : (0:ℝ) < 2 * Real.pi)).mp hm]⟩
+  -- Define predicate: prime above p₀ whose t·log crosses the threshold
+  set P := fun n : ℕ => n.Prime ∧ p₀ ≤ n ∧ 2 * ↑k * Real.pi - Real.pi / 2 ≤ t * Real.log ↑n
+  -- P is decidable (classical)
+  classical
+  -- P is satisfiable: there exists a large enough prime above threshold
+  have hP_sat : ∃ n, P n := by
+    -- t·log(p) → ∞ as p → ∞, so eventually exceeds threshold
+    obtain ⟨q, hq_ge, hq_prime⟩ :=
+      Nat.exists_infinite_primes (max p₀ (⌈Real.exp ((2 * ↑k * Real.pi) / t)⌉₊ + 1))
+    refine ⟨q, hq_prime, le_trans (le_max_left _ _) hq_ge, ?_⟩
+    have hq_pos : (0:ℝ) < q := Nat.cast_pos.mpr (by omega)
+    have hq_large : Real.exp ((2 * ↑k * Real.pi) / t) ≤ ↑q := by
+      calc Real.exp ((2 * ↑k * Real.pi) / t)
+          ≤ ↑⌈Real.exp ((2 * ↑k * Real.pi) / t)⌉₊ := Nat.le_ceil _
+        _ ≤ ↑(⌈Real.exp ((2 * ↑k * Real.pi) / t)⌉₊ + 1) := by exact_mod_cast Nat.le_succ _
+        _ ≤ ↑q := by exact_mod_cast le_trans (le_max_right _ _) hq_ge
+    have h1 : (2 * ↑k * Real.pi) / t ≤ Real.log ↑q := by
+      calc (2 * ↑k * Real.pi) / t
+          = Real.log (Real.exp ((2 * ↑k * Real.pi) / t)) := (Real.log_exp _).symm
+        _ ≤ Real.log ↑q := Real.log_le_log (Real.exp_pos _) hq_large
+    have h2 : t * ((2 * ↑k * Real.pi) / t) = 2 * ↑k * Real.pi := by
+      field_simp
+    linarith [mul_le_mul_of_nonneg_left h1 ht_pos.le, Real.pi_pos]
+  -- Take the minimum such prime
+  let p := Nat.find hP_sat
+  have hp_spec : P p := Nat.find_spec hP_sat
+  have hp_prime : p.Prime := hp_spec.1
+  have hp_ge_p₀ : p₀ ≤ p := hp_spec.2.1
+  have hp_above : 2 * ↑k * Real.pi - Real.pi / 2 ≤ t * Real.log ↑p := hp_spec.2.2
+  have hp_M : M ≤ p := le_trans hp₀_M hp_ge_p₀
+  -- Key: show t·log p < 2kπ + π/2 (so cos ≥ 0)
+  -- By minimality, p-1 doesn't satisfy P
+  -- We need: there's a prime q < p with q ≥ p₀ and p < (1+ε)·q
+  -- Then t·log q < threshold (by minimality) and t·log p < t·log q + π < threshold + π
+  suffices h_upper : t * Real.log ↑p < 2 * ↑k * Real.pi + Real.pi / 2 by
+    refine ⟨p, hp_prime, hp_M, ?_⟩
+    rw [show t * Real.log ↑p =
+        (t * Real.log ↑p - ↑k * (2 * Real.pi)) + ↑k * (2 * Real.pi) from by ring,
+        Real.cos_add_int_mul_two_pi]
+    exact Real.cos_nonneg_of_mem_Icc ⟨by linarith, by linarith⟩
+  -- Upper bound: show p is not too far above threshold
+  -- If p = p₀, then t·log p₀ < threshold ≤ t·log p = t·log p₀, contradiction
+  -- So p > p₀, meaning p ≥ p₀ + 1 ≥ 3
+  by_cases hp_eq : p = p₀
+  · -- p = p₀ contradicts hk and hp_above
+    linarith [hp_eq ▸ hp_above]
+  have hp_gt_p₀ : p₀ < p := lt_of_le_of_ne hp_ge_p₀ (Ne.symm hp_eq)
+  -- Use prime_between on p/(1+ε) to find a prime q in (p/(1+ε), p)
+  have hp_pos : (0:ℝ) < p := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (by omega))
+  have hε1 : (0:ℝ) < 1 + ε := by linarith
+  -- p/(1+ε) ≥ X₀ because p ≥ p₀ ≥ X₀*(1+ε)
+  have hp_pos : (0:ℝ) < p := Nat.cast_pos.mpr (Nat.pos_of_ne_zero (by omega))
+  have hdiv_X : X₀ ≤ ↑p / (1 + ε) := by
+    rw [le_div_iff₀ hε1]
+    calc X₀ * (1 + ε) ≤ ↑p₀ := hp₀_Xε
+      _ ≤ ↑p := by exact_mod_cast hp_ge_p₀
+  obtain ⟨q, hq_prime, hq_gt, hq_lt⟩ := hX₀ (↑p / (1 + ε)) hdiv_X
+  -- q is a prime with p/(1+ε) < q < (1+ε)·(p/(1+ε)) = p
+  have hq_lt_p : (q:ℝ) < p := by
+    rw [mul_div_cancel₀ _ (ne_of_gt hε1)] at hq_lt; exact hq_lt
+  have hq_nat_lt_p : q < p := by exact_mod_cast hq_lt_p
+  -- q doesn't satisfy P: either q < p₀ (so ¬(p₀ ≤ q)) or q < p (minimality)
+  have hq_not_P : ¬ P q := Nat.find_min hP_sat hq_nat_lt_p
+  -- Extract: t·log q < threshold
+  simp only [P, not_and, not_le] at hq_not_P
+  -- Case split: if q < p₀, then cos bound follows differently.
+  -- If q ≥ p₀, then hq_not_P gives t·log q < threshold directly.
+  have hq_below : t * Real.log ↑q < 2 * ↑k * Real.pi - Real.pi / 2 := by
+    by_cases hqp₀ : p₀ ≤ q
+    · exact hq_not_P hq_prime hqp₀
+    · push_neg at hqp₀
+      -- q < p₀, so t·log q < t·log p₀ < threshold
+      have hq_cast_le : (q:ℝ) ≤ p₀ := by exact_mod_cast hqp₀.le
+      have hq_pos' : (0:ℝ) < q := Nat.cast_pos.mpr hq_prime.pos
+      calc t * Real.log ↑q ≤ t * Real.log ↑p₀ := by
+              apply mul_le_mul_of_nonneg_left _ ht_pos.le
+              exact Real.log_le_log hq_pos' hq_cast_le
+        _ < 2 * ↑k * Real.pi - Real.pi / 2 := hk
+  -- Ratio bound: p/q ≤ 1+ε (since q > p/(1+ε))
+  have hq_pos : (0:ℝ) < q := Nat.cast_pos.mpr hq_prime.pos
+  have hpq_ratio : (p:ℝ) / q ≤ 1 + ε := by
+    rw [div_le_iff₀ hq_pos]
+    -- hq_gt : ↑p / (1 + ε) < ↑q, so (1+ε)*q > (1+ε)*(p/(1+ε)) = p
+    have h1 : ↑p / (1 + ε) < ↑q := hq_gt
+    have h2 : (1 + ε) * (↑p / (1 + ε)) = ↑p := mul_div_cancel₀ _ (ne_of_gt hε1)
+    nlinarith [mul_lt_mul_of_pos_left h1 hε1]
+  calc t * Real.log ↑p
+      = t * Real.log ↑q + t * (Real.log ↑p - Real.log ↑q) := by ring
+    _ = t * Real.log ↑q + t * Real.log (↑p / ↑q) := by
+        rw [Real.log_div (ne_of_gt hp_pos) (ne_of_gt hq_pos)]
+    _ ≤ t * Real.log ↑q + t * Real.log (1 + ε) := by
+        linarith [mul_le_mul_of_nonneg_left
+          (Real.log_le_log (by positivity : (0:ℝ) < ↑p / ↑q) hpq_ratio) ht_pos.le]
+    _ < (2 * ↑k * Real.pi - Real.pi / 2) + Real.pi := by linarith
+    _ = 2 * ↑k * Real.pi + Real.pi / 2 := by ring
 
 /-! ## Section 5: The Parseval Positivity Argument
 

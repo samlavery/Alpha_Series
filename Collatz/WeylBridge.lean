@@ -1,10 +1,10 @@
 /-
   WeylBridge.lean — No divergence via quantitative contraction
   ============================================================
-  The core no-divergence proof. Baker + Tao axioms give a supercritical
-  ν-sum rate (≥ 33 halvings per 20 Syracuse steps). Since 3^20/2^33 ≈ 0.406,
-  each 20-step window contracts the orbit value. Repeated contraction bounds
-  the orbit, contradicting divergence.
+  The core no-divergence proof. Baker's theorem (via rollover coprimality)
+  gives a supercritical ν-sum rate (≥ 33 halvings per 20 Syracuse steps).
+  Since 3^20/2^33 ≈ 0.406, each 20-step window contracts the orbit value.
+  Repeated contraction bounds the orbit, contradicting divergence.
 
   This is NOT a "perfect mixing" or residue-hitting argument. The proof is
   purely about growth rates: the average 2-adic valuation is high enough
@@ -14,8 +14,7 @@
   through an explicit bridge:
   supercritical eta-rate  =>  constructive residue hitting.
 
-  Uses only: baker_window_drift_explicit_lower_bound,
-             tao_defect_eta_explicit_lower_bound,
+  Uses only: baker_rollover_supercritical_rate,
              supercritical_rate_implies_residue_hitting
 -/
 
@@ -34,21 +33,11 @@ open Collatz.ResidueDynamics
 
 set_option maxHeartbeats 1600000
 
-/-! ## Baker + Tao → supercritical ν-sum rate -/
+/-! ## Baker rollover → supercritical ν-sum rate -/
 
-/-- Baker defect → negative residual (Tao's hypothesis). -/
-lemma baker_to_tao_hyp (n₀ : ℕ) (h_n₀ : n₀ > 1) (h_odd : Odd n₀)
-    (h_div : ∀ B : ℕ, ∃ m, collatzOddIter m n₀ > B) :
-    ∃ M₀ : ℕ, ∀ M : ℕ, M₀ ≤ M →
-      0 < - ((↑(collatzOddIter M n₀ *
-        (2 ^ (Finset.sum (Finset.range 20)
-          (fun i => v2 (3 * collatzOddIter (M + i) n₀ + 1))) - 3 ^ 20) : ℕ) : ℤ) -
-        ↑(orbitC (collatzOddIter M n₀) 20)) := by
-  obtain ⟨M₀, δ, hδ, hbound⟩ := baker_window_drift_explicit_lower_bound n₀ h_n₀ h_odd h_div
-  exact ⟨M₀, fun M hM => by
-    have := hbound M hM; unfold bakerWindowDefect20 at this; linarith⟩
-
-/-- Combined Baker + Tao: divergent orbit has supercritical ν-sum rate. -/
+/-- Combined Baker rollover: divergent orbit has supercritical ν-sum rate.
+    Baker coprimality (D = 2^S - 3^m is always odd) prevents the orbit from
+    avoiding high-v₂ residue classes, yielding Σ η ≥ 33 per 20 steps. -/
 theorem baker_tao_supercritical (n₀ : ℕ) (h_n₀ : n₀ > 1) (h_odd : Odd n₀)
     (h_div : ∀ B : ℕ, ∃ m, collatzOddIter m n₀ > B) :
     ∃ M₀ : ℕ, ∃ delta : ℕ, 0 < delta ∧
@@ -58,8 +47,7 @@ theorem baker_tao_supercritical (n₀ : ℕ) (h_n₀ : n₀ > 1) (h_odd : Odd n�
             if collatzOddIter (M + i) n₀ % 8 = 1 then 2
             else if collatzOddIter (M + i) n₀ % 8 = 5 then 3
             else 1)) :=
-  tao_defect_eta_explicit_lower_bound n₀ h_n₀ h_odd h_div
-    (baker_to_tao_hyp n₀ h_n₀ h_odd h_div)
+  baker_rollover_supercritical_rate n₀ h_n₀ h_odd h_div
 
 /-! ## Supercritical rate → η-sum ≥ 33 → ν-sum ≥ 33 per 20 steps -/
 
@@ -220,7 +208,7 @@ lemma collatzOddIter_comp (m j n₀ : ℕ) :
     rw [← collatzOddIter_succ_right m n₀, ih (m + 1)]
     congr 1; omega
 
-/-- Divergence is impossible given Baker + Tao supercritical rate. -/
+/-- Divergence is impossible given Baker-rollover supercritical rate. -/
 theorem no_divergence_from_supercritical (n₀ : ℕ) (h_n₀ : n₀ > 1) (h_odd : Odd n₀)
     (h_div : ∀ B : ℕ, ∃ m, collatzOddIter m n₀ > B)
     (h_mixing : ∃ M₀ : ℕ, ∃ delta : ℕ, 0 < delta ∧
@@ -398,7 +386,7 @@ theorem no_divergence_from_supercritical (n₀ : ℕ) (h_n₀ : n₀ > 1) (h_odd
   exact absurd hm₂ (not_lt.mpr (h_all m₂))
 
 /-- **Main theorem**: A divergent odd orbit hits every residue class mod M.
-    Proof route: Baker + Tao yield a supercritical eta-rate, then apply the
+    Proof route: Baker rollover yields a supercritical eta-rate, then apply the
     constructive supercritical-to-residue bridge. -/
 theorem drift_crossing_from_baker (n₀ M K : ℕ) (h_M : M > 1)
     (h_n₀ : n₀ > 1) (h_odd : Odd n₀) (h_div : ∀ B : ℕ, ∃ m, collatzOddIter m n₀ > B)

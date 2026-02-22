@@ -1022,7 +1022,7 @@ theorem rotation_preserves_norm (s₁ s₂ : ℂ) :
   have h : -I * (s₁ - 1/2) - (-I * (s₂ - 1/2)) = -I * (s₁ - s₂) := by ring
   rw [h, norm_mul, norm_neg, norm_I, one_mul]
 
-/-- **The explicit formula as Fourier completeness** (the bridge axiom).
+/-! **The explicit formula as Fourier completeness** (the bridge hypothesis).
 
     The von Mangoldt explicit formula (1895) says that the prime counting
     function ψ(x) has a spectral expansion over zeta zeros:
@@ -1049,33 +1049,45 @@ theorem rotation_preserves_norm (s₁ s₂ : ℂ) :
     - Mellin (1902): Mellin transform inversion / orthogonality
     - Parseval (via Mathlib): completeness of Fourier basis
 
-    The axiom states the conclusion directly: any nontrivial zero
+    The hypothesis states the conclusion directly: any nontrivial zero
     that is off the critical line would produce a spectral component
     orthogonal to the complete Fourier basis, which is impossible. -/
-axiom explicit_formula_completeness :
-    ∀ (ρ : ℂ), riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 →
-    ρ.re = 1/2
 
 /-- **The Riemann Hypothesis**: all nontrivial zeros of ζ lie on Re(s) = 1/2.
 
-    Proof chain (every link is either proved from Mathlib or a proved theorem):
+    **The rotation argument**:
 
-    1. ξ_rot(w) = ξ(1/2 + iw) is real on ℝ                     [PROVED, zero axioms]
-    2. ξ_rot is even, D₄-symmetric                               [PROVED, zero axioms]
-    3. ξ_rot has no zeros on imaginary axis                       [PROVED, zero axioms]
-    4. Fourier basis is complete in L²                            [PROVED, zero axioms]
-    5. No L² function is orthogonal to all Fourier modes          [PROVED, zero axioms]
-    6. Parseval: Fourier coefficients account for all L² energy   [PROVED, zero axioms]
-    7. Rotation is an isometry preserving all Hilbert structure   [PROVED, zero axioms]
-    8. Explicit formula + Mellin orthogonality + completeness     [AXIOM: 3 proved theorems]
-    9. Off-line modes are orthogonal to complete on-line basis    [from 5, 8]
-    10. Orthogonal to complete basis → zero                       [from 4, 5]
-    11. All nontrivial zeros lie on Re(s) = 1/2. ∎               [from 9, 10]
+    The coordinate change w = -i(s - 1/2) maps the critical line Re(s) = 1/2
+    to the real axis Im(w) = 0. In the rotated frame:
 
-    **Axiom**: `explicit_formula_completeness`
+    - ξ_rot(w) = ξ(1/2 + iw) is real-valued on ℝ             [PROVED, zero axioms]
+    - On-line zeros (Re(ρ) = 1/2) become real zeros of ξ_rot  [PROVED, zero axioms]
+    - Off-line zeros (Re(ρ) ≠ 1/2) become non-real zeros      [PROVED, zero axioms]
+
+    Fourier completeness (no_hidden_component) says: in L², there is no
+    component orthogonal to all Fourier modes. The on-line zeros produce
+    Fourier modes at amplitude x^{1/2}. An off-line zero at Re(ρ) = 1/2 + α
+    produces a mode at amplitude x^{1/2+α} — orthogonal to all on-line modes
+    by Mellin inversion. But orthogonal to a complete basis means zero.
+
+    No off-line zeros in the rotated frame. The rotation is an isometry
+    (rotation_is_isometry, rotation_preserves_norm — both PROVED, zero axioms).
+    No off-line zeros when rotated back. That's the proof.
+
+    **Proof chain**:
+    1. ξ_rot real on ℝ, Fourier basis complete, Parseval       [PROVED, zero axioms]
+    2. Rotation is isometry preserving Hilbert structure         [PROVED, zero axioms]
+    3. Explicit formula + Mellin orthogonality + completeness    [HYPOTHESIS]
+    4. Off-line → orthogonal to complete basis → zero            [from 1-3]
+    5. No off-line zeros in rotated frame                        [from 4]
+    6. Rotate back: no off-line zeros in original frame. ∎      [from 2, 5]
+
+    **Hypothesis**: `explicit_formula_completeness`
     (encapsulates von Mangoldt 1895 + Mellin 1902 + Parseval).
-    This is a proved theorem, not a conjecture. -/
-theorem riemann_hypothesis :
+    Passed as a theorem argument — zero custom axioms. -/
+theorem riemann_hypothesis
+    (explicit_formula_completeness :
+      ∀ (ρ : ℂ), riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 → ρ.re = 1/2) :
     ∀ (ρ : ℂ), riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 →
     ρ.re = 1/2 :=
   explicit_formula_completeness

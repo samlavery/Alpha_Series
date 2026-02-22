@@ -59,7 +59,7 @@ theorem E₁_deriv (z : ℂ) : deriv E₁ z = -z * Complex.exp z := by
       simpa using (hasDerivAt_id z).const_sub 1
     have h2 : HasDerivAt Complex.exp (Complex.exp z) z := Complex.hasDerivAt_exp z
     have h3 := h1.mul h2
-    simp only [E₁] at h3
+    simp only [] at h3
     convert h3 using 1; ring
   exact hd.deriv
 
@@ -105,7 +105,7 @@ theorem E₁_norm_bound (z : ℂ) (hz : ‖z‖ ≤ 1 / 2) :
     _ ≤ (‖z ^ 2 / 2‖ + ‖z ^ 3 / 2‖) + ‖z - 1‖ * ‖R₃‖ := by
         linarith [norm_add_le (z ^ 2 / 2) (z ^ 3 / 2), norm_mul (z - 1) R₃]
     _ = (‖z‖ ^ 2 / 2 + ‖z‖ ^ 3 / 2) + ‖z - 1‖ * ‖R₃‖ := by
-        simp only [norm_div, norm_pow, norm_mul, Complex.norm_ofNat, Nat.cast_ofNat]
+        simp only [norm_div, norm_pow, Complex.norm_ofNat]
     _ ≤ (‖z‖ ^ 2 / 2 + ‖z‖ ^ 3 / 2) + (‖z‖ + 1) * (1 / 3 * ‖z‖ ^ 3) := by
         linarith [mul_le_mul hzm1 hR₃_bound (norm_nonneg R₃) (by linarith)]
     _ ≤ ‖z‖ ^ 2 / 2 + 1 / 2 * (1 / 2 * ‖z‖ ^ 2) +
@@ -169,7 +169,7 @@ theorem xi_eq_zero_iff {s : ℂ} (hs : s ≠ 0) (hs' : s ≠ 1) :
       · -- s - 1 = 0 → s = 1, contradiction
         exact absurd (sub_eq_zero.mp hb) hs'
     · exact hc
-  · intro h; simp [xi, h]
+  · intro h; simp [h]
 
 /-! ## Section 3: Zero Counting (1 AXIOM)
 
@@ -509,7 +509,7 @@ theorem hadamard_logderiv_bounds :
         apply Complex.ext <;> simp
       rw [hsub]
       simp only [Complex.add_re, one_div, Complex.inv_re, Complex.normSq_mk,
-        mul_zero, sub_zero, add_zero]
+        mul_zero, add_zero]
       -- Goal: 1/(σ-β) ≤ (σ-β)/((σ-β)²+0) + β/(β²+γ²)
       have hσβ : 0 < σ - β := by linarith
       have h1 : (σ - β) / ((σ - β) * (σ - β)) = (σ - β)⁻¹ := by

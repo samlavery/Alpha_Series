@@ -41,6 +41,5 @@ import Collatz.XiCodimension
 import Collatz.WeylBridge
 import Collatz.WeylIntegration
 import Collatz.AFECoordinationConstructive
-import Collatz.YangMills
-import Collatz.GoldbachBridge
-import Collatz.CircleMethod
+import Collatz.BSD
+import Collatz.NavierStokes

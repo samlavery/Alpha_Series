@@ -17,10 +17,10 @@
      Baker+Tao quantitative contraction (3^20/2^33 < 1) bounds the orbit
 
   **Axioms on critical path**:
-  - baker_lower_bound (no-cycles, all three paths)
-  - baker_window_drift_explicit_lower_bound (no-divergence, contraction rate)
-  - tao_defect_eta_explicit_lower_bound (no-divergence, ν-sum upgrade)
-  Standard: propext, Classical.choice, Quot.sound, Lean.ofReduceBool
+  - baker_lower_bound (no-cycles, PROVED from unique factorization)
+  - baker_rollover_supercritical_rate (no-divergence, Baker coprimality → ν-sum rate)
+  - supercritical_rate_implies_residue_hitting (no-divergence, rate → residue coverage)
+  Standard: propext, Classical.choice, Quot.sound
 
   Reference: https://www.erdosproblems.com/1135
 -/
@@ -158,10 +158,10 @@ theorem erdos_1135 (n : ℕ) (hn : 0 < n)
     : ∃ k : ℕ, collatzIter k n = 1 :=
   Collatz.collatz_all_reach_one h_nodiv h_no_nontrivial_cycles n hn
 
-/-- **Erdos Problem #1135 via Baker+Tao contraction route**:
+/-- **Erdos Problem #1135 via Baker-rollover contraction route**:
     Every positive integer eventually reaches 1.
     No-divergence via WeylBridge quantitative contraction + three-path no-cycles.
-    Axioms: baker_lower_bound + baker_window_drift + tao_defect_eta. -/
+    Axioms: baker_rollover_supercritical_rate + supercritical_rate_implies_residue_hitting. -/
 theorem erdos_1135_via_mixing (n : ℕ) (hn : 0 < n)
     (h_no_nontrivial_cycles :
       ∀ {m : ℕ} [NeZero m], (hm : m ≥ 2) →

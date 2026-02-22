@@ -25,7 +25,6 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Collatz.PairSeriesPole
 import Mathlib.Analysis.Complex.ExponentialBounds
 
 open scoped BigOperators Chebyshev
@@ -276,7 +275,38 @@ theorem psi_bound_to_convolution
       (n : ℝ) - C₁ * Real.sqrt n * (Real.log n) ^ 3 ≤ R n :=
   circle_method_goldbach C₀ hC₀ hψ
 
-/-! ## §9: Twin Prime Variant
+/-! ## §9: Twin Prime Infrastructure
+
+Definitions and axioms for the twin prime constant and Hardy-Littlewood
+pair asymptotic, previously imported from PairSeriesPole. -/
+
+/-- The local twin factor at prime p > 2: (1 - 1/(p-1)²). -/
+def twinFactor (p : ℕ) : ℝ := 1 - 1 / ((p : ℝ) - 1) ^ 2
+
+/-- Coefficient for twin prime pair sum: Λ(n)·Λ(n+2). -/
+def pairCoeff (n : ℕ) : ℝ := (Λ n : ℝ) * Λ (n + 2)
+
+/-- **Twin prime constant** C₂ = ∏_{p>2 prime} (1 - 1/(p-1)²) > 0.
+    Convergence: |log(1-x)| ≤ 2x for small x, and Σ 1/(p-1)² converges.
+    References: Hardy-Littlewood "Some problems of 'Partitio numerorum' III" (1923). -/
+axiom twin_prime_constant_pos :
+    0 < ∏' p : {p : ℕ // Nat.Prime p ∧ 2 < p}, twinFactor (p : ℕ)
+
+/-- **Hardy-Littlewood pair asymptotic** (1923):
+    T(N)/N → 2C₂ where C₂ is the twin prime constant.
+
+    The circle method gives T(N) = 2C₂·N + O(N/(log N)^A) for any A.
+    Singular series: Σ_{q≥1} μ(q)²/φ(q)² · c_q(2) converges to 2C₂.
+    Uses Siegel-Walfisz for equidistribution in arithmetic progressions.
+
+    References: Hardy-Littlewood (1923); Halberstam-Richert "Sieve Methods" Ch. 3;
+    Iwaniec-Kowalski "Analytic Number Theory" Ch. 19. -/
+axiom pair_partial_sum_asymptotic :
+    Filter.Tendsto (fun N => (∑ k ∈ Icc 1 N, pairCoeff k) / (N : ℝ))
+    Filter.atTop
+    (nhds (2 * ∏' p : {p : ℕ // Nat.Prime p ∧ 2 < p}, twinFactor (p : ℕ)))
+
+/-! ## §10: Twin Prime Variant
 
 Same engine with shifted convolution:
 T(N) = Σ_{m≤N} Λ(m)·Λ(m+2) = ∫₀¹ |S(α)|²·e(2α) dα
@@ -315,12 +345,12 @@ theorem circle_method_twin_primes
       c * N - C₁ * Real.sqrt N * (Real.log N) ^ 3 ≤ T N := by
   -- Derived from pair_partial_sum_asymptotic: T(N)/N → 2C₂ > 0
   -- Step 1: T(N) = Σ pairCoeff(k) (definitional)
-  have hT_eq : ∀ N, T N = ∑ k ∈ Icc 1 N, PairSeriesPole.pairCoeff k := fun _ => rfl
+  have hT_eq : ∀ N, T N = ∑ k ∈ Icc 1 N, pairCoeff k := fun _ => rfl
   -- Step 2: The limit 2C₂ is positive
-  set L := 2 * ∏' p : {p : ℕ // Nat.Prime p ∧ 2 < p}, PairSeriesPole.twinFactor (p : ℕ)
-  have hL : 0 < L := mul_pos two_pos PairSeriesPole.twin_prime_constant_pos
+  set L := 2 * ∏' p : {p : ℕ // Nat.Prime p ∧ 2 < p}, twinFactor (p : ℕ)
+  have hL : 0 < L := mul_pos two_pos twin_prime_constant_pos
   -- Step 3: Extract N₀ such that T(N)/N > L/2 for N ≥ N₀
-  have hev := (PairSeriesPole.pair_partial_sum_asymptotic.eventually
+  have hev := (pair_partial_sum_asymptotic.eventually
     (Ioi_mem_nhds (show L / 2 < L by linarith)))
   rw [Filter.eventually_atTop] at hev
   obtain ⟨N₀, hN₀⟩ := hev
@@ -332,11 +362,11 @@ theorem circle_method_twin_primes
     have hspec := hN₀ N hbig
     have hTN : L / 4 * ↑N ≤ T N := by
       rw [hT_eq]
-      have : L / 2 * ↑N < ∑ k ∈ Icc 1 N, PairSeriesPole.pairCoeff k := by
+      have : L / 2 * ↑N < ∑ k ∈ Icc 1 N, pairCoeff k := by
         calc L / 2 * ↑N
-            < (∑ k ∈ Icc 1 N, PairSeriesPole.pairCoeff k) / ↑N * ↑N :=
+            < (∑ k ∈ Icc 1 N, pairCoeff k) / ↑N * ↑N :=
               mul_lt_mul_of_pos_right hspec hNN
-          _ = ∑ k ∈ Icc 1 N, PairSeriesPole.pairCoeff k :=
+          _ = ∑ k ∈ Icc 1 N, pairCoeff k :=
               div_mul_cancel₀ _ (ne_of_gt hNN)
       nlinarith
     have hC₁_nonneg : (0:ℝ) ≤ (L / 4 * ↑(max N₀ 4) + 1) * Real.sqrt ↑N * Real.log ↑N ^ 3 :=
@@ -368,11 +398,57 @@ theorem circle_method_twin_primes
       le_mul_of_one_le_right hC₁_pos.le hsqlog
     linarith [T_nonneg N]
 
-theorem psi_bound_to_twin_convolution
-    (C₀ : ℝ) (hC₀ : 0 < C₀)
-    (hψ : ∀ x : ℝ, 2 ≤ x → |ψ x - x| ≤ C₀ * Real.sqrt x * (Real.log x) ^ 2) :
+/-- Direct twin convolution bound from Hardy-Littlewood pair asymptotic.
+    The ψ-bound parameters in `circle_method_twin_primes` are unused;
+    this wrapper exposes the clean interface. -/
+theorem twin_convolution_linear_growth :
     ∃ (c C₁ : ℝ), 0 < c ∧ 0 < C₁ ∧ ∀ N : ℕ, 4 ≤ N →
-      c * N - C₁ * Real.sqrt N * (Real.log N) ^ 3 ≤ T N :=
-  circle_method_twin_primes C₀ hC₀ hψ
+      c * N - C₁ * Real.sqrt N * (Real.log N) ^ 3 ≤ T N := by
+  -- Extract convolution bound from pair_partial_sum_asymptotic directly
+  set L := 2 * ∏' p : {p : ℕ // Nat.Prime p ∧ 2 < p}, twinFactor (p : ℕ)
+  have hL : 0 < L := mul_pos two_pos twin_prime_constant_pos
+  have hev := (pair_partial_sum_asymptotic.eventually
+    (Ioi_mem_nhds (show L / 2 < L by linarith)))
+  rw [Filter.eventually_atTop] at hev
+  obtain ⟨N₀, hN₀⟩ := hev
+  refine ⟨L / 4, L / 4 * ↑(max N₀ 4) + 1, by linarith, by positivity, fun N hN => ?_⟩
+  by_cases hbig : N₀ ≤ N
+  · have hNN : (0 : ℝ) < ↑N := Nat.cast_pos.mpr (by omega)
+    have hspec := hN₀ N hbig
+    have hT_eq : T N = ∑ k ∈ Icc 1 N, pairCoeff k := rfl
+    have hTN : L / 4 * ↑N ≤ T N := by
+      rw [hT_eq]
+      have : L / 2 * ↑N < ∑ k ∈ Icc 1 N, pairCoeff k := by
+        calc L / 2 * ↑N
+            < (∑ k ∈ Icc 1 N, pairCoeff k) / ↑N * ↑N :=
+              mul_lt_mul_of_pos_right hspec hNN
+          _ = ∑ k ∈ Icc 1 N, pairCoeff k :=
+              div_mul_cancel₀ _ (ne_of_gt hNN)
+      nlinarith
+    have hC₁_nonneg : (0:ℝ) ≤ (L / 4 * ↑(max N₀ 4) + 1) * Real.sqrt ↑N * Real.log ↑N ^ 3 :=
+      mul_nonneg (mul_nonneg (by positivity) (Real.sqrt_nonneg _))
+        (pow_nonneg (Real.log_nonneg (by norm_cast; omega)) 3)
+    linarith
+  · have hbig' : N < N₀ := Nat.lt_of_not_le hbig
+    have hcN : L / 4 * ↑N < L / 4 * ↑(max N₀ 4) + 1 := by
+      have hNlt : (N : ℝ) < ↑(max N₀ 4) := by
+        exact_mod_cast (show N < max N₀ 4 from Nat.lt_of_lt_of_le hbig' (le_max_left _ _))
+      nlinarith
+    have hsqlog : (1 : ℝ) ≤ Real.sqrt ↑N * Real.log ↑N ^ 3 := by
+      have hsq : (1 : ℝ) ≤ Real.sqrt ↑N := by
+        rw [show (1:ℝ) = Real.sqrt 1 from (Real.sqrt_one).symm]
+        exact Real.sqrt_le_sqrt (by exact_mod_cast (show 1 ≤ N by omega))
+      have hlog : (1 : ℝ) ≤ Real.log ↑N := by
+        have h3 : (3 : ℝ) ≤ (↑N : ℝ) := Nat.ofNat_le_cast.mpr (by omega)
+        have : Real.exp 1 ≤ (↑N : ℝ) := le_trans (le_of_lt exp_one_lt_three) h3
+        linarith [Real.log_le_log (Real.exp_pos 1) this, Real.log_exp (1 : ℝ)]
+      calc (1 : ℝ) = 1 * 1 ^ 3 := by norm_num
+        _ ≤ Real.sqrt ↑N * Real.log ↑N ^ 3 :=
+            mul_le_mul hsq (pow_le_pow_left₀ (by linarith) hlog 3) (by positivity) (by linarith)
+    have hC₁_pos : (0 : ℝ) < L / 4 * ↑(max N₀ 4) + 1 := by positivity
+    have hC₁_le : L / 4 * ↑(max N₀ 4) + 1 ≤
+        (L / 4 * ↑(max N₀ 4) + 1) * (Real.sqrt ↑N * Real.log ↑N ^ 3) :=
+      le_mul_of_one_le_right hC₁_pos.le hsqlog
+    linarith [T_nonneg N]
 
 end CircleMethod

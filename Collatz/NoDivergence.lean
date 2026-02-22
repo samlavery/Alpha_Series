@@ -5,7 +5,7 @@
   Proof that no odd Collatz orbit diverges.
 
   **Core mechanism (WeylBridge.lean):**
-    Baker + Tao axioms → supercritical ν-sum rate (≥ 33 per 20 steps)
+    Baker rollover axiom → supercritical ν-sum rate (≥ 33 per 20 steps)
     → quantitative contraction (3^20/2^33 ≈ 0.406 < 1)
     → descending checkpoint chain → orbit bounded → ¬divergent.
 
@@ -156,7 +156,7 @@ instance (profile : DivergentProfile) : Fact (profile.M > 0) :=
 /-! ## Step 2: Drift crosses integer boundaries → orbit value shifts → residue sweep -/
 
 /-- **Perfect mixing (discharged via WeylBridge)**:
-    Baker + Tao → supercritical ν-sum, then the constructive bridge
+    Baker rollover → supercritical ν-sum, then the constructive bridge
     `supercritical_rate_implies_residue_hitting` gives residue hitting.
 
     Previously an axiom; now proved by `WeylBridge.drift_crossing_from_baker`
@@ -793,7 +793,7 @@ lemma orbit_mod_two_ne_zero (n₀ : ℕ) (h_odd : Odd n₀) (h_pos : 0 < n₀) (
 /-- Divergence leads to contradiction via the constructive mixing route.
 
     Formally routes through `mixing_orbit_contradiction` at M = 2 with r = 0,
-    but the real proof power is in WeylBridge.lean: Baker + Tao establish
+    but the real proof power is in WeylBridge.lean: Baker rollover establishes
     supercritical rate, and the bridge gives residue hitting. -/
 theorem deterministic_residue_no_tail_unbounded_option2_no_baker :
   ∀ (n₀ : ℕ), 1 < n₀ → Odd n₀ →
@@ -834,7 +834,7 @@ theorem bounded_avoiding_one_implies_cycle :
     h_always_bounded h_never_one h_no_cycles
 
 /-- Divergence is impossible: ultimately proved by WeylBridge.lean
-    (Baker + Tao + supercritical-to-residue bridge).
+    (Baker rollover + supercritical-to-residue bridge).
     Routes through the M = 2 mixing machinery. -/
 theorem divergence_contradiction (n₀ : ℕ) (h_n₀ : n₀ > 1) (h_odd : Odd n₀)
   (h_div : OddOrbitDivergent n₀) :

@@ -225,15 +225,36 @@ theorem xi_differentiable_strip (s : ℂ) (hσ : 1/2 < s.re) (hσ1 : s.re < 1) :
 /-! ## Section 3b: Axiom for Path Derivatives on Real-Valued Functions -/
 
 /-- If a holomorphic function is real-valued along the critical line,
-    then the directional derivative in the imaginary direction (multiply by i)
-    must have zero imaginary part. This is a standard fact from complex analysis:
-    a real-valued smooth function has a real-valued derivative.
-
-    Formal statement: if τ ↦ f(1/2 + iτ) is real, then Im(f'(1/2 + it) · i) = 0.
--/
-axiom critical_line_real_valued_implies_deriv_im_zero (f : ℂ → ℂ) (t : ℝ) :
+    then Im(f'(1/2 + it) · i) = 0. Proved by Aristotle (Harmonic) via
+    Cauchy-Riemann: compose f with τ ↦ ⟨1/2, τ⟩, differentiate the
+    imaginary part (identically zero), connect via chain rule. -/
+theorem critical_line_real_valued_implies_deriv_im_zero (f : ℂ → ℂ) (t : ℝ) :
     (∀ τ : ℝ, (f ⟨(1:ℝ)/2, τ⟩).im = 0) →
-    (deriv f ⟨(1:ℝ)/2, t⟩ * I).im = 0
+    (deriv f ⟨(1:ℝ)/2, t⟩ * I).im = 0 := by
+  intro h_real
+  by_cases H : DifferentiableAt ℂ f (⟨1 / 2, t⟩ : ℂ)
+  · -- The path g(τ) = f(1/2 + iτ) has ℂ-derivative f'(1/2+it) · i
+    have h_g : HasDerivAt (fun τ : ℝ => (⟨1 / 2, τ⟩ : ℂ)) I t := by
+      have h1 : HasDerivAt (fun τ : ℝ => (τ : ℂ)) 1 t :=
+        (hasDerivAt_id t).ofReal_comp
+      have h2 : HasDerivAt (fun τ : ℝ => (τ : ℂ) * I + (1/2 : ℂ)) (1 * I) t :=
+        (h1.mul_const I).add_const _
+      convert h2 using 1 <;> [ext τ; simp]
+      simp [Complex.ext_iff]
+    have h_path : HasDerivAt (fun τ : ℝ => f ⟨1 / 2, τ⟩)
+        (deriv f ⟨1 / 2, t⟩ * I) t :=
+      H.hasDerivAt.comp t h_g
+    -- g(τ).im is identically 0, so deriv(g.im) = 0
+    -- But deriv(g.im) = (deriv g).im = (f'·I).im
+    have h_const : HasDerivAt (fun _ : ℝ => (0 : ℝ)) 0 t := hasDerivAt_const t 0
+    have h_eq : (fun τ : ℝ => (f ⟨1 / 2, τ⟩).im) = fun _ => 0 := funext h_real
+    -- Get HasDerivAt for the imaginary part via hasFDerivAt composition
+    have h_im : HasDerivAt (fun τ : ℝ => (f ⟨1 / 2, τ⟩).im)
+        ((deriv f ⟨1 / 2, t⟩ * I).im) t := by
+      exact Complex.imCLM.hasFDerivAt.comp_hasDerivAt t h_path
+    rw [h_eq] at h_im
+    exact h_im.unique h_const
+  · rw [deriv_zero_of_not_differentiableAt H]; norm_num
 
 /-! ## Section 4: Local Nonvanishing Near Simple Zeros (Structure)
 
