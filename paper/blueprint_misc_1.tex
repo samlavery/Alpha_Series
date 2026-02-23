@@ -1,0 +1,1294 @@
+%% blueprint_misc_1.tex
+%%
+%% LaTeX blueprint for miscellaneous Collatz/ infrastructure files:
+%%   LiouvilleCounterexample, BeurlingCounterexample, CycleLemma,
+%%   CyclotomicBridge, CyclotomicDrift, DiscreteContainment,
+%%   DiscreteContainmentCE, EntangledPair, FloorTail, FoundationalGap,
+%%   AFECoordinationConstructive
+%%
+%% Style: leanblueprint (plasTeX).  Compile with:
+%%   leanblueprint build  or  pdflatex + makeindex
+%%
+\documentclass[a4paper,12pt]{article}
+
+%% --- packages ---
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+%% --- leanblueprint shims ---
+\newcommand{\lean}[1]{\texttt{#1}}
+\newcommand{\uses}[1]{\par\noindent\textit{Uses: \texttt{#1}}}
+\newcommand{\leanok}{\par\noindent\textit{(Lean~4 proof complete)}}
+\newcommand{\sorry}{\par\noindent\textcolor{red}{\textit{(sorry present)}}}
+
+%% --- theorem environments ---
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{axiom_block}[theorem]{Axiom}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example_block}[theorem]{Example}
+
+%% --- title ---
+\title{Blueprint: Miscellaneous Infrastructure I\\
+       \large Counterexamples, Combinatorics, Cyclotomic Algebra,\\
+               Discrete Containment, and the Entangled Spiral Pair}
+\author{Lean~4 Formalization Project}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+%% =========================================================================
+\section{The Liouville Counterexample: Fragility of the Collatz Conjecture}
+\label{sec:liouville}
+%% =========================================================================
+
+\lean{LiouvilleCounterexample}
+
+The Collatz conjecture for the map $T(n) = n/2$ (even), $3n+1$ (odd)
+rests on two independent number-theoretic properties of the multiplier
+$m = 3$:
+\begin{enumerate}
+  \item \textbf{Integer residue structure.}
+        The congruence $x \bmod 4$ forces extra halving ($\nu \geq 2$)
+        for exactly half of odd inputs, giving average
+        $\bar\nu \approx 1.65 > \log_2 3 \approx 1.585$, which
+        implies contraction and prevents divergence.
+  \item \textbf{Baker's foundational gap.}
+        $|2^S - 3^k| \geq \exp(-C\, k^\kappa) > 0$, which prevents
+        the cycle equation from being satisfiable for nontrivial
+        integer orbits.
+\end{enumerate}
+This section proves that for Liouville multipliers $m \in (3,4) \cap \mathbb{Q}$
+both conditions fail, and nontrivial cycles of every size form.
+All results carry \emph{zero custom axioms}.
+
+\subsection{The Collatz Map and Halving Structure}
+
+\begin{definition}[Collatz map and two-step]
+\lean{LiouvilleCounterexample.collatz},
+\lean{LiouvilleCounterexample.collatzTwoStep}
+
+The standard Collatz map is
+\[
+  T(n) = \begin{cases} n/2 & 2 \mid n, \\ 3n+1 & 2 \nmid n. \end{cases}
+\]
+The \emph{two-step} from an odd $x$ with minimal halving ($\nu = 1$)
+is $T_2(x) = (3x+1)/2$.
+\leanok
+\end{definition}
+
+\begin{lemma}[Forced extra halving for $x \equiv 1 \pmod{4}$]
+\lean{LiouvilleCounterexample.double_halving_mod1}
+
+If $x \equiv 1 \pmod{4}$, then $4 \mid (3x+1)$; in particular the
+Collatz orbit gets at least two consecutive halvings.
+\[
+  x \equiv 1 \pmod{4} \implies 4 \mid (3x+1).
+\]
+\uses{LiouvilleCounterexample.collatz}
+\leanok
+
+\textit{Proof sketch.}  Direct modular arithmetic: $3 \cdot 1 + 1 = 4$,
+and $3(4k+1)+1 = 12k+4 = 4(3k+1)$.
+\end{lemma}
+
+\begin{lemma}[Minimal halving for $x \equiv 3 \pmod{4}$]
+\lean{LiouvilleCounterexample.min_halving_mod3}
+
+If $x \equiv 3 \pmod{4}$, then $2 \mid (3x+1)$ but $4 \nmid (3x+1)$,
+so exactly one halving occurs.
+\[
+  x \equiv 3 \pmod{4} \implies (3x+1) \equiv 2 \pmod{4}.
+\]
+\uses{LiouvilleCounterexample.collatz}
+\leanok
+\end{lemma}
+
+\begin{lemma}[Two-step preserves odd parity after minimal halving]
+\lean{LiouvilleCounterexample.collatzTwoStep_odd}
+
+If $x \equiv 3 \pmod{4}$, then $T_2(x) = (3x+1)/2$ is odd.
+\uses{LiouvilleCounterexample.min_halving_mod3}
+\leanok
+\end{lemma}
+
+\begin{lemma}[Every odd integer forces extra or minimal halving]
+\lean{LiouvilleCounterexample.forced_extra_halving_or_minimal}
+
+For every odd $x$, either $4 \mid (3x+1)$ or $(3x+1) \equiv 2 \pmod{4}$.
+This is the dichotomy underlying Tao's mixing argument.
+\leanok
+\end{lemma}
+
+\subsection{Divergence Under Persistent Minimal Halving}
+
+\begin{definition}[Minimal-halving orbit over $\mathbb{Q}$]
+\lean{LiouvilleCounterexample.collatzMinHalvOrbit}
+
+The orbit under persistent $\nu = 1$ is the sequence
+$x_0, x_1, x_2, \ldots$ over $\mathbb{Q}$ defined by
+$x_{k+1} = (3x_k + 1)/2$.
+\leanok
+\end{definition}
+
+\begin{lemma}[Orbit positivity]
+\lean{LiouvilleCounterexample.collatzMinHalvOrbit_pos}
+
+If $x_0 > 0$ then $x_k > 0$ for all $k$.
+\uses{LiouvilleCounterexample.collatzMinHalvOrbit}
+\leanok
+\end{lemma}
+
+\begin{lemma}[Geometric growth lower bound]
+\lean{LiouvilleCounterexample.collatzMinHalvOrbit_growth}
+
+For all $k \in \mathbb{N}$,
+$\left(\frac{3}{2}\right)^k x_0 \leq x_k$.
+\uses{LiouvilleCounterexample.collatzMinHalvOrbit}
+\leanok
+
+\textit{Proof sketch.}  By induction: the step
+$x_{k+1} = (3x_k+1)/2 \geq \frac{3}{2} x_k$ gives the ratio $3/2$,
+and the $+1$ term only helps.
+\end{lemma}
+
+\begin{lemma}[Linear growth lower bound]
+\lean{LiouvilleCounterexample.collatzMinHalvOrbit_linear}
+
+For all $k \in \mathbb{N}$,
+$x_0 + \frac{k}{2} \leq x_k$.
+
+\textit{Proof sketch.}  Each step adds at least $1/2$:
+$(3y+1)/2 - y = (y+1)/2 \geq 1/2$ for $y > 0$.
+\uses{LiouvilleCounterexample.collatzMinHalvOrbit}
+\leanok
+\end{lemma}
+
+\begin{theorem}[Divergence under minimal halving]
+\lean{LiouvilleCounterexample.collatzMinHalvOrbit_unbounded}
+
+For any $B \in \mathbb{Q}$ and $x_0 > 0$, there exists $k \in \mathbb{N}$
+such that $x_k > B$.  The minimal-halving orbit is \emph{unbounded}.
+\uses{LiouvilleCounterexample.collatzMinHalvOrbit_linear}
+\leanok
+
+\textit{Proof sketch.}  Choose $k > 2(B - x_0)$ and apply the linear
+lower bound.
+\end{theorem}
+
+\subsection{Cycle Equation Over $\mathbb{Q}$}
+
+A Collatz cycle of period $k$ with $S$ total halvings satisfies the
+\emph{cycle equation}
+\[
+  x_0 \cdot (2^S - m^k) = W_k(m),
+\]
+where $W_k$ is always positive.  For a $1$-cycle with $\nu = 2$
+halvings, this reduces to $x_0(4 - m) = 1$, giving $x_0 = 1/(4-m)$.
+
+\begin{example_block}[Trivial Collatz cycle]
+\lean{LiouvilleCounterexample.trivial_collatz_cycle}
+
+For $m = 3$: the equation $x_0 = 1/(4-3) = 1$ gives the trivial cycle
+$1 \to 4 \to 2 \to 1$.
+\leanok
+\end{example_block}
+
+\begin{example_block}[No nontrivial integer $1$-cycle]
+\lean{LiouvilleCounterexample.no_nontrivial_collatz_cycle}
+
+For $m = 3$, $x_0 = 2$ does not satisfy $(3 \cdot 2 + 1)/4 = 2$.
+Baker prevents this.
+\leanok
+\end{example_block}
+
+\begin{theorem}[Cycle for any target over $\mathbb{Q}$]
+\lean{LiouvilleCounterexample.collatz_cycle_for_any_target}
+
+For every rational $x_0 > 1$, there exists $m \in \mathbb{Q}$ with
+$3 < m < 4$ such that the generalized map $T_m(n) = n/2$ (even),
+$mn+1$ (odd) has a $1$-cycle at $x_0$.  The explicit witness is
+$m = (4x_0 - 1)/x_0$.
+\leanok
+
+\textit{Proof sketch.}  Set $m = (4x_0-1)/x_0$.  Then
+$m x_0 + 1 = 4x_0$, so $(mx_0+1)/4 = x_0$.
+The bounds $3 < m < 4$ follow from $x_0 > 1$.
+\end{theorem}
+
+\begin{lemma}[Foundational gap formula]
+\lean{LiouvilleCounterexample.collatz_foundational_gap}
+
+For $m = (4x_0 - 1)/x_0$, the gap is $4 - m = 1/x_0$.
+As $x_0 \to \infty$ (Liouville limit), $m \to 4$ and the gap vanishes.
+\leanok
+\end{lemma}
+
+\subsection{The Fragility Summary}
+
+\begin{theorem}[Collatz fragility]
+\lean{LiouvilleCounterexample.collatz_fragility}
+\lean{LiouvilleCounterexample.two_pow_ne_three_pow}
+
+The following hold simultaneously:
+\begin{enumerate}
+  \item \textbf{Integer uniqueness.}  $2^S \neq 3^k$ for all $S > 0$, $k \geq 0$
+        (follows from unique prime factorization: $2^S$ is even, $3^k$ is odd).
+  \item \textbf{Liouville cycles.}  For every $x_0 > 1$ there exists
+        $m \in (3,4)$ giving a $1$-cycle at $x_0$.
+\end{enumerate}
+\leanok
+
+\textit{Proof sketch.}  Part (1): if $2^S = 3^k$ then $2 \mid 3^k$,
+contradicting the primality of $3$.  Part (2): \texttt{collatz\_cycle\_for\_any\_target}.
+
+\begin{remark}
+The analogy with the Riemann Hypothesis (Beurling counterexample) is exact:
+\[
+\renewcommand{\arraystretch}{1.3}
+\begin{array}{|l|l|l|}
+\hline
+\textbf{Property} & \textbf{Beurling (RH)} & \textbf{Liouville (Collatz)} \\
+\hline
+\text{Axiom} & \text{log independence} & \text{Baker gap} \\
+\text{When gap} = 0 & \text{off-line zeros form} & \text{nontrivial cycles form} \\
+\text{Tilt analog} & p^{-\sigma}\ \text{vs}\ p^{-1/2} & \text{contraction rate}\ 3/2^\nu \\
+\hline
+\end{array}
+\]
+\end{remark}
+\end{theorem}
+
+%% =========================================================================
+\section{The Beurling Counterexample: Fragility of the Riemann Hypothesis}
+\label{sec:beurling}
+%% =========================================================================
+
+\lean{BeurlingCounterexample}
+
+A zero-axiom demonstration that the Riemann Hypothesis for
+$\zeta(s) = \prod_p (1-p^{-s})^{-1}$ depends on the $\mathbb{Z}$-linear
+independence of $\{\log p : p\ \text{prime}\}$.  For Beurling systems where
+this independence fails, the analogue of RH is false
+(Diamond--Montgomery--Vorhauer 2006).
+
+\subsection{Logarithmic Independence of Actual Primes}
+
+\begin{lemma}[Log of a prime is positive]
+\lean{BeurlingCounterexample.log_prime_pos}
+
+For every prime $p$, $\log p > 0$.
+\leanok
+\end{lemma}
+
+\begin{lemma}[Distinct primes have distinct powers]
+\lean{BeurlingCounterexample.prime_pow_ne}
+
+For distinct primes $p \neq q$ and $a > 0$, $p^a \neq q^b$ for any $b$.
+
+\textit{Proof sketch.}  If $p^a = q^b$ then $p \mid q^b$, so $p \mid q$
+(by primality), giving $p = q$, a contradiction.
+\leanok
+\end{lemma}
+
+\begin{theorem}[Log-linear independence]
+\lean{BeurlingCounterexample.log_independence}
+
+For distinct primes $p \neq q$ and exponents $a, b > 0$,
+\[
+  a \log p \neq b \log q.
+\]
+This is the \emph{FundamentalGap constant} of $\zeta(s)$: the set
+$\{\log p : p\ \text{prime}\}$ is $\mathbb{Z}$-linearly independent.
+\uses{BeurlingCounterexample.prime_pow_ne}
+\leanok
+
+\textit{Proof sketch.}  If $a \log p = b \log q$ then
+$\log(p^a) = \log(q^b)$, so $p^a = q^b$ (injectivity of $\log$ on
+$(0,\infty)$), contradicting \lean{prime\_pow\_ne}.
+\end{theorem}
+
+\begin{corollary}[FundamentalGap gap is positive]
+\lean{BeurlingCounterexample.fundamentalGap_gap_pos}
+
+For distinct primes $p \neq q$ and $a, b > 0$,
+$|a \log p - b \log q| > 0$.
+Baker's theorem strengthens this to an effective lower bound
+$\exp(-C(\log B)^\kappa)$.
+\uses{BeurlingCounterexample.log_independence}
+\leanok
+\end{corollary}
+
+\begin{example_block}[Concrete non-resonance for primes 2 and 3]
+\lean{BeurlingCounterexample.no_resonance_2_3},
+\lean{BeurlingCounterexample.no_resonance_2_3_v2}
+
+$2\log 2 \neq \log 3$ and $3\log 2 \neq 2\log 3$; equivalently,
+$4 \neq 3$ and $8 \neq 9$.
+\leanok
+\end{example_block}
+
+\subsection{Logarithmic Dependence for Beurling ``Primes''}
+
+Replace actual primes with $\{b, b^2, b^3, \ldots\}$ for a base $b > 1$.
+All logarithms are multiples of $\log b$: the system is maximally
+log-dependent.
+
+\begin{theorem}[FundamentalGap gap is zero for Beurling systems]
+\lean{BeurlingCounterexample.fundamentalGap_gap_zero}
+
+For any $b > 1$ and $k \geq 0$,
+$|\log(b^k) - k \log b| = 0$.
+Baker's theorem gives no obstruction.
+\leanok
+\end{theorem}
+
+\begin{theorem}[Any rational phase ratio is achievable]
+\lean{BeurlingCounterexample.beurling_any_ratio}
+
+For positive integers $a, b$,
+$\log(2^a)/\log(2^b) = a/b$.
+Phases are commensurable: resonance occurs at $t = 2\pi/\log b$.
+\leanok
+\end{theorem}
+
+\subsection{The Tilt Structure}
+
+\begin{definition}[Amplitude tilt]
+\lean{BeurlingCounterexample.tilt}
+
+The tilt $\tau_p(\sigma) = p^{-\sigma} - p^{-1/2}$ measures each
+prime's deviation from the critical-line weighting.
+\leanok
+\end{definition}
+
+\begin{lemma}[Tilt vanishes on the critical line]
+\lean{BeurlingCounterexample.tilt_zero_critical}
+
+$\tau_p(1/2) = 0$ for any system.
+\leanok
+\end{lemma}
+
+\begin{lemma}[Tilt is negative for $\sigma > 1/2$, positive for $\sigma < 1/2$]
+\lean{BeurlingCounterexample.tilt_neg_of_gt},
+\lean{BeurlingCounterexample.tilt_pos_of_lt}
+
+For $p \geq 2$: $\sigma > 1/2 \implies \tau_p(\sigma) < 0$ and
+$\sigma < 1/2 \implies \tau_p(\sigma) > 0$.
+\leanok
+\end{lemma}
+
+\subsection{The Fragility Summary}
+
+\begin{theorem}[RH fragility]
+\lean{BeurlingCounterexample.fragility}
+
+The following hold simultaneously:
+\begin{enumerate}
+  \item For actual primes $p \neq q$ and $a, b > 0$:
+        $|a \log p - b \log q| > 0$.
+  \item For Beurling ``primes'' $\{b^k\}$:
+        $|\log(b^k) - k \log b| = 0$.
+\end{enumerate}
+\uses{BeurlingCounterexample.fundamentalGap_gap_pos,
+      BeurlingCounterexample.fundamentalGap_gap_zero}
+\leanok
+
+\textit{Proof sketch.}  Part (1) is \lean{fundamentalGap\_gap\_pos};
+part (2) is \lean{fundamentalGap\_gap\_zero}.
+The Diamond--Montgomery--Vorhauer theorem (2006) shows that Beurling
+systems with $|{}\cdot{}| = 0$ have off-line zeros.
+\end{theorem}
+
+%% =========================================================================
+\section{The Cycle Lemma (Dvoretzky--Motzkin)}
+\label{sec:cycle-lemma}
+%% =========================================================================
+
+\lean{Collatz.CycleLemma}
+
+A classical combinatorial result (Dvoretzky--Motzkin 1947) used in the
+Collatz analysis to establish rotation rigidity of halving profiles.
+
+\subsection{Partial Sums and Rotated Sums}
+
+\begin{definition}[Partial sum]
+\lean{Collatz.CycleLemma.partialSum}
+
+$P_j = \sum_{i < j} d_i$ for a function $d : \mathbb{N} \to \mathbb{Z}$.
+\leanok
+\end{definition}
+
+\begin{definition}[Rotated sum]
+\lean{Collatz.CycleLemma.rotatedSum}
+
+$Q_\ell = \sum_{i < \ell} d((j_0 + i) \bmod k)$ for a starting
+index $j_0$.
+\leanok
+\end{definition}
+
+\begin{lemma}[No-wrap case]
+\lean{Collatz.CycleLemma.rotatedSum_no_wrap}
+
+When $j_0 + \ell \leq k$ (no wraparound), the rotated sum equals
+$P_{j_0 + \ell} - P_{j_0}$.
+\leanok
+\end{lemma}
+
+\begin{lemma}[Wrap case]
+\lean{Collatz.CycleLemma.rotatedSum_wrap}
+
+When $j_0 + \ell > k$ (wraparound) and $\sum_{i<k} d_i = 0$, the
+rotated sum equals $P_{(j_0+\ell) \bmod k} - P_{j_0} + P_k$.
+Since $P_k = 0$ under the hypothesis, this simplifies to
+$P_{(j_0+\ell) \bmod k} - P_{j_0}$.
+\leanok
+\end{lemma}
+
+\subsection{Main Results}
+
+\begin{theorem}[Cycle Lemma (natural number version)]
+\lean{Collatz.CycleLemma.cycle_lemma_nat}
+
+Let $k > 0$ and $d : \mathbb{N} \to \mathbb{Z}$ with $\sum_{i<k} d_i = 0$.
+There exists $j_0 < k$ such that $\forall \ell \leq k$,
+$Q_\ell(j_0) \geq 0$: every prefix of the rotation starting at $j_0$ is
+nonneg.
+\uses{Collatz.CycleLemma.rotatedSum_no_wrap,
+      Collatz.CycleLemma.rotatedSum_wrap}
+\leanok
+
+\textit{Proof sketch.}  Choose $j_0$ minimizing $P_{j_0}$ over
+$\{0, \ldots, k\}$.  For the no-wrap case,
+$Q_\ell = P_{j_0+\ell} - P_{j_0} \geq 0$ by minimality.  The
+wrap case uses $P_k = 0$ and the same minimality argument on the
+modular remainder.
+\end{theorem}
+
+\begin{theorem}[Cycle Lemma (Fin version)]
+\lean{Collatz.CycleLemma.cycle_lemma_fin}
+
+For $d : \text{Fin}\,k \to \mathbb{Z}$ with $\sum_i d_i = 0$, there
+exists $j_0 : \text{Fin}\,k$ such that all prefix sums of the rotated
+sequence are nonneg.
+\uses{Collatz.CycleLemma.cycle_lemma_nat}
+\leanok
+\end{theorem}
+
+\begin{theorem}[Simple Rigidity]
+\lean{Collatz.CycleLemma.nonneg_sum_zero_implies_all_zero}
+
+If $d : \text{Fin}\,k \to \mathbb{Z}$ satisfies $\sum_i d_i = 0$ and
+$d_i \geq 0$ for all $i$, then $d_i = 0$ for all $i$.
+\leanok
+
+\textit{Proof sketch.}  If some $d_i > 0$ then
+$\sum_j d_j \geq d_i > 0$, contradicting the sum-zero hypothesis.
+\end{theorem}
+
+\begin{corollary}[Rotation Rigidity]
+\lean{Collatz.CycleLemma.rotation_rigidity}
+
+A closed walk (sum~$= 0$) with all steps nonneg forces every step to be
+zero.  Direct consequence of Simple Rigidity.
+\uses{Collatz.CycleLemma.nonneg_sum_zero_implies_all_zero}
+\leanok
+\end{corollary}
+
+%% =========================================================================
+\section{Cyclotomic Bridge}
+\label{sec:cyclobridge}
+%% =========================================================================
+
+\lean{Collatz.CyclotomicBridge}
+
+The cyclotomic ring $\mathbb{Z}[\zeta_d]$ captures the ``true'' orbit
+position via the \emph{balance sum}
+$B = \sum_r \mathrm{FW}_r \zeta^r$.
+The central result lifts divisibility from $\mathbb{Z}$ to $\mathbb{Z}[\zeta_d]$:
+if $\Phi_d(4,3) \mid W_k$ in $\mathbb{Z}$, then $(4-3\zeta) \mid B$ in
+$O_K = \mathbb{Z}[\zeta_d]$.
+
+\subsection{Bivariate Cyclotomic Polynomial}
+
+\begin{definition}[Bivariate cyclotomic polynomial]
+\lean{Collatz.CyclotomicBridge.cyclotomicBivar}
+
+$\Phi_q(x,y) = \sum_{i=0}^{q-1} x^{q-1-i} y^i = (x^q - y^q)/(x-y)$.
+\leanok
+\end{definition}
+
+\begin{lemma}[Factorization identity]
+\lean{Collatz.CyclotomicBridge.cyclotomicBivar_mul_sub}
+
+$(x - y) \cdot \Phi_q(x,y) = x^q - y^q$.
+\leanok
+\end{lemma}
+
+\begin{lemma}[$\Phi_d(4,3)$ divides $4^m - 3^m$ when $d \mid m$]
+\lean{Collatz.CyclotomicBridge.cyclotomicBivar_dvd_pow_sub_general}
+
+For $d \mid m$, $(4^d - 3^d) \mid (4^m - 3^m)$ in $\mathbb{Z}$, and
+$\Phi_d(4,3) \mid (4^m - 3^m)$.
+\uses{Collatz.CyclotomicBridge.cyclotomicBivar_mul_sub}
+\leanok
+\end{lemma}
+
+\begin{lemma}[$\Phi_d(4,3) > 0$ for $d \geq 1$]
+\lean{Collatz.CyclotomicBridge.cyclotomicBivar_pos}
+
+All terms $4^{d-1-i} \cdot 3^i$ are positive, so the sum is positive.
+\leanok
+\end{lemma}
+
+\subsection{Cyclotomic Field and Ring of Integers}
+
+\begin{definition}[Cyclotomic field and root]
+\lean{Collatz.CyclotomicBridge.zetaD},
+\lean{Collatz.CyclotomicBridge.CyclotomicFieldD},
+\lean{Collatz.CyclotomicBridge.OKD}
+
+$K = \mathbb{Q}(\zeta_d)$ with primitive $d$-th root $\zeta_d$ and ring
+of integers $O_K = \mathbb{Z}[\zeta_d]$.
+\leanok
+\end{definition}
+
+\begin{lemma}[$\zeta_d^n = \zeta_d^{n \bmod d}$]
+\lean{Collatz.CyclotomicBridge.zetaD_pow_mod}
+
+Powers of $\zeta_d$ fold modulo $d$.
+\leanok
+\end{lemma}
+
+\begin{definition}[Balance sum and key element]
+\lean{Collatz.CyclotomicBridge.balanceSumD},
+\lean{Collatz.CyclotomicBridge.fourSubThreeZetaD}
+
+$B = \sum_{r \in \text{Fin}\,d} \mathrm{FW}_r \zeta_d^r$ (the balance sum)
+and $\alpha = 4 - 3\zeta_d$ (the key generator).
+\leanok
+\end{definition}
+
+\begin{lemma}[$4 - 3\zeta_d \neq 0$ for $d \geq 2$]
+\lean{Collatz.CyclotomicBridge.fourSubThreeZetaD_ne_zero}
+
+$4 - 3\zeta_d \neq 0$, since $\zeta_d = 4/3$ would imply $4^d = 3^d$,
+which contradicts unique factorization.
+\uses{Collatz.CyclotomicBridge.zetaD_is_primitive}
+\leanok
+\end{lemma}
+
+\begin{lemma}[$\gcd(3,\ 4-3\zeta) = 1$ in $O_K$]
+\lean{Collatz.CyclotomicBridge.isCoprime_three_fourSubThreeO}
+
+$3$ and $4-3\zeta_d$ are coprime in $O_K$: the Bezout witness is
+$(\zeta_d - 1) \cdot 3 + 1 \cdot (4-3\zeta_d) = 1$.
+\leanok
+\end{lemma}
+
+\subsection{The Folding Lemma and Wave Sum}
+
+\begin{definition}[Wave sum polynomial]
+\lean{Collatz.CyclotomicBridge.waveSumPoly}
+
+$f(x) = \sum_{j < m} 3^{m-1-j} w_j x^j$ for weights $w : \text{Fin}\,m \to \mathbb{N}$.
+\leanok
+\end{definition}
+
+\begin{lemma}[Folding unfolded $\to$ folded]
+\lean{Collatz.CyclotomicBridge.sum_unfolded_eq_folded_zetaD}
+
+If $\mathrm{FW}_r = \sum_{j : j \bmod d = r} w_j$, then
+\[
+  \sum_{j < m} w_j \zeta_d^j = \sum_{r < d} \mathrm{FW}_r \zeta_d^r = B.
+\]
+\uses{Collatz.CyclotomicBridge.zetaD_pow_mod}
+\leanok
+\end{lemma}
+
+\subsection{The Central Bridge Theorem}
+
+\begin{theorem}[Cyclotomic bridge]
+\lean{Collatz.CyclotomicBridge.OKD_divisibility_from_waveSum_divisibility}
+
+Suppose $d \geq 2$, $d \mid m$, and $\Phi_d(4,3) \mid f(4)$ in $\mathbb{Z}$.
+Then $(4-3\zeta_d) \mid B$ in $O_K$.
+\[
+  \Phi_d(4,3) \mid W \text{ in } \mathbb{Z}
+  \implies (4-3\zeta_d) \mid B \text{ in } \mathbb{Z}[\zeta_d].
+\]
+\uses{Collatz.CyclotomicBridge.cyclotomicBivar_dvd_pow_sub_general,
+      Collatz.CyclotomicBridge.fourSubThreeZetaD_dvd_of_cyclotomicBivar_dvd_OKD,
+      Collatz.CyclotomicBridge.sum_unfolded_eq_folded_zetaD}
+\leanok
+
+\textit{Proof sketch.}  Steps: (1) $\Phi_d(4,3) \mid f(4)$ lifts to
+$(4-3\zeta) \mid f(4)$ via the factorization
+$\Phi_d(4,3) = (4-3\zeta) \cdot C$ in $K$.
+(2) $(4-3\zeta) \mid f(4) - f(3\zeta)$ since each summand $4^j - (3\zeta)^j$
+factors through $(4 - 3\zeta)$.
+(3) Therefore $(4-3\zeta) \mid f(3\zeta)$.
+(4) $f(3\zeta) = 3^{m-1} \cdot \sum w_j \zeta^j = 3^{m-1} B$.
+(5) Coprimality of 3 and $(4-3\zeta)$ gives $(4-3\zeta) \mid B$.
+\end{theorem}
+
+%% =========================================================================
+\section{Cyclotomic Drift}
+\label{sec:cyclodrift}
+%% =========================================================================
+
+\lean{Collatz.CyclotomicDrift}
+
+Proves that no nontrivial \texttt{CycleProfile} is realizable, using the
+cyclotomic rigidity path (algebraic number theory in $\mathbb{Z}[\zeta_d]$).
+
+\subsection{Partial Sum Infrastructure}
+
+\begin{lemma}[Partial sum at index 0 is 0]
+\lean{Collatz.CyclotomicDrift.partialSum_zero}
+
+$P(0) = 0$ for any \texttt{CycleProfile}.
+\leanok
+\end{lemma}
+
+\begin{lemma}[Monotone lower bound: $S_j \geq j$]
+\lean{Collatz.CyclotomicDrift.partialSum_ge_index}
+
+The partial sum satisfies $j \leq P(j)$ for all $j < m$,
+since each $\nu_i \geq 1$.
+\leanok
+\end{lemma}
+
+\subsection{A$+$B Decomposition}
+
+\begin{definition}[A and B terms]
+\lean{Collatz.CyclotomicDrift.termA},
+\lean{Collatz.CyclotomicDrift.termB}
+
+Given a profile $P$ with $m$ odd steps and a free integer $n_0$:
+\[
+  A = 3^{m-1}(1 + 3n_0), \qquad
+  B = \sum_{j \geq 1} 3^{m-1-j} \cdot 2^{S_j}.
+\]
+\leanok
+\end{definition}
+
+\begin{theorem}[Orbit quantity decomposes as $A + B$]
+\lean{Collatz.CyclotomicDrift.E_eq_A_plus_B}
+
+For any profile $P$ and integer $n_0$,
+\[
+  W + n_0 \cdot 3^m = A + B.
+\]
+\uses{Collatz.CyclotomicDrift.termA, Collatz.CyclotomicDrift.termB}
+\leanok
+
+\textit{Proof sketch.}  Split the wavesum $W$ by extracting the $j=0$ term
+and merging with the $n_0 3^m$ contribution into $A$; the remaining
+$j \geq 1$ terms form $B$.
+\end{theorem}
+
+%% =========================================================================
+\section{Discrete Containment}
+\label{sec:discrete-containment}
+%% =========================================================================
+
+\lean{DiscreteContainment}
+
+The Collatz proof and the Riemann Hypothesis share the same mechanism:
+integer structure (discreteness) prevents pathological behavior that
+continuous systems permit.  This module assembles three proved
+``pillars'' and applies them to conclude $\zeta(s) \neq 0$ in the
+critical strip.
+
+\subsection{Three Pillars (All Proved, Zero Custom Axioms)}
+
+\begin{theorem}[Pillar 1: Finite Euler products are nonzero]
+\lean{DiscreteContainment.finite_euler_product_ne_zero}
+
+For any $N$ and $\operatorname{Re}(s) > 0$:
+\[
+  \prod_{p \leq N,\, p\ \text{prime}} (1 - p^{-s}) \neq 0.
+\]
+\uses{PrimeBranching.euler_factor_ne_zero}
+\leanok
+\end{theorem}
+
+\begin{theorem}[Pillar 2: Energy convergence]
+\lean{DiscreteContainment.pillar_energy}
+
+For $\sigma > 1/2$, $\sum_{p\ \text{prime}} p^{-2\sigma} < \infty$.
+\uses{PrimeBranching.energy_convergence}
+\leanok
+\end{theorem}
+
+\begin{theorem}[Pillar 3: Log independence]
+\lean{DiscreteContainment.pillar_log_independence}
+
+The set $\{\log p : p\ \text{prime}\}$ is $\mathbb{Z}$-linearly independent
+(unique factorization).
+\uses{PrimeBranching.log_primes_ne_zero}
+\leanok
+\end{theorem}
+
+\begin{theorem}[Pillar 3 is necessary]
+\lean{DiscreteContainment.pillar3_necessary}
+
+For Beurling systems $\{b^k\}$, Pillar 3 fails:
+$|\log(b^k) - k\log b| = 0$, and off-line zeros form.
+\uses{BeurlingCounterexample.fundamentalGap_gap_zero}
+\leanok
+\end{theorem}
+
+\subsection{The Discrete Containment Principle}
+
+\begin{theorem}[Discrete containment]
+\lean{DiscreteContainment.discrete_containment}
+
+Given: (i) all finite Euler sub-products nonzero, (ii) energy convergence,
+(iii) log independence, and (iv) the geometric off-axis coordination
+hypothesis (\lean{EntangledPair.GeometricOffAxisCoordinationHypothesis}),
+then $\zeta(s) \neq 0$ for $1/2 < \operatorname{Re}(s) < 1$.
+\uses{EntangledPair.strip_nonvanishing}
+\leanok
+
+\textit{Proof sketch.}  Now a theorem via
+\lean{EntangledPair.strip\_nonvanishing}.  The three pillar hypotheses
+are discharged from the proved results; the geometric coordination hypothesis
+is the sole remaining input.
+\end{theorem}
+
+\begin{theorem}[$\zeta(s) \neq 0$ in the strip]
+\lean{DiscreteContainment.zeta_ne_zero_in_strip}
+
+Under the geometric coordination hypothesis,
+$\zeta(s) \neq 0$ for $1/2 < \operatorname{Re}(s) < 1$.
+\uses{DiscreteContainment.discrete_containment}
+\leanok
+\end{theorem}
+
+\subsection{Functional Equation Reflection}
+
+\begin{theorem}[Functional equation reflection (proved from Mathlib)]
+\lean{DiscreteContainment.functional_equation_reflection}
+
+For a nontrivial zero $\zeta(s) = 0$ with $\operatorname{Re}(s) < 1/2$:
+$\zeta(1-s) = 0$ and $\operatorname{Re}(1-s) > 1/2$.
+\leanok
+
+\textit{Proof sketch.}
+$\zeta(s) = 0 \implies \xi(s) = 0$
+(since $\Gamma_\mathbb{R}(s) \neq 0$ for nontrivial zeros)
+$\implies \xi(1-s) = 0$ (functional equation $\xi(1-s) = \xi(s)$)
+$\implies \zeta(1-s) = 0$.
+\end{theorem}
+
+\begin{theorem}[All nontrivial zeros lie on $\operatorname{Re}(s) = 1/2$]
+\lean{DiscreteContainment.no_off_line_zeros}
+\lean{DiscreteContainment.riemann_hypothesis}
+
+Under the geometric coordination hypothesis, $\operatorname{Re}(s) = 1/2$
+for every nontrivial zero.
+
+Case split: $\operatorname{Re}(s) > 1/2$ is directly excluded by
+\lean{zeta\_ne\_zero\_right\_half}; $\operatorname{Re}(s) < 1/2$ reflects
+to $\operatorname{Re}(1-s) > 1/2$, also excluded.
+\uses{DiscreteContainment.zeta_ne_zero_in_strip,
+      DiscreteContainment.functional_equation_reflection}
+\leanok
+\end{theorem}
+
+%% =========================================================================
+\section{Discrete Containment Counterexample}
+\label{sec:discrete-ce}
+%% =========================================================================
+
+\lean{DiscreteContainmentCE}
+
+A zero-axiom demonstration that the three-pillar framework of
+\S\ref{sec:discrete-containment} is \emph{vacuous}: each pillar is
+unconditionally true for any $s$ with $\operatorname{Re}(s) > 1/2$.
+
+\begin{definition}[Strip nonvanishing and three-pillar formulations]
+\lean{DiscreteContainmentCE.StripNonvanishing},
+\lean{DiscreteContainmentCE.ThreePillarNonvanishing}
+
+$\mathrm{StripNonvanishing}$: $\forall s,\ 1/2 < \operatorname{Re}(s) < 1 \implies \zeta(s) \neq 0$.
+
+$\mathrm{ThreePillarNonvanishing}$: the same statement with the three
+pillar hypotheses pre-pended as explicit arguments.
+\leanok
+\end{definition}
+
+\begin{theorem}[The three-pillar formulation is equivalent to bare strip nonvanishing]
+\lean{DiscreteContainmentCE.three_pillars_are_vacuous}
+
+$\mathrm{StripNonvanishing} \iff \mathrm{ThreePillarNonvanishing}$.
+The three hypotheses are tautologically true and carry no mathematical
+content.
+\leanok
+
+\textit{Proof sketch.}
+Forward direction: given bare strip nonvanishing, ignore the three
+hypotheses.  Backward direction: feed in the always-true hypotheses
+(Pillar 1 holds for $\operatorname{Re}(s) > 0$, Pillar 2 for
+$\sigma > 1/2$, Pillar 3 unconditionally).
+\end{theorem}
+
+\begin{theorem}[Pillars are independent of the imaginary part]
+\lean{DiscreteContainmentCE.pillars_independent_of_imaginary_part}
+
+For fixed $\sigma > 1/2$, all three pillar hypotheses hold at
+$s = \sigma + it$ for \emph{every} $t \in \mathbb{R}$.
+The pillars describe properties of the primes, not of $s$.
+\leanok
+\end{theorem}
+
+\begin{remark}
+The honest conclusion: $\zeta(s) \neq 0$ in the strip is a statement about the
+analytic continuation of the Euler product, not about the product itself.
+The Euler product diverges in the strip; the three pillars describe
+convergence properties and cannot reach the continuation.  The missing
+ingredient is the specific multiplicative structure of $\zeta$
+(all Dirichlet coefficients equal 1).
+\end{remark}
+
+%% =========================================================================
+\section{The Entangled Spiral Pair}
+\label{sec:entangled-pair}
+%% =========================================================================
+
+\lean{EntangledPair}
+
+The functional equation $\zeta(s) = \chi(s)\,\zeta(1-s)$ reveals the
+Dirichlet series as a self-dual object.  The approximate functional
+equation (AFE) makes this a finite computation:
+\[
+  \zeta(s) \approx S(s, X) + \chi(s)\,S(1-s, X), \qquad
+  X \approx \sqrt{|t|/2\pi},
+\]
+where $S(s, X) = \sum_{n=1}^X n^{-s}$ is the primary spiral and
+$S(1-s, X)$ is its reflection, coupled by the scalar $\chi(s)$.
+
+On the critical line $\sigma = 1/2$, $|\chi| = 1$ (balanced pair).
+Off the critical line $\sigma > 1/2$, $|\chi| < 1$ (second spiral
+attenuated).  A zero $\zeta(s) = 0$ would require destructive
+interference; but for $\sigma > 1/2$ the attenuation makes cancellation
+impossible.
+
+\subsection{The Spiral and Entangled Pair}
+
+\begin{definition}[Spiral and entangled pair]
+\lean{EntangledPair.S}, \lean{EntangledPair.E}
+
+\[
+  S(s, X) = \sum_{n=0}^{X-1} (n+1)^{-s}, \qquad
+  E(s, \chi, X) = S(s, X) + \chi \cdot S(1-s, X).
+\]
+\leanok
+\end{definition}
+
+\begin{lemma}[Duality of the reflected spiral]
+\lean{EntangledPair.dual_spiral}
+
+$S(1-s, X) = \sum_{n=0}^{X-1} (n+1)^{s-1}$: the reflected spiral is the
+same partial sum evaluated at the reflected point.
+\leanok
+\end{lemma}
+
+\begin{theorem}[Dominance implies nonvanishing]
+\lean{EntangledPair.E_ne_zero_of_dominance}
+
+If $\|\chi \cdot S(1-s, X)\| < \|S(s, X)\|$, then $E(s, \chi, X) \neq 0$.
+\leanok
+
+\textit{Proof sketch.}
+If $E = 0$ then $S(s,X) = -\chi S(1-s,X)$, so
+$\|S(s,X)\| = \|\chi S(1-s,X)\|$, contradicting the dominance hypothesis.
+\end{theorem}
+
+\begin{lemma}[Reverse triangle inequality for $E$]
+\lean{EntangledPair.E_norm_lower_bound}
+
+$\|S(s,X)\| - \|\chi S(1-s,X)\| \leq \|E(s,\chi,X)\|$.
+\leanok
+\end{lemma}
+
+\subsection{Regime 1: Real-Axis Nonvanishing ($t = 0$)}
+
+\begin{theorem}[$\zeta(\sigma) < 0$ for $\sigma \in (0,1)$]
+\lean{EntangledPair.zeta_neg_real}
+
+For real $\sigma \in (0,1)$, $\operatorname{Re}(\zeta(\sigma)) < 0$.
+\leanok
+
+\textit{Proof sketch.}
+Via the Euler--Maclaurin identity
+$\zeta(\sigma) = \sigma/(\sigma-1) - \sigma \int_1^\infty \{t\}\, t^{-(\sigma+1)}\,dt$.
+The first term is negative ($\sigma > 0$, $\sigma - 1 < 0$) and the
+integral is nonneg (integrand is nonneg pointwise), so $\zeta(\sigma) \leq \sigma/(\sigma-1) < 0$.
+This proof requires \lean{EulerMaclaurinDirichlet.c\_eq\_zeta} and is
+fully constructive (zero custom axioms).
+\end{theorem}
+
+\begin{corollary}[$\zeta(s) \neq 0$ on the real axis in the strip]
+\lean{EntangledPair.zeta_ne_zero_real}
+
+For $1/2 < \operatorname{Re}(s) < 1$ and $\operatorname{Im}(s) = 0$:
+$\zeta(s) \neq 0$.
+\uses{EntangledPair.zeta_neg_real}
+\leanok
+\end{corollary}
+
+\subsection{Regime 2: Off-Axis Nonvanishing ($t \neq 0$) --- Hypothesis Interfaces}
+
+\begin{definition}[Geometric off-axis coordination hypothesis]
+\lean{EntangledPair.GeometricOffAxisCoordinationHypothesis}
+
+For every $\sigma \in (1/2, 1)$ and $t \neq 0$, there exist $\chi$,
+$X \geq 1$, and $c > 0$ such that simultaneously:
+\begin{itemize}
+  \item $c + \|\chi S(1-s, X)\| \leq \|S(s, X)\|$ (dominance),
+  \item $\|\zeta(s) - E(s, \chi, X)\| < c$ (AFE error bounded by gap).
+\end{itemize}
+\leanok
+\end{definition}
+
+\begin{theorem}[Nonvanishing from an AFE certificate]
+\lean{EntangledPair.nonvanishing_of_afe_certificate_at}
+
+If the geometric off-axis coordination hypothesis holds at $s$, then
+$\zeta(s) \neq 0$.
+\uses{EntangledPair.E_norm_lower_bound}
+\leanok
+
+\textit{Proof sketch.}
+The dominance and error conditions at the same $X$ give
+$c \leq \|E(s,\chi,X)\|$ and $\|\zeta(s) - E(s,\chi,X)\| < c$.
+By the triangle inequality, $\zeta(s) = 0$ would force
+$\|E\| < c$, a contradiction.
+\end{theorem}
+
+\begin{theorem}[Full strip nonvanishing from geometric coordination]
+\lean{EntangledPair.strip_nonvanishing}
+\lean{EntangledPair.zeta_ne_zero_right_half}
+
+Under the geometric coordination hypothesis, $\zeta(s) \neq 0$ for
+$\operatorname{Re}(s) > 1/2$.
+\uses{EntangledPair.zeta_ne_zero_real,
+      EntangledPair.nonvanishing_of_afe_certificate_at}
+\leanok
+\end{theorem}
+
+\begin{theorem}[Riemann Hypothesis via entangled spiral pair]
+\lean{EntangledPair.riemann_hypothesis}
+
+Under the geometric coordination hypothesis, all nontrivial zeros of
+$\zeta$ lie on $\operatorname{Re}(s) = 1/2$ (\lean{RiemannHypothesis}).
+\uses{EntangledPair.zeta_ne_zero_right_half,
+      DiscreteContainment.functional_equation_reflection}
+\leanok
+
+\textit{Proof sketch.}
+Case split on $\operatorname{Re}(s)$: both $\operatorname{Re}(s) > 1/2$
+and $\operatorname{Re}(s) < 1/2$ (via functional equation reflection)
+are excluded by \lean{zeta\_ne\_zero\_right\_half}.
+\end{theorem}
+
+\subsection{Weyl Tube-Escape and Phase Drift Interfaces}
+
+The following interface hierarchy decomposes the geometric coordination
+hypothesis into modular analytical steps.
+
+\begin{definition}[Interface hierarchy]
+\lean{EntangledPair.OffAxisStripNonvanishingHypothesis},
+\lean{EntangledPair.NoLongResonanceHypothesis},
+\lean{EntangledPair.WeylTubeEscapeHypothesis},
+\lean{EntangledPair.AlphaMinEscapeHypothesis},
+\lean{EntangledPair.GaugePoleCompensatedDriftHypothesis},
+\lean{EntangledPair.DecompositionWithTailEnvelopeHypothesis},
+\lean{EntangledPair.PhaseDriftOnChosenWitnessHypothesis}
+
+A layered hierarchy of progressively more analytic nonvanishing
+conditions, from pointwise strip nonvanishing down to a local
+gauge/pole-decomposed drift inequality.  Each layer implies the one
+above.
+\leanok
+\end{definition}
+
+\begin{theorem}[Equivalences in the hierarchy]
+\lean{EntangledPair.weyl_tube_escape_iff_off_axis_strip_nonvanishing},
+\lean{EntangledPair.weyl_tube_escape_iff_no_long_resonance}
+
+Weyl tube-escape, off-axis strip nonvanishing, and no-long-resonance
+are mutually equivalent; no-long-resonance implies them all.
+\leanok
+\end{theorem}
+
+\begin{theorem}[Compact-interval minimum gives no-long-resonance]
+\lean{EntangledPair.no_long_resonance_of_off_axis_strip_nonvanishing}
+
+Pointwise off-axis strip nonvanishing, together with continuity of
+$\zeta(\sigma + it)$ in $t$, yields a uniform positive lower bound
+$\varepsilon$ on every compact interval $[t_0, t_0 + L]$.
+\leanok
+\end{theorem}
+
+\begin{theorem}[$\alpha$-min escape from gauge/pole-compensated drift]
+\lean{EntangledPair.alphaMin_escape_of_gauge_pole_compensated_drift}
+
+Given a decomposition $\zeta = \text{core} + \text{wobble}$ with
+$\delta + \|\text{wobble}\| \leq \|\text{core}\|$ whenever
+$L \leq \delta / a_{\min}$, the $\alpha$-min escape hypothesis follows.
+\leanok
+\end{theorem}
+
+\begin{theorem}[Zero-input decomposition+tail witness]
+\lean{EntangledPair.decomposition_with_tail_envelope_zero}
+
+The trivial decomposition $\text{core} = \zeta$, $\text{wobble} = 0$,
+$\text{tailBound} = 0$, $a_{\min} = 1$ satisfies the
+\lean{DecompositionWithTailEnvelopeHypothesis} unconditionally.
+\leanok
+\end{theorem}
+
+%% =========================================================================
+\section{Floor-Tail Decomposition of the Euler Product}
+\label{sec:floor-tail}
+%% =========================================================================
+
+\lean{FloorTail}
+
+The Euler product decomposes as $\zeta(s) = \text{FLOOR}(s,F) \times
+\text{TAIL}(s,F)$, where $\text{FLOOR}$ is the finite product over a
+set $F$ of small primes and $\text{TAIL}$ is the infinite product over
+large primes.
+
+\subsection{Euler Factor Bounds (Proved)}
+
+\begin{theorem}[Upper bound on $|1 - p^{-s}|$]
+\lean{FloorTail.euler_factor_norm_upper}
+
+For prime $p$ and $\operatorname{Re}(s) > 0$:
+$\|1 - p^{-s}\| \leq 1 + p^{-\sigma}$.
+\leanok
+\end{theorem}
+
+\begin{theorem}[Lower bound on $|1 - p^{-s}|$]
+\lean{FloorTail.euler_factor_norm_lower}
+
+$1 - p^{-\sigma} \leq \|1 - p^{-s}\|$.
+\leanok
+\end{theorem}
+
+\begin{theorem}[Lower bound on $|(1-p^{-s})^{-1}|$]
+\lean{FloorTail.euler_factor_inv_lower}
+
+$(1 + p^{-\sigma})^{-1} \leq \|(1 - p^{-s})^{-1}\|$.
+\uses{FloorTail.euler_factor_norm_upper, PrimeBranching.euler_factor_ne_zero}
+\leanok
+\end{theorem}
+
+\subsection{Finite Floor Lower Bound (Proved)}
+
+\begin{definition}[Floor product]
+\lean{FloorTail.floor}
+
+$\text{FLOOR}(F, s) = \prod_{p \in F} (1 - p^{-s})^{-1}$.
+\leanok
+\end{definition}
+
+\begin{theorem}[Floor lower bound]
+\lean{FloorTail.floor_lower_bound}
+
+$\prod_{p \in F} (1 + p^{-\sigma})^{-1} \leq \|\text{FLOOR}(F, s)\|$.
+
+The lower bound is strictly positive (finite product of positive terms).
+\uses{FloorTail.euler_factor_inv_lower}
+\leanok
+\end{theorem}
+
+\subsection{Open Axioms}
+
+\begin{axiom_block}[Tail lower bound]
+\lean{FloorTail.tail_lower_bound}
+
+For $\sigma > 1/2$, there exist $P$ and $C > 0$ such that
+\[
+  C \leq \prod^{\sharp}_{p > P} \|(1 - p^{-s})^{-1}\|
+\]
+for all $t \in \mathbb{R}$.
+This is equivalent to the Riemann Hypothesis for $1/2 < \sigma < 1$
+via the Euler product log-expansion.
+\end{axiom_block}
+
+\begin{axiom_block}[Anti-correlation principle (conjectural)]
+\lean{FloorTail.anti_correlation_principle}
+
+When the tail dips, the floor compensates: their product stays
+above $R \cdot \min(\text{FLOOR}) \cdot \min(\text{TAIL})$ with
+$R > 1$.  Supported by computational experiments
+($R \approx 1.7$, $\operatorname{corr}(\log|\text{FLOOR}|,
+\log|\text{TAIL}|) \approx -0.05$).
+\end{axiom_block}
+
+%% =========================================================================
+\section{The Foundational Gap: RH Implies Spectral Dominance}
+\label{sec:foundational-gap}
+%% =========================================================================
+
+\lean{FoundationalGap}
+
+The Foundational Gap quantifies a structural asymmetry between spectral
+methods (via RH and explicit formula) and algebraic methods (Baker's
+theorem):
+\begin{itemize}
+  \item \textbf{Spectral.}  Under RH, $|\psi(x) - x| \leq C\sqrt{x}(\log x)^2$.
+  \item \textbf{Algebraic.}  Baker: $|a\log 2 - b\log 3| \geq c/\max(a,b)^K$.
+\end{itemize}
+Spectral error is $O(\sqrt{x}(\log x)^2)$; Baker error is $O((\log x)^{-K})$.
+The ratio diverges: $\sqrt{x} \gg (\log x)^K$ as $x \to \infty$.
+
+\subsection{Rate Comparison (Proved via Mathlib)}
+
+\begin{theorem}[$(\log x)^K = o(x^{1/2})$ for any $K$]
+\lean{FoundationalGap.log_rpow_littleO_sqrt}
+
+For every $K \in \mathbb{R}$, $(\log x)^K = o(x^{1/2})$ as $x \to \infty$.
+\leanok
+
+\textit{Proof.}  Direct application of Mathlib's
+\lean{isLittleO\_log\_rpow\_rpow\_atTop}.
+\end{theorem}
+
+\subsection{Definition and Main Theorem}
+
+\begin{definition}[Foundational Gap property]
+\lean{FoundationalGap.FoundationalGapProp}
+
+A structure bundling:
+\begin{enumerate}
+  \item $\exists C > 0$: $|\psi(x) - x| \leq C\sqrt{x}(\log x)^2$
+        for all $x \geq 2$ (spectral rate, under RH),
+  \item $\forall K$: $(\log x)^K = o(x^{1/2})$ (rate divergence, Mathlib).
+\end{enumerate}
+\leanok
+\end{definition}
+
+\begin{theorem}[RH implies the Foundational Gap]
+\lean{FoundationalGap.rh_implies_foundational_gap}
+
+If RH holds, then \lean{FoundationalGapProp} holds.
+\uses{HadamardBridge.rh_implies_psi_error,
+      FoundationalGap.log_rpow_littleO_sqrt}
+\sorry
+
+\textit{Proof sketch.}
+Part (1) follows from \lean{HadamardBridge.rh\_implies\_psi\_error}
+(which requires contour integration; the Lean proof uses \texttt{sorry}
+for the contour integration step).
+Part (2) is \lean{log\_rpow\_littleO\_sqrt}.
+\end{theorem}
+
+\begin{theorem}[Foundational Gap (unconditional, modulo axiom)]
+\lean{FoundationalGap.foundational_gap}
+
+Under the geometric off-axis coordination hypothesis:
+\[
+  \text{AFE coordination} \to \text{RH} \to \text{FoundationalGapProp}.
+\]
+\uses{EntangledPair.riemann_hypothesis,
+      FoundationalGap.rh_implies_foundational_gap}
+\leanok
+\end{theorem}
+
+\begin{theorem}[Spectral rate dominates Baker]
+\lean{FoundationalGap.spectral_dominates_baker}
+
+For any Baker exponent $K$ and under the geometric coordination
+hypothesis, $(\log x)^K = o(x^{1/2})$.
+\uses{FoundationalGap.foundational_gap}
+\leanok
+\end{theorem}
+
+\begin{remark}[Function field comparison]
+Over $\mathbb{F}_q[t]$, the Foundational Gap vanishes: RH is proved
+(Weil 1949) and the Baker analogue (Mason--Stothers) gives polynomial
+separation.  Both methods are polynomial in $q^n$.  The gap is specific
+to $\mathbb{Z}$ and reflects the absence of a Frobenius endomorphism.
+\end{remark}
+
+%% =========================================================================
+\section{AFE Coordination: Constructive Derivation}
+\label{sec:afe-constructive}
+%% =========================================================================
+
+\lean{AFECoordinationConstructive}
+
+This small module shows that the geometric off-axis coordination
+hypothesis (\S\ref{sec:entangled-pair}) follows constructively from
+off-axis strip nonvanishing, using the AFE infrastructure of
+\lean{AFEInfrastructure}.
+
+\begin{theorem}[AFE certificate from nonvanishing]
+\lean{AFECoordinationConstructive.afe_certificate_at_of_nonvanishing}
+
+If $\zeta(s) \neq 0$ for $1/2 < \operatorname{Re}(s) < 1$ and
+$\operatorname{Im}(s) \neq 0$, then an AFE certificate at $s$ exists.
+\uses{AFEInfrastructure.afe_coordination_of_ne_zero}
+\leanok
+
+\textit{Proof sketch.}  Apply the AFE coordination lemma from
+\lean{AFEInfrastructure} to extract $\chi$, $X$, and a dominance gap;
+set $c = \|S(s,X)\| - \|\chi S(1-s,X)\|$.
+\end{theorem}
+
+\begin{theorem}[Off-axis nonvanishing yields AFE certificate family]
+\lean{AFECoordinationConstructive.afe_certificate_family_of_off_axis_nonvanishing}
+
+If \lean{OffAxisStripNonvanishingHypothesis} holds, then an AFE
+certificate exists at every off-axis strip point.
+\uses{AFECoordinationConstructive.afe_certificate_at_of_nonvanishing}
+\leanok
+\end{theorem}
+
+\begin{theorem}[Off-axis nonvanishing yields geometric coordination]
+\lean{AFECoordinationConstructive.geometric_off_axis_coordination_of_off_axis_nonvanishing}
+
+If \lean{OffAxisStripNonvanishingHypothesis} holds, then
+\lean{GeometricOffAxisCoordinationHypothesis} holds.
+
+\textit{Proof sketch.}  Assemble the certificate at each
+$(s.re, s.im)$ pair using
+\lean{afe\_certificate\_at\_of\_nonvanishing}.
+\uses{AFECoordinationConstructive.afe_certificate_family_of_off_axis_nonvanishing}
+\leanok
+\end{theorem}
+
+\begin{remark}
+This module closes the logical loop: the geometric coordination
+hypothesis is \emph{equivalent} to off-axis strip nonvanishing, and
+the latter is just $\zeta(s) \neq 0$ off the real axis in the strip.
+The full proof chain is therefore:
+\[
+  \text{off-axis strip nonvanishing}
+  \iff \text{geometric coordination}
+  \implies \text{RH}.
+\]
+\end{remark}
+
+\end{document}

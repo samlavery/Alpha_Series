@@ -1,0 +1,42 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}History and context}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Main result and conditionality}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Sensitivity to the base: the Liouville counterexample}{4}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Formal verification}{4}{subsection.1.4}%
+\contentsline {section}{\numberline {2}Definitions and Notation}{4}{section.2}%
+\contentsline {section}{\numberline {3}The Cycle Equation}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Orbit telescoping}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Multiplicative independence of 2 and 3}{6}{subsection.3.2}%
+\contentsline {section}{\numberline {4}No Nontrivial Cycles}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Path 1: Drift contradiction}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Path 2: Lattice non-membership}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Path 3: Cyclotomic rigidity}{7}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Assembly}{7}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}The Liouville counterexample: sensitivity to the base}{8}{subsection.4.5}%
+\contentsline {section}{\numberline {5}No Divergent Orbits (Conditional)}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}The Baker Dependency}{8}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Baker's theorem on linear forms in logarithms}{9}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}From Baker to the axioms: detailed bridge}{9}{subsubsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.2}The two axioms}{10}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}The 20-step contraction (primary no-divergence path)}{11}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Orbit boundedness contradicts divergence}{11}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}The parity route (corollary)}{12}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Alternative route: Baker + Tao mixing}{12}{subsection.5.6}%
+\contentsline {subsubsection}{\numberline {5.6.1}Parallel interface design}{13}{subsubsection.5.6.1}%
+\contentsline {subsubsection}{\numberline {5.6.2}The Tao mixing interface}{13}{subsubsection.5.6.2}%
+\contentsline {subsubsection}{\numberline {5.6.3}Route B closes the proof}{14}{subsubsection.5.6.3}%
+\contentsline {section}{\numberline {6}Assembly: The Main Theorem}{14}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Syracuse-to-Collatz bridge}{14}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}The main theorem}{15}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Formal statement}{15}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Formal Verification}{15}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Lean 4 + Mathlib formalization}{15}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Axiom inventory}{16}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}What Lean verifies vs.\ what the axioms assert}{16}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Comparison with Tao's approach}{17}{subsection.7.4}%
+\contentsline {section}{\numberline {8}Proof Dependency Diagram}{17}{section.8}%
+\contentsline {section}{\numberline {9}Discussion}{18}{section.9}%
+\contentsline {subsection}{\numberline {9.1}What would it take to eliminate the two axioms?}{18}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}The role of $3^{20}/2^{33}$}{18}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Open questions}{18}{subsection.9.3}%
+\contentsline {section}{\numberline {10}Reproducibility}{19}{section.10}%

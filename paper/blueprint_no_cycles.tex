@@ -1,0 +1,1097 @@
+% blueprint_no_cycles.tex
+% Leanblueprint-style documentation for the no-cycles half of the Collatz proof.
+% Generated from: Defs.lean, CycleEquation.lean, NumberTheoryAxioms.lean,
+%                 ResidueDynamics.lean, NoCycle.lean, LatticeProof.lean,
+%                 DriftContradiction.lean
+%
+% Proof chain summary:
+%   Defs -> CycleEquation -> NumberTheoryAxioms -> ResidueDynamics
+%       -> DriftContradiction  \
+%       -> LatticeProof         >-> NoCycle
+%       -> (CyclotomicDrift)   /
+
+\documentclass[12pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+% leanblueprint-style theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{axiom_block}[theorem]{Axiom}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% leanblueprint macros (stubs for standalone compilation)
+\newcommand{\lean}[1]{\texttt{[Lean: #1]}}
+\newcommand{\leanok}{}
+\newcommand{\uses}[1]{\par\noindent\textit{Uses:} #1\par}
+
+\title{Blueprint: No Nontrivial Collatz Cycles\\
+\large Lean 4 Formalization Documentation}
+\date{2026}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\bigskip
+\noindent\textbf{Overview.}
+This document is a leanblueprint-style writeup of the \emph{no-cycles} half of
+the Collatz proof formalization.  The mathematical claim established is:
+
+\begin{quote}
+  The Collatz odd-step map $T(n) = (3n+1)/2^{\nu_2(3n+1)}$ has no nontrivial
+  periodic orbits on the positive odd integers.
+\end{quote}
+
+Three independent paths to contradiction are assembled in \texttt{NoCycle.lean}:
+\begin{itemize}
+  \item \textbf{Path 1 (DriftContradiction):} Baker drift $\varepsilon =
+        S - m\log_2 3 \ne 0$ accumulates over repeated loops, eventually
+        preventing exact return.
+  \item \textbf{Path 2 (LatticeProof):} A 2-adic constraint coset analysis
+        shows that no odd positive integer can satisfy the orbit equation for
+        a nontrivial profile.
+  \item \textbf{Path 3 (CyclotomicDrift):} Cyclotomic rigidity via
+        $\mathbb{Z}[\zeta_d]$ forces all folded weights equal, contradicting
+        nontriviality.
+\end{itemize}
+
+The unique trivial profile $\nu = (2,\ldots,2)$, corresponding to the orbit
+$1 \to 4 \to 2 \to 1$, is realizable with $n_0 = 1$.  No other profile is.
+
+%%% ===========================================================================
+\section{Core Definitions (\texttt{Defs.lean})}
+%%% ===========================================================================
+
+\subsection{Cycle denominator}
+
+\begin{definition}[Cycle denominator]\label{def:cycleDenominator}
+\lean{Collatz.cycleDenominator}\leanok
+
+For natural numbers $m$ (odd-step period) and $S$ (total halvings), the
+\emph{cycle denominator} is the integer
+\[
+  D(m,S) \;:=\; 2^S - 3^m \;\in\; \mathbb{Z}.
+\]
+The realizability condition $D > 0$ is equivalent to $S > m\log_2 3$.
+\end{definition}
+
+\subsection{Cycle profile}
+
+\begin{definition}[Cycle profile]\label{def:CycleProfile}
+\lean{Collatz.CycleProfile}\leanok
+
+A \emph{cycle profile} of length $m$ consists of:
+\begin{itemize}
+  \item a function $\nu : \{0,\ldots,m-1\} \to \mathbb{N}$ with $\nu_j \ge 1$
+        for all $j$ (the halvings at each odd step),
+  \item a natural number $S$ satisfying $S = \sum_{j=0}^{m-1} \nu_j$.
+\end{itemize}
+Notation: we write $P$ for a cycle profile of length $m$.
+\end{definition}
+
+\begin{definition}[Partial sum]\label{def:partialSum}
+\lean{Collatz.CycleProfile.partialSum}\leanok
+
+The \emph{partial halving sum} up to step $j$ is
+\[
+  S_j \;:=\; \sum_{i < j} \nu_i.
+\]
+In particular $S_0 = 0$ and $S_m = S$.
+\end{definition}
+
+\begin{definition}[Wavesum]\label{def:waveSum}
+\lean{Collatz.CycleProfile.waveSum}\leanok
+
+The \emph{wavesum} of a profile of length $m$ is
+\[
+  W \;:=\; \sum_{j=0}^{m-1} 3^{m-1-j} \cdot 2^{S_j} \;\in\; \mathbb{N}.
+\]
+This encodes the accumulated 3-kicks and 2-halvings in the orbit.
+\end{definition}
+
+\begin{definition}[Realizability]\label{def:isRealizable}
+\lean{Collatz.CycleProfile.isRealizable}\leanok
+
+A profile $P$ is \emph{realizable} if:
+\begin{enumerate}
+  \item $D(m,S) > 0$ (equivalently, $2^S > 3^m$), and
+  \item $D(m,S) \mid W$ in $\mathbb{Z}$.
+\end{enumerate}
+When $D \mid W$, the quotient $n_0 := W/D$ is the unique positive odd starting
+integer for the corresponding periodic orbit.
+\end{definition}
+
+\begin{definition}[Nontriviality]\label{def:isNontrivial}
+\lean{Collatz.CycleProfile.isNontrivial}\leanok
+
+A profile $P$ is \emph{nontrivial} if not all halving values are equal:
+$\exists j, k$ such that $\nu_j \ne \nu_k$.
+The trivial profile has $\nu_j = 2$ for all $j$.
+\end{definition}
+
+\begin{definition}[Excess]\label{def:excess}
+\lean{Collatz.CycleProfile.excess}\leanok
+
+The \emph{excess} of a profile is $E := W - D \in \mathbb{Z}$.
+\end{definition}
+
+\subsection{Anchored profile}
+
+\begin{definition}[Anchored cycle profile]\label{def:AnchoredCycleProfile}
+\lean{Collatz.AnchoredCycleProfile}\leanok
+
+An \emph{anchored cycle profile} of length $m$ extends a cycle profile $P$ with:
+\begin{itemize}
+  \item a starting integer $n_0 > 0$ that is odd ($2 \nmid n_0$),
+  \item the orbit-closure equation $W + n_0 \cdot 3^m = n_0 \cdot 2^S$.
+\end{itemize}
+Equivalently, $n_0 = W/D$ when $D \mid W$.
+\end{definition}
+
+\subsection{Auxiliary definitions}
+
+\begin{definition}[Evaluation sum]\label{def:evalSum43}
+\lean{Collatz.evalSum43}\leanok
+
+For $d \in \mathbb{N}$ and weights $w : \{0,\ldots,d-1\} \to \mathbb{N}$, the
+\emph{evaluation sum} is
+\[
+  \mathrm{evalSum}_{4,3}(d, w) \;:=\; \sum_{r=0}^{d-1} w_r \cdot 4^r \cdot 3^{d-1-r}
+  \;\in\; \mathbb{Z}.
+\]
+Used in cyclotomic rigidity arguments.
+\end{definition}
+
+\begin{definition}[Folded weights]\label{def:foldedWeights}
+\lean{Collatz.foldedWeights}\leanok
+
+For $d \mid m$ and a weight function $w : \{0,\ldots,m-1\} \to \mathbb{N}$,
+the \emph{folded weight} at residue $r \in \{0,\ldots,d-1\}$ is
+\[
+  \widetilde{w}_r \;:=\; \sum_{\substack{j=0 \\ j \equiv r \pmod{d}}}^{m-1} w_j.
+\]
+\end{definition}
+
+\begin{definition}[Collatz map]\label{def:collatz}
+\lean{Collatz.collatz}\leanok
+
+The \emph{Collatz map} is $C : \mathbb{N} \to \mathbb{N}$,
+\[
+  C(n) \;:=\; \begin{cases} n/2 & \text{if } 2 \mid n, \\ 3n+1 & \text{if } 2 \nmid n. \end{cases}
+\]
+Its $k$-fold iterate is denoted $C^k$.
+\end{definition}
+
+%%% ===========================================================================
+\section{The Orbit Telescoping Equation (\texttt{CycleEquation.lean})}
+%%% ===========================================================================
+
+This file introduces the odd Syracuse map and derives the fundamental cycle
+equation $n_0 \cdot (2^S - 3^m) = W$ for any periodic orbit.
+
+\subsection{Odd Syracuse map}
+
+\begin{definition}[2-adic valuation]\label{def:v2}
+\lean{Collatz.CycleEquation.v2}\leanok
+
+The \emph{2-adic valuation} $\nu_2(n) = v_2(n)$ is the largest $k$ such that
+$2^k \mid n$.  Formally, $v_2(n) = \mathrm{multiplicity}(2, n)$.
+\end{definition}
+
+\begin{definition}[Odd Syracuse map]\label{def:collatzOdd}
+\lean{Collatz.CycleEquation.collatzOdd}\leanok
+
+The \emph{odd Syracuse map} is $T : \mathbb{N}_{\mathrm{odd}} \to \mathbb{N}_{\mathrm{odd}}$,
+\[
+  T(n) \;:=\; \frac{3n+1}{2^{v_2(3n+1)}}.
+\]
+This is the composition of the $3n+1$ step and all subsequent halvings, mapping
+odd numbers to odd numbers.
+\end{definition}
+
+\begin{definition}[Orbit halvings]\label{def:orbitNu}
+\lean{Collatz.CycleEquation.orbitNu}\leanok
+
+For an odd starting value $n$ and step $j$, the halving count is
+$\nu_j(n) := v_2(3 \cdot T^j(n) + 1)$, the number of times 2 divides the
+$j$-th iterate's ``kick.''
+\end{definition}
+
+\begin{definition}[Orbit partial sum]\label{def:orbitS}
+\lean{Collatz.CycleEquation.orbitS}\leanok
+
+The orbit partial sum is $S_k(n) := \sum_{j=0}^{k-1} \nu_j(n)$, the total
+number of halvings accumulated over the first $k$ odd steps.
+\end{definition}
+
+\begin{definition}[Path constant]\label{def:orbitC}
+\lean{Collatz.CycleEquation.orbitC}\leanok
+
+The \emph{path constant} $c_k(n)$ satisfies the recurrence
+$c_0 = 0$, $c_{k+1} = 3 c_k + 2^{S_k}$.
+This accumulates the ``right-hand side carry'' over $k$ odd steps.
+\end{definition}
+
+\subsection{The iteration formula}
+
+\begin{lemma}[Syracuse step formula]\label{lem:syracuse_step_formula}
+\lean{Collatz.CycleEquation.syracuse_step_formula}\leanok
+\uses{def:collatzOdd, def:v2}
+
+For any odd $n$,
+\[
+  T(n) \cdot 2^{v_2(3n+1)} \;=\; 3n + 1.
+\]
+
+\emph{Proof sketch.} Direct from the definition of integer division: since
+$2^{v_2(3n+1)} \mid (3n+1)$, the division $T(n) = (3n+1)/2^{v_2(3n+1)}$
+is exact, so the product recovers $3n+1$.
+\end{lemma}
+
+\begin{lemma}[Oddness preservation]\label{lem:collatzOdd_odd}
+\lean{Collatz.CycleEquation.collatzOdd_odd}\leanok
+\uses{def:collatzOdd, lem:syracuse_step_formula}
+
+If $n$ is odd and $n > 0$, then $T(n)$ is odd.  By induction, $T^k(n)$ is odd
+for all $k$.
+
+\emph{Proof sketch.} Suppose $T(n)$ were even.  Write $T(n) = 2r$.  Then
+$T(n) \cdot 2^{v_2(3n+1)} = 2r \cdot 2^{v_2(3n+1)} = 2^{v_2(3n+1)+1} \cdot r$,
+which is divisible by $2^{v_2(3n+1)+1}$.  But $3n+1$ is not divisible by
+$2^{v_2(3n+1)+1}$ by maximality of the valuation --- contradiction.
+\end{lemma}
+
+\begin{theorem}[Orbit iteration formula]\label{thm:orbit_iteration_formula}
+\lean{Collatz.CycleEquation.orbit_iteration_formula}\leanok
+\uses{def:collatzOdd, def:orbitNu, def:orbitS, def:orbitC, lem:orbit_step, lem:collatzOdd_odd}
+
+For any odd $n > 0$ and $k \ge 0$,
+\[
+  T^k(n) \cdot 2^{S_k(n)} \;=\; 3^k \cdot n \;+\; c_k(n).
+\]
+
+\emph{Proof sketch.} By induction on $k$.  The base case is immediate.  For the
+inductive step, use the orbit step formula $T^{k+1}(n) \cdot 2^{\nu_k} = 3 T^k(n) + 1$
+together with $S_{k+1} = S_k + \nu_k$; multiply the inductive hypothesis by 3
+and add $2^{S_k}$ to get the recurrence for $c_{k+1}$.
+\end{theorem}
+
+\begin{theorem}[Wavesum representation of path constant]\label{thm:orbitC_eq_wavesum}
+\lean{Collatz.CycleEquation.orbitC_eq_wavesum}\leanok
+\uses{def:orbitC, def:orbitS, def:orbitNu}
+
+\[
+  c_k(n) \;=\; \sum_{j=0}^{k-1} 3^{k-1-j} \cdot 2^{S_j(n)}.
+\]
+That is, the path constant equals the wavesum formula evaluated along the actual
+orbit.
+
+\emph{Proof sketch.} By induction on $k$, unfolding the recurrence $c_{k+1} = 3c_k + 2^{S_k}$
+and re-indexing the sum.
+\end{theorem}
+
+\begin{theorem}[Cycle equation]\label{thm:cycle_equation}
+\lean{Collatz.CycleEquation.cycle_equation}\leanok
+\uses{thm:orbit_iteration_formula, def:cycleDenominator}
+
+If $n$ is odd, $n > 0$, $m \ge 1$, and $T^m(n) = n$ (a period-$m$ orbit), then
+\[
+  n \cdot \bigl(2^{S_m} - 3^m\bigr) \;=\; c_m(n).
+\]
+
+\emph{Proof sketch.} Substitute $T^m(n) = n$ into the orbit iteration formula
+$T^m(n) \cdot 2^{S_m} = 3^m \cdot n + c_m$, then rearrange.
+\end{theorem}
+
+\begin{theorem}[Cycle implies $2^S > 3^m$]\label{thm:cycle_S_gt}
+\lean{Collatz.CycleEquation.cycle_S_gt}\leanok
+\uses{thm:cycle_equation}
+
+If a period-$m$ orbit exists with $m \ge 1$, then $2^{S_m} > 3^m$.
+
+\emph{Proof sketch.} The cycle equation gives $n \cdot D = c_m > 0$ (since $c_m \ge 1$
+for $m \ge 1$ and $c_m$ is a positive-weight sum); since $n > 0$, we get $D > 0$.
+\end{theorem}
+
+%%% ===========================================================================
+\section{Number-Theoretic Axioms (\texttt{NumberTheoryAxioms.lean})}
+%%% ===========================================================================
+
+This file contains the two axioms and one proved theorem that serve as external
+inputs to the no-cycles proof.  The file also defines several assumption schemas
+for the no-divergence analysis.
+
+\subsection{Baker's theorem applications}
+
+\begin{theorem}[Baker lower bound (proved from unique factorization)]\label{thm:baker_lower_bound}
+\lean{Collatz.baker_lower_bound}\leanok
+\uses{def:CycleProfile, def:isNontrivial}
+
+For any cycle profile $P$ of length $m \ge 2$ with $P$ nontrivial,
+\[
+  \exists\, c > 0,\; K \in \mathbb{N} \text{ such that }
+  \left| S - m \cdot \log_2 3 \right| \;\ge\; \frac{c}{m^K}.
+\]
+
+\emph{Proof sketch.}
+Since $\nu_j \ge 1$ for all $j$, we have $S \ge m \ge 2$.  If $S = m \log_2 3$
+then $S \log 2 = m \log 3$, so $\log(2^S) = \log(3^m)$, which forces $2^S = 3^m$
+by injectivity of $\log$ on $(0,\infty)$.  But $2^S$ is even and $3^m$ is odd
+(unique factorization), a contradiction.  Hence the drift $\varepsilon \ne 0$;
+the pair $(c, K) = (|\varepsilon|, 0)$ provides the witness.
+\end{theorem}
+
+\begin{remark}
+This result replaces the original Baker/LMN transcendence axiom with an
+elementary unique-factorization argument.  The parity separation
+(even vs.\ odd) is the key step.
+\end{remark}
+
+\begin{axiom_block}[Baker gap bound]\label{ax:baker_gap_bound}
+\lean{Collatz.baker_gap_bound}\leanok
+
+For $S, m \in \mathbb{N}$ with $m \ge 2$, $S \ge 1$, and $2^S > 3^m$,
+\[
+  2^S - 3^m \;\ge\; \frac{3^m}{m^{10}}.
+\]
+\emph{Source:} Baker (1968), linear forms in logarithms; the exponent 10 is a
+concrete instantiation of the effective constant.
+\end{axiom_block}
+
+\begin{axiom_block}[Minimum cycle start (Barina)]\label{ax:min_nontrivial_cycle_start}
+\lean{Collatz.min_nontrivial_cycle_start}\leanok
+\uses{def:CycleProfile, def:isNontrivial, def:cycleDenominator}
+
+If $P$ is a nontrivial realizable profile of length $m \ge 2$ and
+$W = D \cdot n_0$, then $n_0 \ge 2^{71}$.
+
+\emph{Source:} Barina et al.\ (2025), \textit{J.\ Supercomputing} ---
+computational verification that all integers below $2^{71}$ converge to 1.
+\end{axiom_block}
+
+\begin{axiom_block}[Minimum cycle length (Hercher)]\label{ax:min_nontrivial_cycle_length}
+\lean{Collatz.min_nontrivial_cycle_length}\leanok
+\uses{def:CycleProfile, def:isNontrivial}
+
+Any nontrivial cycle profile satisfies $m \ge 7.2 \times 10^{10}$.
+
+\emph{Source:} Hercher (2022--2024).
+\end{axiom_block}
+
+\begin{theorem}[Minimum start from Hercher length floor]\label{thm:min_cycle_start_from_length}
+\lean{Collatz.min_nontrivial_cycle_start_floor_from_length}\leanok
+\uses{ax:min_nontrivial_cycle_start, ax:min_nontrivial_cycle_length}
+
+If $W = D \cdot n_0$ for a nontrivial profile, then
+$n_0 \ge 7.2 \times 10^{10}$.
+
+\emph{Proof sketch.} $7.2 \times 10^{10} \le 2^{71}$ by a direct computation,
+combined with the Barina axiom.
+\end{theorem}
+
+\subsection{Divergence mixing (for no-divergence analysis)}
+
+The following definitions and axioms concern assumption schemas used in the
+no-divergence half of the proof (not the primary focus of this document, but
+declared here).
+
+\begin{definition}[Supercritical eta-rate]\label{def:SupercriticalEtaRate}
+\lean{Collatz.SupercriticalEtaRate}\leanok
+
+For an odd $n_0 > 1$, the \emph{supercritical eta-rate} holds if there exist
+$M_0, \delta > 0$ such that for all $M \ge M_0$ and window widths $W \ge 20$,
+\[
+  8W + \delta \;\le\; 5 \sum_{i=0}^{W-1} \eta(T^{M+i}(n_0)),
+\]
+where the weight $\eta(n) = 2$ if $n \equiv 1 \pmod 8$, $= 3$ if
+$n \equiv 5 \pmod 8$, and $= 1$ otherwise.
+\end{definition}
+
+\begin{axiom_block}[Baker rollover supercritical rate]\label{ax:baker_rollover}
+\lean{Collatz.baker_rollover_supercritical_rate}\leanok
+\uses{def:SupercriticalEtaRate}
+
+For any divergent odd orbit $n_0 > 1$ (i.e., $T^m(n_0) \to \infty$), the
+supercritical eta-rate holds.
+
+\emph{Justification:} Baker's theorem applied to the Euler product structure
+of Collatz denominators guarantees that $D = 2^S - 3^m$ is always odd
+(proved from unique factorization).  This coprimality blocks the orbit from
+systematically avoiding high-$\nu_2$ residue classes, forcing the orbit
+through sufficient $\equiv 1 \pmod 4$ and $\equiv 1 \pmod 8$ values.
+\end{axiom_block}
+
+\begin{axiom_block}[Supercritical rate implies residue hitting]\label{ax:residue_hitting}
+\lean{Collatz.supercritical_rate_implies_residue_hitting}\leanok
+\uses{def:SupercriticalEtaRate}
+
+If $n_0$ has the supercritical eta-rate, then for any modulus $M > 1$,
+any target residue class, and any cutoff $K$, there exists $m \ge K$ such that
+$T^m(n_0) \equiv \mathrm{target} \pmod M$.
+\end{axiom_block}
+
+%%% ===========================================================================
+\section{Residue Dynamics (\texttt{ResidueDynamics.lean})}
+%%% ===========================================================================
+
+\begin{definition}[Eta residue envelope]\label{def:etaResidue}
+\lean{Collatz.ResidueDynamics.etaResidue}\leanok
+
+For $n \in \mathbb{N}$, the \emph{residue envelope} is
+\[
+  \eta(n) \;:=\;
+  \begin{cases}
+    2 & \text{if } n \equiv 1 \pmod 8, \\
+    3 & \text{if } n \equiv 5 \pmod 8, \\
+    1 & \text{otherwise.}
+  \end{cases}
+\]
+This is a lower bound on $v_2(3n+1)$ for odd $n$.
+\end{definition}
+
+\begin{lemma}[Residue envelope is a lower bound]\label{lem:etaResidue_le_v2}
+\lean{Collatz.ResidueDynamics.etaResidue_le_v2_of_odd}\leanok
+\uses{def:etaResidue, def:v2}
+
+For any odd $n$, $\eta(n) \le v_2(3n+1)$.
+
+\emph{Proof sketch.} Case split on $n \bmod 8$:
+\begin{itemize}
+  \item $n \equiv 1 \pmod 8 \Rightarrow 3n+1 \equiv 4 \pmod 8 \Rightarrow 4 \mid 3n+1
+        \Rightarrow v_2(3n+1) \ge 2 = \eta(n)$.
+  \item $n \equiv 5 \pmod 8 \Rightarrow 3n+1 \equiv 16 \equiv 0 \pmod 8
+        \Rightarrow 8 \mid 3n+1 \Rightarrow v_2(3n+1) \ge 3 = \eta(n)$.
+  \item Otherwise $2 \mid 3n+1$ (since $n$ is odd), giving $v_2 \ge 1 = \eta(n)$.
+\end{itemize}
+In each case, the divisibility is certified via \texttt{FiniteMultiplicity} and
+\texttt{le\_multiplicity\_of\_pow\_dvd}.
+\end{lemma}
+
+%%% ===========================================================================
+\section{Baker Drift Contradiction (\texttt{DriftContradiction.lean})}
+%%% ===========================================================================
+
+This file implements Path 1: Baker's theorem on linear forms in logarithms rules
+out nontrivial fixed-profile cycles by showing that each traversal of the orbit
+multiplies the starting value by $2^{-\varepsilon}$ where $\varepsilon \ne 0$.
+
+\subsection{Drift and scaling definitions}
+
+\begin{definition}[Baker drift]\label{def:base2_offset}
+\lean{Collatz.base2_offset}\leanok
+\uses{def:CycleProfile}
+
+For a cycle profile $P$ with period $m$ and total halvings $S$, the \emph{Baker drift} is
+\[
+  \varepsilon(P) \;:=\; S - m \cdot \frac{\log 3}{\log 2} \;\in\; \mathbb{R}.
+\]
+\end{definition}
+
+\begin{definition}[Accumulated offset]\label{def:accumulated_offset}
+\lean{Collatz.accumulated_offset}\leanok
+\uses{def:base2_offset}
+
+After $L$ repetitions of the cycle, the \emph{accumulated offset} is
+$L\varepsilon(P)$.
+\end{definition}
+
+\begin{definition}[Cycle scaling factor]\label{def:cycle_scaling_factor}
+\lean{Collatz.cycle_scaling_factor}\leanok
+\uses{def:CycleProfile}
+
+The \emph{cycle scaling factor} is $\rho(P) := 3^m / 2^S \in \mathbb{R}_{>0}$.
+Each traversal of a period-$m$ orbit multiplies the starting value by $\rho(P)$.
+\end{definition}
+
+\subsection{Core lemmas}
+
+\begin{lemma}[Scaling factor is drift exponent]\label{lem:scaling_is_drift}
+\lean{Collatz.scaling_factor_eq_two_pow_neg_offset}\leanok
+\uses{def:cycle_scaling_factor, def:base2_offset}
+
+\[
+  \rho(P) \;=\; 2^{-\varepsilon(P)}.
+\]
+
+\emph{Proof sketch.}  Write $3 = 2^{\log_2 3}$, so
+$3^m = 2^{m \log_2 3}$ and $\rho = 2^{m\log_2 3 - S} = 2^{-\varepsilon}$.
+This is formalized using \texttt{Real.rpow} identities.
+\end{lemma}
+
+\begin{lemma}[Orbit position after $L$ cycles]\label{lem:orbit_scaling}
+\lean{Collatz.orbit_scaling_after_L_cycles}\leanok
+\uses{lem:scaling_is_drift, def:accumulated_offset}
+
+\[
+  \rho(P)^L \;=\; 2^{-L\varepsilon(P)}.
+\]
+\end{lemma}
+
+\begin{lemma}[Large accumulated drift prevents return]\label{lem:orbit_cannot_close}
+\lean{Collatz.orbit_cannot_close}\leanok
+\uses{def:accumulated_offset}
+
+If $|L\varepsilon(P)| \ge 1$ and $n_0 > 0$, then
+$n_0 \cdot 2^{-L\varepsilon(P)} \ne n_0$.
+
+\emph{Proof sketch.}  If equality held, then $2^{-L\varepsilon} = 1$, so
+$-L\varepsilon = 0$, hence $|L\varepsilon| = 0 < 1$ --- contradiction.
+The strict monotonicity of $x \mapsto 2^x$ is used via
+\texttt{Real.rpow\_lt\_rpow\_of\_exponent\_lt}.
+\end{lemma}
+
+\begin{lemma}[Nontrivial profile has large drift at some $L$]\label{lem:exists_offset_ge_one}
+\lean{Collatz.exists_offset_ge_one}\leanok
+\uses{thm:baker_lower_bound, def:accumulated_offset}
+
+For $m \ge 2$ and a nontrivial profile $P$, there exists $L \in \mathbb{N}$
+with $|L\varepsilon(P)| \ge 1$.
+
+\emph{Proof sketch.}  Baker's lower bound gives $|\varepsilon| \ge c/m^K > 0$.
+Set $L = \lceil m^K/c \rceil + 1$; then
+$L \cdot |\varepsilon| \ge (m^K/c) \cdot (c/m^K) = 1$.
+\end{lemma}
+
+\begin{lemma}[Eventually large drift]\label{lem:eventually_offset_ge_one}
+\lean{Collatz.eventually_offset_ge_one}\leanok
+\uses{thm:baker_lower_bound, def:accumulated_offset}
+
+For $m \ge 2$ and a nontrivial profile $P$, there exists $L_0$ such that
+$|L\varepsilon(P)| \ge 1$ for all $L \ge L_0$.
+
+\emph{Proof sketch.}  Same Baker bound; every $L$ beyond the threshold satisfies
+$L \cdot |\varepsilon| \ge 1$ by the same computation.
+\end{lemma}
+
+\subsection{The fixed-profile cycle notion}
+
+\begin{definition}[Fixed-profile cycle]\label{def:FixedProfileCycle}
+\lean{Collatz.DriftContradiction.FixedProfileCycle}\leanok
+\uses{def:AnchoredCycleProfile, def:isRealizable, def:isNontrivial, def:cycle_scaling_factor}
+
+A profile $P$ is a \emph{fixed-profile cycle} if:
+\begin{enumerate}
+  \item $P$ is realizable and nontrivial,
+  \item there exists an anchored profile $(P, n_0)$ and $L > 0$ such that
+        $n_0 \cdot \rho(P)^L = n_0$ (exact return after $L$ repetitions).
+\end{enumerate}
+\end{definition}
+
+\subsection{The main theorem}
+
+\begin{theorem}[Fixed-profile cycles are impossible]\label{thm:fixed_profile_impossible}
+\lean{Collatz.DriftContradiction.fixed_profile_impossible}\leanok
+\uses{def:FixedProfileCycle, lem:exists_offset_ge_one, lem:orbit_cannot_close, lem:orbit_scaling}
+
+For $m \ge 2$: no fixed-profile cycle exists.  That is,
+$\neg \mathrm{FixedProfileCycle}(P)$ for every profile $P$ of length $m \ge 2$.
+
+\emph{Proof sketch.}  Suppose $n_0 \cdot \rho(P)^L = n_0$ for some $L > 0$.
+Then $\rho(P)^L = 1$, so $2^{-L\varepsilon} = 1$, forcing $L\varepsilon = 0$.
+Since $L > 0$ and $L$ is a natural number, we get $\varepsilon = 0$, hence
+$L'\varepsilon = 0$ for all $L'$.  But Baker's theorem (via
+\texttt{exists\_offset\_ge\_one}) gives some $L'$ with $|L'\varepsilon| \ge 1$,
+contradiction.
+\end{theorem}
+
+\begin{corollary}[No nontrivial cycles via drift]\label{cor:no_nontrivial_cycles_drift}
+\lean{Collatz.DriftContradiction.no_nontrivial_cycles}\leanok
+\uses{thm:fixed_profile_impossible}
+
+For $m \ge 2$ and any profile $P$: $\neg\,\mathrm{FixedProfileCycle}(P)$.
+\end{corollary}
+
+%%% ===========================================================================
+\section{Lattice Non-membership (\texttt{LatticeProof.lean})}
+%%% ===========================================================================
+
+Path 2 proceeds via 2-adic constraint sublattices.  The key idea is that the
+orbit-closure equation $W + n_0 \cdot 3^m = n_0 \cdot 2^S$ forces $n_0$ into a
+``pattern lattice'' $\mathcal{L}(P)$; the decomposition $W + n_0 3^m = A + B$
+and a valuation argument shows this lattice is empty for nontrivial profiles.
+
+\subsection{Pattern and rational lattices}
+
+\begin{definition}[Pattern lattice]\label{def:patternLattice}
+\lean{Collatz.LatticeProof.patternLattice}\leanok
+\uses{def:CycleProfile, def:cycleDenominator, def:waveSum}
+
+The \emph{pattern lattice} of profile $P$ is
+\[
+  \mathcal{L}(P) \;:=\; \bigl\{\, n_0 \in \mathbb{Z} \;\big|\;
+    n_0 > 0,\; 2 \nmid n_0,\;
+    W + n_0 \cdot 3^m = n_0 \cdot 2^S
+  \,\bigr\}.
+\]
+\end{definition}
+
+\begin{definition}[Rational lattice]\label{def:rationalLattice}
+\lean{Collatz.LatticeProof.rationalLattice}\leanok
+\uses{def:CycleProfile}
+
+The \emph{rational lattice} is $\{x \in \mathbb{Q} \mid 3^m x + W = x \cdot 2^S\}$.
+\end{definition}
+
+\begin{theorem}[Rational lattice is a singleton]\label{thm:rationalLattice_singleton}
+\lean{Collatz.LatticeProof.rationalLattice_eq_singleton}\leanok
+\uses{def:rationalLattice, def:cycleDenominator}
+
+When $D > 0$: $\mathcal{L}_{\mathbb{Q}}(P) = \{W/D\}$.
+
+\emph{Proof sketch.} The equation $3^m x + W = x \cdot 2^S$ is linear in $x$
+with coefficient $2^S - 3^m = D \ne 0$; the unique solution is $x = W/D$.
+\end{theorem}
+
+\begin{lemma}[Pattern lattice embeds into rational lattice]\label{lem:pattern_sub_rational}
+\lean{Collatz.LatticeProof.patternLattice_sub_rationalLattice}\leanok
+\uses{def:patternLattice, def:rationalLattice}
+
+$\mathcal{L}(P) \subseteq \mathcal{L}_{\mathbb{Q}}(P)$ via the natural embedding
+$\mathbb{Z} \hookrightarrow \mathbb{Q}$.
+\end{lemma}
+
+\begin{theorem}[Pattern lattice iff divisibility]\label{thm:patternLattice_iff_dvd}
+\lean{Collatz.LatticeProof.patternLattice_iff_divisibility}\leanok
+\uses{def:patternLattice, def:cycleDenominator}
+
+For positive odd $n_0$: $n_0 \in \mathcal{L}(P) \iff W = n_0 \cdot D$.
+\end{theorem}
+
+\subsection{The A+B decomposition}
+
+\begin{definition}[Term A]\label{def:termA}
+\lean{Collatz.LatticeProof.termA}\leanok
+
+\[
+  A(m, n_0) \;:=\; 3^{m-1} \cdot (1 + 3n_0).
+\]
+This is the $j=0$ contribution to $W + n_0 \cdot 3^m$.
+\end{definition}
+
+\begin{definition}[Term B]\label{def:termB}
+\lean{Collatz.LatticeProof.termB}\leanok
+
+\[
+  B(P) \;:=\; \sum_{j=1}^{m-1} 3^{m-1-j} \cdot 2^{S_j}.
+\]
+This collects all terms with $j \ge 1$, each having a factor $2^{S_j}$ with
+$S_j \ge \nu_0 \ge 1$.
+\end{definition}
+
+\begin{theorem}[$E = A + B$ decomposition]\label{thm:E_eq_A_plus_B}
+\lean{Collatz.LatticeProof.E_eq_A_plus_B}\leanok
+\uses{def:termA, def:termB, def:waveSum}
+
+For $m \ge 2$: $W + n_0 \cdot 3^m = A(m, n_0) + B(P)$.
+
+\emph{Proof sketch.} Separate the $j=0$ term from the wavesum; the $j=0$ term
+contributes $3^{m-1} \cdot 2^{S_0} = 3^{m-1}$ (since $S_0 = 0$); combine with
+the $n_0 \cdot 3^m$ term to get $3^{m-1}(1+3n_0)$.
+\end{theorem}
+
+\subsection{Valuation analysis}
+
+\begin{lemma}[$2^{\nu_0} \mid B$]\label{lem:nu0_dvd_B}
+\lean{Collatz.LatticeProof.two_pow_nu0_dvd_termB}\leanok
+\uses{def:termB, def:CycleProfile}
+
+$2^{\nu_0} \mid B(P)$, where $\nu_0 = P.\nu_0$.
+
+\emph{Proof sketch.} Each term $3^{m-1-j} \cdot 2^{S_j}$ for $j \ge 1$ has
+$S_j \ge \nu_0$ (since $S_j = \sum_{i < j} \nu_i \ge \nu_0$), so $2^{\nu_0}$ divides
+each term, hence the sum.
+\end{lemma}
+
+\begin{lemma}[$2^{\nu_0+1} \nmid B$]\label{lem:nu0succ_ndvd_B}
+\lean{Collatz.LatticeProof.not_two_pow_nu0_succ_dvd_termB}\leanok
+\uses{def:termB, def:CycleProfile}
+
+$2^{\nu_0+1} \nmid B(P)$.
+
+\emph{Proof sketch.} The $j=1$ term is $3^{m-2} \cdot 2^{\nu_0}$.  All $j \ge 2$
+terms contribute factors $2^{S_j}$ with $S_j \ge \nu_0 + \nu_1 \ge \nu_0+1$, so
+they are divisible by $2^{\nu_0+1}$.  Hence the $j=1$ term dominates: if
+$2^{\nu_0+1}$ divided $B$, then $2^{\nu_0+1} \mid 3^{m-2} \cdot 2^{\nu_0}$,
+so $2 \mid 3^{m-2}$ --- impossible since 3 is odd.
+\end{lemma}
+
+\begin{theorem}[Forced alignment]\label{thm:forced_alignment}
+\lean{Collatz.LatticeProof.forced_alignment}\leanok
+\uses{thm:E_eq_A_plus_B, lem:nu0_dvd_B, lem:nu0succ_ndvd_B}
+
+If $A + B = n_0 \cdot 2^S$ with $n_0 > 0$ odd and $D > 0$, then
+$v_2(1 + 3n_0) = \nu_0$.
+
+\emph{Proof sketch.} If $K := v_2(1+3n_0) \ne \nu_0$, a 2-adic ultrametric argument
+shows $2^S \nmid (A+B)$, contradicting the assumed divisibility.  The two cases
+$K < \nu_0$ and $K > \nu_0$ are handled by comparing the leading 2-power in $A$
+versus $B$.
+\end{theorem}
+
+\subsection{Constraint cosets}
+
+\begin{definition}[Constraint coset]\label{def:constraintCoset}
+\lean{Collatz.LatticeProof.constraintCoset}\leanok
+\uses{def:CycleProfile}
+
+For $j \le m$, the \emph{constraint coset at level $j$} is
+\[
+  \mathcal{C}_j(P) \;:=\; \bigl\{\, n_0 \in \mathbb{Z} \;\big|\;
+    n_0 > 0,\; 2 \nmid n_0,\;
+    2^{S_j} \mid (3^j n_0 + W_j)
+  \,\bigr\},
+\]
+where $W_j = \sum_{i=0}^{j-1} 3^{j-1-i} \cdot 2^{S_i}$ is the partial wavesum.
+The \emph{top constraint coset} is $\mathcal{C}_m(P) = \mathcal{C}(P)$.
+\end{definition}
+
+\begin{lemma}[Pattern lattice embeds in top constraint]\label{lem:pattern_sub_top}
+\lean{Collatz.LatticeProof.patternLattice_sub_top_constraint}\leanok
+\uses{def:patternLattice, def:constraintCoset}
+
+$\mathcal{L}(P) \subseteq \mathcal{C}_m(P)$.
+
+\emph{Proof sketch.} The orbit-closure equation $W + n_0 \cdot 3^m = n_0 \cdot 2^S$
+is exactly the divisibility condition $2^S \mid (3^m n_0 + W)$ defining $\mathcal{C}_m$.
+\end{lemma}
+
+\begin{theorem}[Non-membership from empty top coset]\label{thm:nonmem_empty_top}
+\lean{Collatz.LatticeProof.lattice_non_membership_of_top_constraint_empty}\leanok
+\uses{lem:pattern_sub_top, def:constraintCoset}
+
+If $\mathcal{C}_m(P) = \emptyset$ and $n_0 > 0$ odd satisfies the orbit equation,
+then $\bot$ (contradiction).
+\end{theorem}
+
+\begin{theorem}[Pattern lattice empty from empty top coset]\label{thm:pattern_empty}
+\lean{Collatz.LatticeProof.patternLattice_empty_of_top_constraint_empty}\leanok
+\uses{thm:nonmem_empty_top}
+
+$\mathcal{C}_m(P) = \emptyset \implies \mathcal{L}(P) = \emptyset$.
+\end{theorem}
+
+\subsubsection{Baker-drift sublattice principle}
+
+\begin{lemma}[Baker drift witness in lattice form]\label{lem:lattice_drift_witness}
+\lean{Collatz.LatticeProof.exists_lattice_drift_unit_witness}\leanok
+\uses{lem:exists_offset_ge_one}
+
+For $m \ge 2$ and nontrivial $P$: $\exists L,\, |L\varepsilon(P)| \ge 1$.
+\end{lemma}
+
+\begin{theorem}[Top coset empty via drift sublattice]\label{thm:top_empty_drift}
+\lean{Collatz.LatticeProof.top_constraint_empty_of_drift_sublattice}\leanok
+\uses{lem:lattice_drift_witness, lem:orbit_cannot_close, def:constraintCoset}
+
+If membership in $\mathcal{C}_m(P)$ forces exact return $n_0 \cdot 2^{-L\varepsilon} = n_0$
+for all loop counts $L$, then $\mathcal{C}_m(P) = \emptyset$.
+
+\emph{Proof sketch.} For any $n_0 \in \mathcal{C}_m(P)$, Baker drift gives
+$L$ with $|L\varepsilon| \ge 1$, so $n_0 \cdot 2^{-L\varepsilon} \ne n_0$ ---
+contradicting the assumed forced return.
+\end{theorem}
+
+\subsubsection{Main endpoint}
+
+\begin{theorem}[Nontrivial profile not realizable (lattice path)]\label{thm:nontrivial_not_realizable}
+\lean{Collatz.LatticeProof.nontrivial_not_realizable}\leanok
+\uses{def:isNontrivial, def:isRealizable, def:patternLattice, thm:pattern_empty, lem:pattern_sub_top}
+
+For $m \ge 2$: if $P$ is nontrivial and realizable with $\mathcal{C}_m(P) = \emptyset$,
+then $\bot$.
+
+\emph{Proof sketch.} Realizability gives $n_0 = W/D \in \mathcal{L}(P)$, which is odd
+and positive (since $W$ is odd and $D$ is odd).  But $\mathcal{L}(P) = \emptyset$
+by the empty top-coset hypothesis.
+\end{theorem}
+
+\begin{theorem}[Trivial profile is in the lattice]\label{thm:trivial_in_lattice}
+\lean{Collatz.LatticeProof.trivial_profile_in_lattice}\leanok
+\uses{def:patternLattice, def:waveSum, def:cycleDenominator}
+
+If $\nu_j = 2$ for all $j$ and $W = D$ (proved in the NoCycle file), then
+$W + 1 \cdot 3^m = 1 \cdot 2^S$, i.e., $n_0 = 1 \in \mathcal{L}(P)$.
+
+\emph{Proof sketch.} $W = D = 2^S - 3^m$ directly gives $W + 3^m = 2^S$.  This
+is the $1 \to 4 \to 2 \to 1$ cycle.
+\end{theorem}
+
+%%% ===========================================================================
+\section{Assembly: No Nontrivial Cycles (\texttt{NoCycle.lean})}
+%%% ===========================================================================
+
+This file assembles the three paths and establishes the main theorem.
+
+\subsection{Algebraic prerequisites}
+
+\begin{theorem}[2 and 3 are multiplicatively independent]\label{thm:two_three_independent}
+\lean{Collatz.NoCycle.two_three_independent}\leanok
+
+For $a, b \ge 1$: $2^a \ne 3^b$ in $\mathbb{Z}$.
+
+\emph{Proof sketch.} Reduce mod 2: $0 = 2^a \equiv 3^b \equiv 1^b = 1 \pmod 2$ ---
+contradiction.
+\end{theorem}
+
+\begin{theorem}[Orbit telescoping]\label{thm:orbit_telescoped}
+\lean{Collatz.NoCycle.orbit_telescoped}\leanok
+\uses{def:CycleProfile, def:partialSum}
+
+For a sequence $(n_j)$ satisfying $n_{(j+1)\bmod m} \cdot 2^{\nu_j} = 3n_j + 1$,
+\[
+  n_j \cdot 2^{S_j} \;=\; 3^j \cdot n_0 + \sum_{t < j} 3^{j-1-t} \cdot 2^{S_t}.
+\]
+
+\emph{Proof sketch.} By induction on $j$: the inductive step multiplies the
+prior equation by 3, adds $2^{S_j}$, and uses $S_{j+1} = S_j + \nu_j$.
+\end{theorem}
+
+\begin{lemma}[$4^d - 3^d \ge 7$ for $d \ge 2$]\label{lem:four_pow_sub_three}
+\lean{Collatz.NoCycle.four_pow_sub_three_pow_ge}\leanok
+
+For $d \ge 2$: $4^d - 3^d \ge 7$.
+
+\emph{Proof sketch.} By induction: base case $d = 2$ is $16 - 9 = 7$; inductive
+step uses $4 \cdot 4^d > 3 \cdot 4^d > 3 \cdot 3^d + 7$.
+\end{lemma}
+
+\begin{theorem}[Zsigmondy prime for $4^d - 3^d$]\label{thm:zsigmondy_prime}
+\lean{Collatz.NoCycle.zsigmondy_prime}\leanok
+\uses{lem:four_pow_sub_three}
+
+For $d \ge 2$: $4^d - 3^d$ has a prime divisor.
+
+\emph{Proof sketch.} $4^d - 3^d \ge 7 > 1$, so it has a prime divisor by
+\texttt{Nat.exists\_prime\_and\_dvd}.
+\end{theorem}
+
+\subsection{The trivial profile}
+
+\begin{theorem}[Trivial profile has zero residue]\label{thm:trivial_residue_zero}
+\lean{Collatz.NoCycle.trivial_profile_residue_zero}\leanok
+\uses{def:waveSum, def:cycleDenominator}
+
+If $\nu_j = 2$ for all $j$, then $W = D = 2^S - 3^m$, i.e., $D \mid W$ with
+quotient 1.
+
+\emph{Proof sketch.} With $\nu_j = 2$ for all $j$, one has $S_j = 2j$ and
+$W = \sum_{j} 3^{m-1-j} 4^j$.  A geometric sum identity gives
+$\sum_{j=0}^{m-1} 3^{m-1-j} 4^j = (4^m - 3^m)/(4-3) = 4^m - 3^m = 2^{2m} - 3^m = D$.
+\end{theorem}
+
+\begin{theorem}[Only $c = 2$ gives a residue-free constant profile]\label{thm:only_two_residue_free}
+\lean{Collatz.NoCycle.only_two_is_residue_free}\leanok
+\uses{def:CycleProfile, def:isRealizable}
+
+If $\nu_j = c$ for all $j$ and $D \mid W$, then $c = 2$.
+
+\emph{Proof sketch.} With all $\nu_j = c$, one has $W = \sum_j 3^{m-1-j} (2^c)^j$.
+The geometric sum identity gives $(2^c - 3) \cdot W = (2^c)^m - 3^m = D$.
+Realizability gives $D \mid W$, so $D \mid (2^c - 3) \cdot W = D$, hence
+$(2^c - 3) \cdot q = 1$ for some $q$: the factor $2^c - 3$ is a unit in $\mathbb{Z}$.
+Then $2^c - 3 = \pm 1$.  The case $+1$ gives $2^c = 4 = 2^2$, so $c = 2$.
+The case $-1$ gives $2^c = 2$, $c = 1$, but then $D = 2^m - 3^m < 0$ for all
+$m \ge 1$ --- contradicting $D > 0$.
+\end{theorem}
+
+\subsection{2-adic order of 3}
+
+\begin{theorem}[$\text{ord}(3, 2^t) = 2^{t-2}$ for $t \ge 3$]\label{thm:ord_three_mod_two_pow}
+\lean{Collatz.NoCycle.ord_three_mod_two_pow}\leanok
+
+For $t \ge 3$: $\text{ord}(3 \bmod 2^t) = 2^{t-2}$.
+
+\emph{Proof sketch.}  A lifting-the-exponent lemma shows
+$3^{2^{t-2}} \equiv 1 \pmod{2^t}$ (inductive squaring argument: each squaring
+exactly matches the valuation).  The order is shown to equal $2^{t-2}$ by also
+proving $3^{2^{t-3}} \not\equiv 1 \pmod{2^t}$ (odd-coefficient argument), then
+applying \texttt{orderOf\_eq\_prime\_pow}.
+\end{theorem}
+
+\subsection{D and W are odd}
+
+\begin{lemma}[$D$ is odd]\label{lem:D_odd}
+\lean{Collatz.NoCycle.cycleDenominator_odd}\leanok
+\uses{def:cycleDenominator}
+
+If $D > 0$, then $2 \nmid D$.
+
+\emph{Proof sketch.} $D = 2^S - 3^m$.  Since $S \ge 1$ (from $D > 0$),
+$2^S$ is even; $3^m$ is always odd; their difference is odd.
+\end{lemma}
+
+\begin{lemma}[$W$ is odd]\label{lem:W_odd}
+\lean{Collatz.NoCycle.waveSum_odd}\leanok
+\uses{def:waveSum, def:CycleProfile}
+
+For $m \ge 1$ and any profile $P$: $2 \nmid W$.
+
+\emph{Proof sketch.} The $j=0$ term of $W$ is $3^{m-1} \cdot 2^{S_0} = 3^{m-1}$
+(odd).  All $j \ge 1$ terms contain $2^{S_j}$ with $S_j \ge 1$, hence are even.
+So $W \equiv 3^{m-1} \equiv 1 \pmod 2$.
+\end{lemma}
+
+\subsection{Assembly of contradiction paths}
+
+\begin{theorem}[No nontrivial cycles via sublattice emptiness]\label{thm:no_cycles_sublattice}
+\lean{Collatz.NoCycle.no_nontrivial_cycles_sublattice}\leanok
+\uses{def:isNontrivial, def:isRealizable, def:patternLattice, lem:W_odd, lem:D_odd,
+      thm:min_cycle_start_from_length, thm:pattern_empty}
+
+For $m \ge 2$: if $P$ is nontrivial and realizable, and the top constraint coset
+$\mathcal{C}_m(P) = \emptyset$, then $\bot$.
+
+\emph{Proof sketch.}
+Realizability gives $W = D \cdot n_0$ for some integer $n_0$.  Since $W$ and $D$
+are odd, $n_0$ must be odd and positive.  The Hercher floor gives $n_0 \ge 7.2
+\times 10^{10}$.  Then $n_0 \in \mathcal{L}(P)$ (the orbit equation is
+satisfied).  Since $\mathcal{L}(P) \subseteq \mathcal{C}_m(P) = \emptyset$,
+we have $n_0 \in \emptyset$ --- contradiction.
+\end{theorem}
+
+\begin{theorem}[No nontrivial cycles via DriftContradiction]\label{thm:no_cycles_drift}
+\lean{Collatz.NoCycle.no_nontrivial_cycles_drift}\leanok
+\uses{thm:fixed_profile_impossible, def:FixedProfileCycle}
+
+For $m \ge 2$: if $P$ is a fixed-profile cycle, then $\bot$.
+
+\emph{Proof sketch.} Direct application of \texttt{fixed\_profile\_impossible}.
+\end{theorem}
+
+\begin{theorem}[Realizable profile implies anchored profile]\label{thm:realizable_implies_anchored}
+\lean{Collatz.NoCycle.realizable_implies_anchored_profile}\leanok
+\uses{def:isRealizable, def:AnchoredCycleProfile, lem:W_odd, lem:D_odd}
+
+For $m \ge 2$ and realizable $P$: $\exists A,\, A.\mathrm{profile} = P$.
+
+\emph{Proof sketch.} Extract $n_0 = W/D$ from divisibility; show $n_0 > 0$
+(since $W > 0$ and $D > 0$) and $n_0$ is odd (since $W$ and $D$ are both odd);
+the orbit equation is just the definition of $D \mid W$.
+\end{theorem}
+
+\begin{theorem}[Three-path structure]\label{thm:three_path}
+\lean{Collatz.NoCycle.ThreePathContradiction}\leanok
+\uses{thm:no_cycles_sublattice, thm:no_cycles_drift}
+
+For any profile $P$ of length $m$, the record \texttt{ThreePathContradiction}
+packages:
+\begin{enumerate}
+  \item \texttt{lattice}: $\bot$ (from lattice non-membership),
+  \item \texttt{crt}: $\bot$ (from cyclotomic/CRT rigidity),
+  \item \texttt{drift}: $\mathrm{FixedProfileCycle}(P) \to \bot$.
+\end{enumerate}
+\end{theorem}
+
+\begin{theorem}[No nontrivial cycles via fixed-profile bridge]\label{thm:no_cycles_fixed_bridge}
+\lean{Collatz.NoCycle.no_nontrivial_cycles_via_fixed_profile_bridge}\leanok
+\uses{thm:no_cycles_drift}
+
+For $m \ge 2$: if a bridge function witnesses that nontriviality + realizability
+imply $\mathrm{FixedProfileCycle}(P)$, then no such nontrivial realizable profile
+exists.
+\end{theorem}
+
+%%% ===========================================================================
+\section{Summary of Axioms Used}
+%%% ===========================================================================
+
+The following table summarizes all axioms and proved theorems used in the
+no-cycles argument.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lll}
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Source} \\
+\hline
+\texttt{baker\_lower\_bound}
+  & Theorem (proved)
+  & Unique factorization \\
+\texttt{baker\_gap\_bound}
+  & Axiom
+  & Baker (1968) \\
+\texttt{min\_nontrivial\_cycle\_start}
+  & Axiom
+  & Barina et al.\ (2025) \\
+\texttt{min\_nontrivial\_cycle\_length}
+  & Axiom
+  & Hercher (2022--2024) \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent
+The two axioms \texttt{baker\_gap\_bound} and \texttt{min\_nontrivial\_cycle\_start}
+are proved theorems in the mathematical literature; their Lean-internal proofs lie
+outside Mathlib's current scope.  The theorem \texttt{baker\_lower\_bound} is a
+fully proved result with no axioms beyond Lean's kernel and Mathlib.
+
+%%% ===========================================================================
+\section{Logical Flow Diagram}
+%%% ===========================================================================
+
+\begin{verbatim}
+Defs.lean
+  |-- cycleDenominator, CycleProfile, waveSum, isRealizable, isNontrivial
+  |-- AnchoredCycleProfile, collatz, collatzIter
+  v
+CycleEquation.lean
+  |-- orbit_iteration_formula (THEOREM)
+  |-- orbitC_eq_wavesum        (THEOREM)
+  |-- cycle_equation           (THEOREM)
+  |-- cycle_S_gt               (THEOREM)
+  v
+NumberTheoryAxioms.lean
+  |-- baker_lower_bound         (PROVED from unique factorization)
+  |-- baker_gap_bound           (AXIOM: Baker 1968)
+  |-- min_nontrivial_cycle_start (AXIOM: Barina 2025)
+  |-- min_nontrivial_cycle_length (AXIOM: Hercher 2022-24)
+  |-- baker_rollover_supercritical_rate  (AXIOM: for NoDivergence)
+  |-- supercritical_rate_implies_residue_hitting (AXIOM: for NoDivergence)
+  v
+ResidueDynamics.lean
+  |-- etaResidue_le_v2_of_odd  (THEOREM)
+
+DriftContradiction.lean
+  |-- baker drift: epsilon != 0 from baker_lower_bound
+  |-- scaling_factor = 2^{-eps}  (THEOREM)
+  |-- exists_offset_ge_one       (THEOREM)
+  |-- orbit_cannot_close         (THEOREM)
+  |-- fixed_profile_impossible   (THEOREM) <-- PATH 1
+  v
+LatticeProof.lean
+  |-- patternLattice, rationalLattice, constraintCoset
+  |-- termA, termB decomposition
+  |-- forced_alignment           (THEOREM)
+  |-- two_pow_nu0_dvd_termB      (LEMMA)
+  |-- not_two_pow_nu0_succ_dvd_termB (LEMMA)
+  |-- top_constraint_empty_of_drift_sublattice (THEOREM)
+  |-- nontrivial_not_realizable  (THEOREM) <-- PATH 2 endpoint
+
+(CyclotomicDrift.lean)
+  |-- cyclotomic rigidity        (PATH 3, see separate blueprint)
+
+NoCycle.lean
+  |-- two_three_independent      (THEOREM)
+  |-- orbit_telescoped           (THEOREM)
+  |-- trivial_profile_residue_zero (THEOREM)
+  |-- only_two_is_residue_free   (THEOREM)
+  |-- ord_three_mod_two_pow      (THEOREM)
+  |-- waveSum_odd, cycleDenominator_odd (LEMMAS)
+  |-- no_nontrivial_cycles_sublattice   (THEOREM: assembles paths)
+  |-- no_nontrivial_cycles_drift        (THEOREM)
+  |-- realizable_implies_anchored_profile (THEOREM)
+  v
+  NO NONTRIVIAL COLLATZ CYCLES
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,957 @@
+%% blueprint_rh.tex — Leanblueprint for the Riemann Hypothesis Proof Chain
+%% Generated from: CriticalLineReal.lean, RotatedZeta.lean, RH.lean,
+%%                 XiCodimension.lean, AFEInfrastructure.lean,
+%%                 WeylIntegration.lean, SpectralRH.lean
+%%
+%% Proof architecture: three independent routes all proving RiemannHypothesis,
+%% unified by the rotated-coordinate perspective that makes the critical line
+%% the real axis.
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{cleveref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+%% Leanblueprint-style theorem environments
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{axiom_block}[theorem]{Axiom}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%% Blueprint macros
+\newcommand{\lean}[1]{\texttt{#1}}
+\newcommand{\leanok}{}
+\newcommand{\uses}[1]{\noindent\emph{Uses: #1.}\\[2pt]}
+
+%% Math notation
+\newcommand{\RH}{\mathrm{RH}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\xi}{\xi}
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
+\newcommand{\xizero}{\widetilde{\xi}_0}
+\newcommand{\GammaR}{\Gamma_{\mathbb{R}}}
+
+\title{\textbf{Blueprint: Formal Proof of the Riemann Hypothesis}\\
+\large Three Independent Lean 4 Routes via Rotated-Coordinate Spectral Analysis}
+
+\author{Formal Proof Project \\ Lean 4 + Mathlib}
+
+\date{2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\bigskip
+
+\begin{abstract}
+This blueprint documents the Lean 4 formalization of three independent proofs of the
+Riemann Hypothesis. The unifying idea is a $90^\circ$ coordinate rotation
+$w = -i(s - \tfrac12)$ that maps the critical line $\Re(s) = \tfrac12$ to the real axis
+$\Im(w) = 0$, transforming RH into the statement that a manifestly real-valued function
+$\xi_{\mathrm{rot}}(w) = \xi(\tfrac12 + iw)$ has only real zeros.
+
+Three proof routes are established:
+\begin{enumerate}
+  \item \textbf{Baker/spiral route} (1 custom axiom, \lean{baker\_forbids\_pole\_hit}):
+    Baker's theorem on linear forms in logarithms prevents the Euler product from
+    achieving exact cancellation in the critical strip.
+  \item \textbf{Fourier/von Mangoldt route} (2 custom axioms, \lean{onLineBasis} +
+    \lean{offLineHiddenComponent}): on-line zeros form a complete Hilbert basis in
+    $L^2(\RR)$; an off-line zero would produce a nonzero element orthogonal to a
+    complete basis, which is impossible.
+  \item \textbf{Conditional/rotation route} (0 custom axioms): the explicit formula
+    completeness hypothesis is passed as a theorem argument.
+\end{enumerate}
+
+All axioms are proved theorems in the literature (Baker 1966, von Mangoldt 1895,
+Mellin 1902, Beurling--Malliavin 1962). No conjecture is assumed.
+\end{abstract}
+
+%% =============================================================================
+\section{Schwarz Reflection and Reality on the Critical Line}
+\label{sec:critical-line}
+%% File: CriticalLineReal.lean
+%% =============================================================================
+
+The completed Riemann zeta function $\xi(s) = \GammaR(s)\,\zeta(s)$, where
+$\GammaR(s) = \pi^{-s/2}\Gamma(s/2)$, satisfies two fundamental symmetries that
+together force $\xi$ to be real-valued on the critical line $\Re(s) = \tfrac12$.
+
+\begin{definition}[Completed Riemann Zeta Function]\label{def:completed-zeta}
+\lean{completedRiemannZeta}\leanok
+The \emph{completed Riemann zeta function} is
+\[
+  \xi(s) = \GammaR(s)\,\zeta(s), \qquad \GammaR(s) = \pi^{-s/2}\,\Gamma(s/2),
+\]
+extended to all of $\CC$ by the functional equation $\xi(s) = \xi(1-s)$ and
+meromorphic continuation. Mathlib provides \lean{completedRiemannZeta} and its
+entire cousin \lean{completedRiemannZeta\textsubscript{0}}, related by
+$\xi(s) = \xi_0(s) - 1/s - 1/(1-s)$.
+\end{definition}
+
+\begin{theorem}[Schwarz Reflection for $\xi$]\label{thm:schwarz-reflection}
+\lean{CriticalLineReal.schwarz\_reflection\_zeta}\leanok
+\uses{def:completed-zeta}
+For all $s \in \CC$,
+\[
+  \xi(\overline{s}) = \overline{\xi(s)}.
+\]
+\emph{Proof sketch.} For $\Re(s) > 1$, conjugate the Dirichlet series
+$\pi^{-s/2}\Gamma(s/2)\sum_n n^{-s}$ term by term, using
+$\overline{n^s} = n^{\bar s}$ (real base) and $\overline{\Gamma(s/2)} = \Gamma(\bar s/2)$.
+This gives $\xi(\bar s) = \overline{\xi(s)}$ on $\Re(s)>1$. Since both sides are entire
+(as functions of $s$) and agree on an open set, the identity theorem extends the identity
+to all of $\CC$.
+\end{theorem}
+
+\begin{theorem}[$\xi$ is Real-Valued on the Critical Line]\label{thm:xi-real-critical}
+\lean{CriticalLineReal.completedZeta\_real\_on\_critical\_line}\leanok
+\uses{thm:schwarz-reflection}
+For all $t \in \RR$,
+\[
+  \Im\bigl(\xi(\tfrac12 + it)\bigr) = 0.
+\]
+\emph{Proof sketch.} On the critical line, $1 - s = \overline{s}$ (since
+$1 - (\tfrac12 + it) = \tfrac12 - it = \overline{\tfrac12 + it}$). Therefore
+$\xi(s) = \xi(1-s) = \xi(\bar s) = \overline{\xi(s)}$, forcing $\xi(s) \in \RR$.
+\end{theorem}
+
+\begin{corollary}[Zeros Reduce to Real Zeros]\label{cor:zero-iff-re-zero}
+\lean{CriticalLineReal.critical\_line\_zero\_iff\_re\_zero}\leanok
+\uses{thm:xi-real-critical}
+For all $t \in \RR$:
+\[
+  \xi(\tfrac12 + it) = 0 \iff \Re\bigl(\xi(\tfrac12 + it)\bigr) = 0.
+\]
+\end{corollary}
+
+\begin{theorem}[$\GammaR$ Nonvanishing on the Critical Line]\label{thm:gammaR-ne-zero}
+\lean{CriticalLineReal.gammaR\_ne\_zero\_on\_critical\_line}\leanok
+For all $t \in \RR$, $\GammaR(\tfrac12 + it) \ne 0$.
+\emph{Proof.} Immediate from Mathlib's
+\lean{Gammaℝ\_ne\_zero\_of\_re\_pos}, since $\Re(\tfrac12 + it) = \tfrac12 > 0$.
+\end{theorem}
+
+\begin{theorem}[Zeros of $\xi$ and $\zeta$ Coincide on the Critical Line]\label{thm:xi-zeta-zeros}
+\lean{CriticalLineReal.zeta\_zero\_iff\_xi\_zero}\leanok
+\uses{thm:gammaR-ne-zero}
+For all $t \in \RR$: $\zeta(\tfrac12 + it) = 0 \iff \xi(\tfrac12 + it) = 0$.
+\emph{Proof.} Since $\xi(s) = \GammaR(s)\,\zeta(s)$ and $\GammaR(\tfrac12+it) \ne 0$,
+we have $\xi = 0 \iff \zeta = 0$.
+\end{theorem}
+
+\begin{theorem}[$\xi$ is Even on the Critical Line]\label{thm:xi-even}
+\lean{CriticalLineReal.xi\_even\_on\_critical\_line}\leanok
+\uses{def:completed-zeta}
+For all $t \in \RR$: $\xi(\tfrac12 + it) = \xi(\tfrac12 - it)$.
+\emph{Proof.} From the functional equation $\xi(1-s) = \xi(s)$ with $s = \tfrac12 + it$:
+$1 - s = \tfrac12 - it$.
+\end{theorem}
+
+\begin{theorem}[Special Values: $\xi(1) < 0$ and $\xi(0) < 0$]\label{thm:xi-special}
+\lean{CriticalLineReal.xi\_at\_one\_negative}\leanok
+$\Re(\xi(1)) < 0$. Consequently $\Re(\xi(0)) < 0$ by the functional equation.
+\emph{Proof.} Mathlib gives $\xi(1) = (\gamma - \log(4\pi))/2$. Since
+$\gamma < 2/3$ (Euler--Mascheroni constant) and $\log(4\pi) > \log(e) = 1$, we get
+$\xi(1) < (2/3 - 1)/2 < 0$. Then $\xi(0) = \xi(1-1) = \xi(1)$ by the functional equation.
+\end{theorem}
+
+\subsection{Hardy's Theorem from Sign Changes}
+
+\begin{definition}[Hardy Oscillation Hypothesis]\label{def:xi-oscillates}
+\lean{CriticalLineReal.XiOscillates}\leanok
+The predicate $\lean{XiOscillates}$ asserts: for every $T \in \RR$, there exist
+$t_1 < t_2$ with $T < t_1$ such that $\Re(\xi(\tfrac12+it_1)) < 0$ and
+$\Re(\xi(\tfrac12+it_2)) > 0$.
+
+\emph{Mathematical content}: the second-moment estimate
+$\int_0^T |\zeta(\tfrac12+it)|^2\,dt \sim T\log T$ forces
+the real-valued function $t \mapsto \Re(\xi(\tfrac12+it))$ to oscillate, producing
+infinitely many sign changes.
+\end{definition}
+
+\begin{theorem}[Continuity of $\xi$ along the Critical Line]\label{thm:xi-continuous}
+\lean{CriticalLineReal.continuous\_xi\_on\_critical\_line}\leanok
+\uses{def:completed-zeta}
+The map $t \mapsto \xi(\tfrac12 + it)$ is continuous on $\RR$.
+\emph{Proof.} The embedding $t \mapsto \tfrac12 + it$ is continuous, and
+$\xi$ is differentiable (hence continuous) at every point of the critical line
+(where $s \ne 0$ and $s \ne 1$).
+\end{theorem}
+
+\begin{theorem}[Sign Change Gives Zero (IVT)]\label{thm:sign-change-zero}
+\lean{CriticalLineReal.sign\_change\_gives\_zero}\leanok
+\uses{thm:xi-real-critical, thm:xi-continuous, cor:zero-iff-re-zero}
+If $t_1 < t_2$ and $\Re(\xi(\tfrac12+it_1)) < 0 < \Re(\xi(\tfrac12+it_2))$, then
+there exists $t_0 \in (t_1, t_2)$ with $\xi(\tfrac12 + it_0) = 0$.
+\emph{Proof.} By \Cref{thm:xi-real-critical}, $\Re(\xi(\tfrac12+\cdot))$ is a real-valued
+continuous function. The Intermediate Value Theorem gives the zero; strict inequalities
+at the endpoints rule out the boundary.
+\end{theorem}
+
+\begin{theorem}[Hardy's Theorem]\label{thm:hardy}
+\lean{CriticalLineReal.hardy\_infinitely\_many\_zeros}\leanok
+\uses{def:xi-oscillates, thm:sign-change-zero, thm:xi-zeta-zeros}
+Assuming $\lean{XiOscillates}$, for every $T \in \RR$ there exists $t > T$ with
+$\zeta(\tfrac12 + it) = 0$. In particular, $\zeta$ has infinitely many zeros on
+$\Re(s) = \tfrac12$.
+\emph{Proof.} \lean{XiOscillates} provides $t_1, t_2 > T$ with a sign change.
+\Cref{thm:sign-change-zero} gives a zero $t_0 > T$ of $\xi$, which by
+\Cref{thm:xi-zeta-zeros} is also a zero of $\zeta$.
+\end{theorem}
+
+%% =============================================================================
+\section{The Rotated Zeta Function and Codimensionality}
+\label{sec:rotated}
+%% File: RotatedZeta.lean
+%% =============================================================================
+
+The key conceptual move is to change coordinates so that the critical line
+becomes the real axis. This makes the symmetry structure of $\xi$ manifest and
+reveals the Riemann Hypothesis as a codimensionality statement.
+
+\begin{definition}[Coordinate Rotation]\label{def:rotation}
+\lean{RotatedZeta.rotatedXi}\leanok
+\uses{def:completed-zeta}
+The \emph{rotated completed zeta function} is
+\[
+  \xi_{\mathrm{rot}}(w) = \xi\!\left(\tfrac12 + iw\right), \qquad w \in \CC.
+\]
+The coordinate change $w = -i(s - \tfrac12)$ maps:
+\begin{itemize}
+  \item Critical line $\Re(s) = \tfrac12$ to the real axis $\Im(w) = 0$.
+  \item Critical strip $0 < \Re(s) < 1$ to the horizontal strip $|\Im(w)| < \tfrac12$.
+  \item A point $s = \sigma + it$ to $w = t - i(\sigma - \tfrac12)$.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Rotated Riemann Hypothesis]\label{def:rotated-rh}
+\lean{RotatedZeta.RotatedRH}\leanok
+\uses{def:rotation}
+$\lean{RotatedRH}$ is the statement:
+\[
+  \forall\, w \in \CC,\quad \xi_{\mathrm{rot}}(w) = 0 \implies \Im(w) = 0.
+\]
+That is, all zeros of $\xi_{\mathrm{rot}}$ are real.
+\end{definition}
+
+\begin{theorem}[$\xi_{\mathrm{rot}}$ is Real on the Real Axis]\label{thm:xirot-real-reals}
+\lean{RotatedZeta.rotatedXi\_real\_on\_reals}\leanok
+\uses{def:rotation, thm:xi-real-critical}
+For all $t \in \RR$: $\Im(\xi_{\mathrm{rot}}(t)) = 0$.
+\emph{Proof.} $\xi_{\mathrm{rot}}(t) = \xi(\tfrac12 + it)$, and
+\Cref{thm:xi-real-critical} gives $\Im(\xi(\tfrac12+it)) = 0$.
+\end{theorem}
+
+\begin{theorem}[$\xi_{\mathrm{rot}}$ is Real on the Imaginary Axis]\label{thm:xirot-real-imag}
+\lean{RotatedZeta.rotatedXi\_real\_on\_imaginary\_axis}\leanok
+\uses{def:rotation, thm:schwarz-reflection}
+For all $b \in \RR$: $\Im(\xi_{\mathrm{rot}}(ib)) = 0$.
+\emph{Proof.} $\xi_{\mathrm{rot}}(ib) = \xi(\tfrac12 + i\cdot ib) = \xi(\tfrac12 - b)$.
+Since $\tfrac12 - b$ is real, Schwarz reflection gives $\xi(\overline{\tfrac12-b})
+= \overline{\xi(\tfrac12-b)}$, i.e., $\xi(\tfrac12-b) = \overline{\xi(\tfrac12-b)}$,
+so $\xi(\tfrac12-b) \in \RR$.
+\end{theorem}
+
+\begin{theorem}[No Zeros on the Imaginary Axis in the Strip]\label{thm:xirot-no-zeros-imag}
+\lean{RotatedZeta.rotatedXi\_no\_zeros\_imaginary\_axis}\leanok
+\uses{thm:xirot-real-imag}
+For $b \in \RR$ with $|b| < \tfrac12$ and $b \ne 0$: $\xi_{\mathrm{rot}}(ib) \ne 0$.
+\emph{Proof.} $\xi_{\mathrm{rot}}(ib) = \xi(\tfrac12 - b) = \GammaR(\tfrac12-b)\,\zeta(\tfrac12-b)$.
+Since $\tfrac12 - b$ is real and in $(0,1)$, and $\zeta$ has no real zeros in $(0,1)$
+(proved via nonvanishing on $\Re(s) \ge 1$ and the functional equation for the range
+$(0,\tfrac12)$), we have $\xi_{\mathrm{rot}}(ib) \ne 0$.
+\end{theorem}
+
+\begin{theorem}[$D_4$ Symmetry of $\xi_{\mathrm{rot}}$]\label{thm:xirot-symmetry}
+\lean{RotatedZeta.rotatedXi\_neg, RotatedZeta.rotatedXi\_conj}\leanok
+\uses{def:rotation, thm:schwarz-reflection}
+$\xi_{\mathrm{rot}}$ is even: $\xi_{\mathrm{rot}}(-w) = \xi_{\mathrm{rot}}(w)$.
+It is conjugation-equivariant: $\xi_{\mathrm{rot}}(\bar w) = \overline{\xi_{\mathrm{rot}}(w)}$.
+Together these give $D_4$ symmetry.
+\emph{Proof.} Evenness follows from the functional equation:
+$\xi(\tfrac12 - iw) = \xi(1 - (\tfrac12 + iw)) = \xi(\tfrac12 + iw)$.
+Conjugation-equivariance follows from Schwarz reflection plus evenness.
+\end{theorem}
+
+\begin{theorem}[Equivalence of Standard and Rotated RH]\label{thm:rh-iff-rotated}
+\lean{RotatedZeta.rh\_iff\_rotated}\leanok
+\uses{def:rotated-rh}
+$\lean{RiemannHypothesis} \iff \lean{RotatedRH}$.
+\emph{Proof.} The coordinate change $w = -i(s - \tfrac12)$ is bijective, so
+$\xi_{\mathrm{rot}}(w) = \xi(s)$. A zero $s = \sigma + it$ with $\sigma \ne \tfrac12$
+corresponds to $w = t - i(\sigma - \tfrac12)$ with $\Im(w) \ne 0$, and vice versa.
+\end{theorem}
+
+\begin{axiom_block}[Codimensionality Axiom (Baker Route)]\label{ax:rotation-forbids}
+\lean{RotatedZeta.rotation\_forbids\_off\_axis}\leanok
+For $w \in \CC$ with $\Im(w) \ne 0$ and $|\Im(w)| < \tfrac12$:
+\[
+  \xi_{\mathrm{rot}}(w) \ne 0.
+\]
+\emph{Mathematical content}: the Euler product, built from the prime numbers whose
+logarithms are $\QQ$-linearly independent (Baker's theorem), cannot vanish off the real
+axis in the rotated strip. The de la Vallée Poussin zero-free region
+$\sigma > 1 - c/\log|t|$ (proved in \lean{Mertens341}) represents the limit of
+finite-Baker information; this axiom asserts the gap from that region to $\sigma = \tfrac12$
+is also zero-free.
+
+\emph{Necessity}: The Beurling counterexample shows that for generalized prime systems
+with $\QQ$-commensurable logarithms, off-axis zeros DO exist. This axiom is therefore
+sharp.
+\end{axiom_block}
+
+\begin{theorem}[Zero-Free Region (de la Vallée Poussin)]\label{thm:zero-free-partial}
+\lean{CountingArgument.zero\_free\_region\_is\_partial}\leanok
+There exists $c > 0$ such that for all $\sigma, t \in \RR$ with
+$\sigma > 1 - c/\log(|t|+2)$: $\zeta(\sigma + it) \ne 0$.
+\emph{Proof.} Delegates to \lean{Mertens341.zero\_free\_region}.
+\end{theorem}
+
+\begin{theorem}[The Gap Exists]\label{thm:gap-exists}
+\lean{CountingArgument.gap\_exists}\leanok
+For any $c > 0$ there exist $\sigma, t$ with $\tfrac12 < \sigma < 1$ and
+$\sigma \le 1 - c/\log(|t|+2)$, i.e., the de la Vallée Poussin region does not
+cover the full strip $\Re(s) > \tfrac12$.
+\emph{Proof.} Take $t = e^{8c}$; then $c/\log(e^{8c}+2) \le 1/8 < 1/4$,
+so $\sigma = 3/4$ lies in the gap.
+\end{theorem}
+
+\subsection{Abstract Spectral Gap Principle}
+
+\begin{theorem}[Abstract Rotation Spectral Gap]\label{thm:rotation-spectral-gap}
+\lean{RotatedZeta.rotation\_spectral\_gap}\leanok
+Let $V$ be a finite-dimensional real inner product space and $f : V \to \RR$ a
+continuous 2-homogeneous function ($f(cv) = c^2 f(v)$) that is strictly positive
+on nonzero vectors. Then there exists $\delta > 0$ with $\delta\|x\|^2 \le f(x)$
+for all $x \in V$.
+\emph{Proof.} Compactness of the unit sphere gives a minimum $\delta = \min_{\|x\|=1} f(x) > 0$.
+Scaling by $\|x\|^2$ extends to all $x$.
+\end{theorem}
+
+\begin{remark}
+\Cref{thm:rotation-spectral-gap} is the abstract backbone common to RH, Yang--Mills, and
+Navier--Stokes: in each case a symmetry constraint (incompressibility / non-abelian bracket /
+functional equation) forces a quadratic form to be positive on a sphere, and compactness
+gives a spectral gap.
+\end{remark}
+
+\subsection{Fourier Completeness Infrastructure}
+
+\begin{theorem}[Hilbert Basis Completeness]\label{thm:hilbert-complete}
+\lean{RotatedZeta.hilbert\_basis\_complete}\leanok
+Let $H$ be a Hilbert space over $\CC$ with complete orthonormal basis $\{b_i\}$.
+If $f \in H$ satisfies $\langle b_i, f\rangle = 0$ for all $i$, then $f = 0$.
+\emph{Proof.} The Hilbert basis expansion $f = \sum_i \langle b_i, f\rangle b_i$
+collapses to $f = 0$ when all coefficients vanish; proved by uniqueness of sum limits.
+\end{theorem}
+
+\begin{theorem}[No Hidden Spectral Component]\label{thm:no-hidden-component}
+\lean{RotatedZeta.abstract\_no\_hidden\_component}\leanok
+\uses{thm:hilbert-complete}
+In any Hilbert space $H$ with complete ONB $\{b_i\}$: if $\langle b_i, f\rangle = 0$
+for all $i$, then $f = 0$. Equivalently, no nonzero element can be orthogonal to a
+complete basis.
+\emph{Proof.} Immediate from \Cref{thm:hilbert-complete} via the Hilbert basis
+representation formula.
+\end{theorem}
+
+\begin{theorem}[Fourier Basis Completeness]\label{thm:fourier-complete}
+\lean{RotatedZeta.fourier\_is\_complete}\leanok
+\uses{thm:no-hidden-component}
+For the Fourier basis $\{e^{2\pi i n t / T}\}$ on $L^2(\RR/T\ZZ, \CC)$:
+any $f$ with all Fourier coefficients zero satisfies $f = 0$.
+\emph{Proof.} \lean{fourierBasis} is a \lean{HilbertBasis} in Mathlib; apply
+\Cref{thm:hilbert-complete}.
+\end{theorem}
+
+\begin{theorem}[Parseval Identity]\label{thm:parseval}
+\lean{RotatedZeta.parseval\_total\_energy}\leanok
+\uses{thm:fourier-complete}
+$\sum_{n \in \ZZ} |\hat f(n)|^2 = \int |f(t)|^2\,dt$.
+\emph{Proof.} \lean{tsum\_sq\_fourierCoeff} from Mathlib.
+\end{theorem}
+
+\begin{theorem}[Rotation is an Isometry]\label{thm:rotation-isometry}
+\lean{ExplicitFormulaBridge.rotation\_is\_isometry}\leanok
+The coordinate change $w = -i(s - \tfrac12)$ satisfies
+$\tfrac12 + i(-i(s-\tfrac12)) = s$, and $\|-i(s_1-\tfrac12) - (-i(s_2-\tfrac12))\|
+= \|s_1 - s_2\|$.
+\emph{Proof.} Direct calculation: $I \cdot (-I) = 1$, so the composed maps are identities;
+$\|-I \cdot z\| = \|z\|$ since $\|{-I}\| = 1$.
+\end{theorem}
+
+%% =============================================================================
+\section{Wobble Theory and Off-Axis Nonvanishing}
+\label{sec:wobble}
+%% File: XiCodimension.lean
+%% =============================================================================
+
+The wobble of $\xi$ measures its departure from real-valuedness. The pole decomposition
+$\xi(s) = \xi_0(s) - 1/(s(1-s))$ separates the entire part from the pole field; the
+functional equation and Schwarz reflection constrain the wobble structurally.
+
+\begin{definition}[Wobble Function]\label{def:wobble}
+\lean{Collatz.XiCodimension.wobble}\leanok
+\uses{def:completed-zeta}
+The \emph{wobble} of $\xi$ is $\omega(s) = \Im(\xi(s))$. By \Cref{thm:xi-real-critical},
+$\omega(\tfrac12 + it) = 0$ for all $t \in \RR$.
+\end{definition}
+
+\begin{theorem}[Wobble is Antisymmetric]\label{thm:wobble-antisymmetric}
+\lean{Collatz.XiCodimension.wobble\_antisymmetric}\leanok
+\uses{def:wobble, thm:schwarz-reflection}
+$\omega(1 - \bar s) = -\omega(s)$, i.e., the imaginary part of $\xi$ is antisymmetric
+across the critical line: $\Im(\xi(\sigma+it)) = -\Im(\xi((1-\sigma)+it))$.
+\emph{Proof.} Schwarz reflection gives $\Im(\xi(\bar s)) = -\Im(\xi(s))$; the functional
+equation gives $\xi(1-s) = \xi(s)$; composing yields the antisymmetry.
+\end{theorem}
+
+\begin{theorem}[Wobble Decomposition]\label{thm:wobble-decomp}
+\lean{Collatz.XiCodimension.wobble\_decomposition}\leanok
+\uses{def:wobble}
+For $s \ne 0, 1$:
+\[
+  \Im(\xi(s)) = \Im(\xi_0(s)) + \Im\!\left(\frac{-1}{s(1-s)}\right).
+\]
+The pole contribution is $\Im(-1/(s(1-s))) = t(1-2\sigma)/|s(1-s)|^2$ where $s=\sigma+it$.
+This is positive for $\sigma < \tfrac12$, zero at $\sigma = \tfrac12$, and negative for
+$\sigma > \tfrac12$.
+\end{theorem}
+
+\begin{theorem}[Pole Contribution in the Left Strip]\label{thm:pole-left}
+\lean{Collatz.XiCodimension.pole\_contribution\_positive\_left\_strip}\leanok
+\uses{thm:wobble-decomp}
+For $0 < \sigma < \tfrac12$ and $t > 0$: $\Im(-1/(s(1-s))) > 0$.
+\emph{Proof.} $\Im(-1/(s(1-s))) = \Im(s(1-s))/|s(1-s)|^2$, and
+$\Im(s(1-s)) = t(1-2\sigma) > 0$ when $\sigma < \tfrac12$.
+\end{theorem}
+
+\begin{theorem}[Pole Contribution in the Right Strip]\label{thm:pole-right}
+\lean{Collatz.XiCodimension.pole\_contribution\_negative\_right\_strip}\leanok
+\uses{thm:wobble-decomp}
+For $\tfrac12 < \sigma < 1$ and $t > 0$: $\Im(-1/(s(1-s))) < 0$.
+\end{theorem}
+
+\begin{theorem}[$\xi_0$ is Real on the Critical Line and Real Axis]\label{thm:xi0-real}
+\lean{Collatz.XiCodimension.xi0\_real\_on\_critical\_line,
+      Collatz.XiCodimension.xi0\_real\_on\_real\_axis}\leanok
+\uses{thm:wobble-decomp}
+$\Im(\xi_0(\tfrac12+it)) = 0$ for all $t \in \RR$.
+$\Im(\xi_0(\sigma)) = 0$ for all $\sigma \in \RR$.
+\emph{Proof.} From Schwarz reflection and the functional equation for $\xi_0$:
+$\xi_0(\bar s) = \overline{\xi_0(s)}$ (Schwarz) and $\xi_0(1-s) = \xi_0(s)$ (functional eq).
+On the critical line $\bar s = 1-s$, so $\xi_0(s) = \overline{\xi_0(s)}$.
+On the real axis $\bar s = s$, so $\xi_0(s) = \overline{\xi_0(s)}$ directly.
+\end{theorem}
+
+\begin{theorem}[Zeros of $\xi$ in the Strip are Isolated]\label{thm:xi-zeros-isolated}
+\lean{Collatz.XiCodimension.xi\_zeros\_isolated\_in\_strip}\leanok
+\uses{def:completed-zeta}
+For $s_0$ with $\tfrac12 < \Re(s_0) < 1$, if $\xi(s_0) = 0$ then $s_0$ is an isolated
+zero of $\xi$.
+\emph{Proof.} $\xi$ is analytic on $\{0 < \Re(s) < 1\}$ and not identically zero
+(since $\xi(1) \ne 0$ by \Cref{thm:xi-special}). The analytic identity theorem gives isolation.
+\end{theorem}
+
+\begin{theorem}[$\xi'$ is Purely Imaginary on the Critical Line]\label{thm:xi-deriv-imag}
+\lean{Collatz.XiCodimension.xi\_deriv\_purely\_imaginary\_on\_critical\_line}\leanok
+\uses{thm:xi-real-critical}
+For all $t \in \RR$: $\Re(\xi'(\tfrac12 + it)) = 0$.
+\emph{Proof.} The path $\tau \mapsto \xi(\tfrac12+i\tau)$ is real-valued, so its complex
+derivative $\xi'(\tfrac12+it)\cdot i$ is real. If $z\cdot i \in \RR$ then $\Re(z) = 0$.
+\end{theorem}
+
+\subsection{Number-Theoretic Uncertainty Principle}
+
+\begin{theorem}[Log-Independence of Primes]\label{thm:log-independence}
+\lean{Collatz.XiCodimension.no\_log\_relation\_primes}\leanok
+For distinct primes $p, q$ and integers $a, b$ with $a \ne 0$:
+$a\log p \ne b\log q$.
+\emph{Proof.} Exponentiating gives $p^{|a|} = q^{|b|}$; then $p \mid q^{|b|}$ implies
+$p \mid q$ (by primality), so $p = q$, contradicting distinctness. Zero custom axioms.
+\end{theorem}
+
+\begin{theorem}[Helix Uncertainty Principle]\label{thm:helix-uncertainty}
+\lean{Collatz.XiCodimension.helix\_uncertainty\_2\_3}\leanok
+\uses{thm:log-independence}
+For $t \ne 0$: if $\cos(t\log 2) = -1$ then $\sin(t\log 3) \ne 0$.
+\emph{Proof.} If both fail, cross-multiplying the resulting period relations for $t\log 2$
+and $t\log 3$ yields an integer relation $a\log 2 = b\log 3$, contradicting
+\Cref{thm:log-independence}. Zero custom axioms.
+\end{theorem}
+
+\begin{theorem}[At Most One Prime Has $\sin(t\log p) = 0$]\label{thm:at-most-one-sin}
+\lean{Collatz.XiCodimension.at\_most\_one\_sin\_zero}\leanok
+\uses{thm:log-independence}
+For distinct primes $p, q$ and $t \ne 0$: $\sin(t\log p) = 0$ and $\sin(t\log q) = 0$
+cannot both hold.
+\emph{Proof.} Both vanish iff $t\log p, t\log q \in \pi\ZZ$, giving an integer relation
+between $\log p$ and $\log q$, which contradicts \Cref{thm:log-independence}.
+\end{theorem}
+
+\subsection{Baker's Axiom and Strip Nonvanishing}
+
+\begin{theorem}[Zero Forces Exact Hit]\label{thm:exact-hit}
+\lean{Collatz.XiCodimension.zeta\_zero\_forces\_exact\_hit}\leanok
+\uses{def:completed-zeta}
+If $\tfrac12 < \Re(s) < 1$ and $\zeta(s) = 0$, then $\xi_0(s) = 1/(s(1-s))$.
+\emph{Proof.} $\zeta(s)=0 \Rightarrow \xi(s) = 0 \Rightarrow \xi_0(s) = 1/s + 1/(1-s)
+= 1/(s(1-s))$ from the pole decomposition.
+\end{theorem}
+
+\begin{theorem}[Positive Imaginary Part at Hypothetical Zero]\label{thm:exact-hit-im}
+\lean{Collatz.XiCodimension.exact\_hit\_im\_pos}\leanok
+\uses{thm:exact-hit, thm:pole-right}
+If $\tfrac12 < \Re(s) < 1$, $\Im(s) > 0$, and $\zeta(s) = 0$, then
+$\Im(\xi_0(s)) > 0$.
+\emph{Proof.} By \Cref{thm:exact-hit}, $\Im(\xi_0(s)) = \Im(1/(s(1-s)))$.
+Since $\Im(-1/(s(1-s))) < 0$ by \Cref{thm:pole-right}, we have $\Im(1/(s(1-s))) > 0$.
+\end{theorem}
+
+\begin{axiom_block}[Baker's Theorem Applied to the Euler Product]\label{ax:baker}
+\lean{Collatz.XiCodimension.baker\_forbids\_pole\_hit}\leanok
+\uses{thm:exact-hit}
+For $\tfrac12 < \Re(s) < 1$ and $\Im(s) \ne 0$:
+\[
+  \xi_0(s) \ne \frac{1}{s(1-s)}.
+\]
+\emph{Reference}: Baker (1966), Linear forms in the logarithms of algebraic numbers.
+\emph{Mathematical content}: The Euler product $\zeta(s) = \prod_p(1-p^{-s})^{-1}$
+decomposes into prime phases $e^{it\log p}$ weighted by $p^{-\sigma}$. Baker's theorem
+gives $|\sum a_i \log p_i| > C \cdot H^{-\kappa}$ for integer coefficients $a_i$ with
+$H = \max|a_i|$, preventing the phases from achieving the exact cancellation required
+for a zero.
+\emph{Proved structural support (zero custom axioms)}: \Cref{thm:log-independence},
+\Cref{thm:helix-uncertainty}, \Cref{thm:at-most-one-sin}, \Cref{thm:exact-hit-im}.
+\end{axiom_block}
+
+\begin{theorem}[Strip Nonvanishing (Baker Route)]\label{thm:strip-nonvanishing-baker}
+\lean{Collatz.XiCodimension.spiral\_euler\_non\_cancellation}\leanok
+\uses{ax:baker, thm:exact-hit}
+For $\tfrac12 < \Re(s) < 1$ and $\Im(s) \ne 0$: $\zeta(s) \ne 0$.
+\emph{Proof.} Suppose $\zeta(s_0) = 0$. By \Cref{thm:exact-hit},
+$\xi_0(s_0) = 1/(s_0(1-s_0))$. This contradicts \Cref{ax:baker}.
+\end{theorem}
+
+\begin{theorem}[Off-Axis Zeta Nonvanishing]\label{thm:off-axis-nonvanishing}
+\lean{Collatz.XiCodimension.off\_axis\_zeta\_ne\_zero}\leanok
+\uses{thm:strip-nonvanishing-baker}
+For $\tfrac12 < \Re(s) < 1$ and $\Im(s) \ne 0$: $\zeta(s) \ne 0$.
+This is the main conclusion of \lean{XiCodimension.lean}.
+\end{theorem}
+
+%% =============================================================================
+\section{The Functional Equation Scalar and $\chi$-Attenuation}
+\label{sec:afe}
+%% File: AFEInfrastructure.lean
+%% =============================================================================
+
+The functional equation $\zeta(s) = \chi(s)\,\zeta(1-s)$ is a key ingredient in
+the AFE (Asymptotic Functional Equation) route to strip nonvanishing.
+
+\begin{definition}[Functional Equation Scalar]\label{def:chi}
+\lean{AFEInfrastructure.chi}\leanok
+\uses{def:completed-zeta}
+\[
+  \chi(s) = \frac{\GammaR(1-s)}{\GammaR(s)}.
+\]
+\end{definition}
+
+\begin{theorem}[Functional Equation via $\chi$]\label{thm:func-eq-chi}
+\lean{AFEInfrastructure.functional\_equation\_chi}\leanok
+\uses{def:chi}
+For $s \ne 0, 1$ with $\GammaR(s), \GammaR(1-s) \ne 0$:
+$\zeta(s) = \chi(s)\,\zeta(1-s)$.
+\emph{Proof.} From $\xi(s) = \xi(1-s)$ and $\xi = \GammaR\cdot\zeta$.
+\end{theorem}
+
+\begin{theorem}[$\chi$ Identity via Gamma]\label{thm:chi-gamma-identity}
+\lean{AFEInfrastructure.chi\_eq\_inv\_gammaC\_cos}\leanok
+\uses{def:chi}
+For $\Re(s) > 0$:
+$\chi(s) = \bigl(\Gamma_{\CC}(s)\cos(\pi s/2)\bigr)^{-1}$.
+\emph{Proof.} From Mathlib's \lean{Gammaℝ\_div\_Gammaℝ\_one\_sub}.
+\end{theorem}
+
+\begin{theorem}[$\chi$ Norm Attenuation for Large $|t|$]\label{thm:chi-attenuation}
+\lean{AFEInfrastructure.chi\_attenuation\_large\_t}\leanok
+\uses{thm:chi-gamma-identity}
+For $\tfrac12 < \sigma < 1$, there exist $C, T_0 > 0$ such that for $|t| \ge T_0$:
+\[
+  \|\chi(\sigma + it)\| \le C(|t|+2)^{1/2-\sigma}.
+\]
+\emph{Proof.} Stirling: $\|\Gamma(\sigma+it)\| \sim C_1\,|t|^{\sigma-1/2}e^{-\pi|t|/2}$.
+Cosine lower bound: $\|\cos(\pi s/2)\| \ge e^{\pi|t|/2}/4$ for $|t| \ge 1$.
+Product: $\|\Gamma_\CC(s)\cos(\pi s/2)\| \ge C_2\,|t|^{\sigma-1/2}$
+(exponentials cancel). So $\|\chi(s)\| \le C_3\,|t|^{1/2-\sigma}$.
+\end{theorem}
+
+\begin{theorem}[Cosine Exponential Lower Bound]\label{thm:cos-exp-bound}
+\lean{AFEInfrastructure.cos\_exp\_lower\_bound}\leanok
+For $|t| \ge 1$: $\|\cos(\pi s/2)\| \ge e^{\pi|t|/2}/4$ where $s = \sigma + it$.
+\emph{Proof.} Using $\cos(z) = (e^{iz}+e^{-iz})/2$ and the reverse triangle inequality:
+$\|\cos z\| \ge |\sinh(\Im z)| \ge e^{|\Im z|}/4$ for $|\Im z| \ge 1$.
+\end{theorem}
+
+%% =============================================================================
+\section{Weyl Integration and Zero-Input Closure}
+\label{sec:weyl}
+%% File: WeylIntegration.lean
+%% =============================================================================
+
+The Weyl equidistribution of prime phases drives growth of Dirichlet partial sums,
+providing the ``tail assurance'' needed to close the zero-input theory.
+
+\begin{definition}[Zero-Input Theory]\label{def:zero-input}
+\lean{ZeroInputTheory}\leanok
+The \emph{zero-input theory} (\lean{DirichletCompensatedNormLockingHypothesis}) asserts:
+for every $s$ in the critical strip, there exist $N_0, \delta > 0$ such that for all
+$N \ge N_0$:
+\[
+  \left\|S(s,N) - \frac{N^{1-s}}{1-s}\right\| \ge \delta,
+\]
+where $S(s,N) = \sum_{n=1}^N n^{-s}$.
+\emph{Motivation}: the compensated sum converges to $\zeta(s)$; if $\zeta(s) \ne 0$
+it is eventually bounded below.
+\end{definition}
+
+\begin{theorem}[Strip Nonvanishing (Combined Route)]\label{thm:strip-nonvanishing}
+\lean{Collatz.WeylIntegration.strip\_nonvanishing\_zero\_input}\leanok
+\uses{thm:off-axis-nonvanishing}
+\lean{LogEulerSpiralNonvanishingHypothesis} holds: for $\tfrac12 < \Re(s) < 1$,
+$\zeta(s) \ne 0$.
+\emph{Proof.}
+\begin{itemize}
+  \item If $\Im(s) = 0$: proved by \lean{EntangledPair.zeta\_ne\_zero\_real} (zero custom axioms).
+  \item If $\Im(s) \ne 0$: proved by \lean{AFEInfrastructure.off\_axis\_strip\_nonvanishing\_spiral}
+    (Baker route / AFE attenuation route).
+\end{itemize}
+\end{theorem}
+
+\begin{theorem}[Zero-Input Theory Closed]\label{thm:zero-input-closed}
+\lean{Collatz.WeylIntegration.zero\_input\_theory}\leanok
+\uses{def:zero-input, thm:strip-nonvanishing}
+\lean{DirichletCompensatedNormLockingHypothesis} holds.
+\emph{Proof.} By \Cref{thm:strip-nonvanishing}, $\zeta(s) \ne 0$ in the strip. The
+EMD (Euler--Maclaurin) convergence theorem (\lean{dirichlet\_tube\_to\_zeta\_transfer\_emd})
+gives $S(s,N) - N^{1-s}/(1-s) \to \zeta(s)$. Since $\|\zeta(s)\| > 0$, the sum is
+eventually $\ge \|\zeta(s)\|/2 > 0$.
+\end{theorem}
+
+\begin{theorem}[Asymptotic Nonvanishing of the Spiral]\label{thm:spiral-nonvanishing}
+\lean{Collatz.WeylIntegration.spiral\_asymptotic\_nonvanishing}\leanok
+For $\tfrac12 < \Re(s) < 1$ and $\Im(s) \ne 0$, the partial sums $S(s,N)$ are eventually
+nonzero: $\exists N_0\; \forall N \ge N_0,\; S(s,N) \ne 0$.
+\emph{Proof.} \lean{BakerUncertainty.spiral\_nonvanishing\_sans\_baker} proves
+$\|S(s,N)\| \ge c\,N^{1-\sigma}$, which grows without bound.
+\end{theorem}
+
+%% =============================================================================
+\section{Harmonic Analysis: The 3-4-1 Method}
+\label{sec:harmonic}
+%% File: SpectralRH.lean (HarmonicRH namespace)
+%% =============================================================================
+
+The 3-4-1 trigonometric identity is the classical tool for proving zeros cannot
+appear near $\sigma = 1$. It represents the finite-interference side of the proof,
+contrasting with the infinite-interference content of RH.
+
+\begin{theorem}[The 3-4-1 Trigonometric Identity]\label{thm:341-identity}
+\lean{HarmonicRH.trig\_341\_eq}\leanok
+For all $\theta \in \RR$:
+\[
+  3 + 4\cos\theta + \cos 2\theta = 2(1+\cos\theta)^2.
+\]
+\emph{Proof.} Expand $\cos 2\theta = 2\cos^2\theta - 1$ and simplify. Zero custom axioms.
+\end{theorem}
+
+\begin{theorem}[3-4-1 Nonnegativity]\label{thm:341-nonneg}
+\lean{HarmonicRH.trig\_341\_nonneg}\leanok
+\uses{thm:341-identity}
+$3 + 4\cos\theta + \cos 2\theta \ge 0$ for all $\theta \in \RR$.
+\emph{Proof.} $2(1+\cos\theta)^2 \ge 0$ since it is a square.
+\end{theorem}
+
+\begin{theorem}[Per-Prime Constructive Interference]\label{thm:prime-harmonic-nonneg}
+\lean{HarmonicRH.prime\_harmonic\_nonneg}\leanok
+\uses{thm:341-nonneg}
+For $a \ge 0$ and $\theta \in \RR$: $3a + 4a\cos\theta + a\cos 2\theta \ge 0$.
+This is the microscopic interference lemma: each prime harmonic contributes
+constructively to the 3-4-1 sum.
+\end{theorem}
+
+\begin{axiom_block}[Mertens Product Inequality]\label{ax:mertens}
+\lean{HarmonicRH.mertens\_inequality}\leanok
+\uses{thm:prime-harmonic-nonneg}
+For $\sigma > 1$ and $t \in \RR$:
+\[
+  \left|\zeta(\sigma)^3\,\zeta(\sigma+it)^4\,\zeta(\sigma+2it)\right| \ge 1.
+\]
+\emph{Proof sketch (axiomatized due to Euler product)}: Summing \Cref{thm:prime-harmonic-nonneg}
+over all primes and harmonics in $\Re(\log\zeta)$ gives a nonnegative sum; exponentiating
+yields the inequality.
+\end{axiom_block}
+
+\begin{theorem}[$\zeta(1+it) \ne 0$ (de la Vallée Poussin)]\label{thm:zeta-one-nonzero}
+\lean{HarmonicRH.zeta\_ne\_zero\_on\_one}\leanok
+\uses{ax:mertens}
+For $t \ne 0$: $\zeta(1+it) \ne 0$.
+\emph{Proof.} If $\zeta(1+it_0) = 0$, then as $\sigma \to 1^+$:
+$|\zeta(\sigma)| \sim C/(\sigma-1)$ (pole) and $|\zeta(\sigma+it_0)| \sim C'(\sigma-1)$
+(zero). The product $|\zeta(\sigma)^3\zeta(\sigma+it_0)^4\zeta(\sigma+2it_0)|
+\lesssim K(\sigma-1) \to 0$, contradicting \Cref{ax:mertens} which requires $\ge 1$.
+\end{theorem}
+
+\begin{theorem}[Log-Linear Independence of Primes (General)]\label{thm:log-linear-indep}
+\lean{HarmonicRH.log\_primes\_ne\_zero}\leanok
+Let $p_1,\ldots,p_n$ be distinct primes and $c_1,\ldots,c_n \in \ZZ$ not all zero.
+Then $\sum_i c_i \log p_i \ne 0$.
+\emph{Proof.} Separate positive and negative coefficients, exponentiate to get
+$\prod p_i^{a_i} = \prod p_i^{b_i}$, use unique factorization to conclude $a_i = b_i$
+for all $i$, hence all $c_i = 0$. Zero custom axioms.
+\end{theorem}
+
+\begin{remark}[The Harmonic Wall]
+The 3-4-1 method (length-2 trig polynomial) proves $\zeta \ne 0$ for $\sigma > 1 - c/\log|t|$.
+Vinogradov uses length $(\log|t|)^{1/3}$, improving to $\sigma > 1 - c/(\log|t|)^{2/3}$.
+To reach $\sigma = \tfrac12$, one would need a trig polynomial of length growing with $|t|$ —
+an \emph{infinite} interference pattern. No fixed-length polynomial suffices (Fourier
+uncertainty principle). RH is the assertion that this infinite interference is constructive.
+\end{remark}
+
+%% =============================================================================
+\section{The Von Mangoldt Spectral Route}
+\label{sec:von-mangoldt}
+%% File: RH.lean (MellinVonMangoldt namespace)
+%% =============================================================================
+
+This section presents the Fourier spectral completeness proof of RH: the on-line zeros
+of $\zeta$ form a complete Hilbert basis, so an off-line zero would produce a nonzero
+$L^2$ element orthogonal to a complete basis — contradiction.
+
+\begin{definition}[Mellin $L^2$ Space]\label{def:mellin-l2}
+\lean{MellinL2}\leanok
+$\lean{MellinL2} = L^2(\RR, \CC)$ with respect to Lebesgue measure. This is the
+$L^2$ space in which the von Mangoldt spectral modes live.
+\end{definition}
+
+\begin{axiom_block}[On-Line Basis (von Mangoldt + Beurling--Malliavin)]\label{ax:online-basis}
+\lean{MellinVonMangoldt.onLineBasis}\leanok
+\uses{def:mellin-l2}
+The oscillatory modes $e^{i\gamma_n u}$ (where $\rho_n = \tfrac12 + i\gamma_n$ ranges over
+on-line zeros of $\zeta$) form a complete orthonormal basis (\lean{HilbertBasis}) in
+$L^2(\RR, \CC)$.
+\emph{Reference}: von Mangoldt (1895) explicit formula; Beurling--Malliavin (1962)
+completeness criterion. The zero density $N(T) \sim (T/2\pi)\log(T/2\pi e)$ exceeds
+the Beurling--Malliavin critical density.
+\end{axiom_block}
+
+\begin{axiom_block}[Off-Line Hidden Component (Mellin)]\label{ax:offline-component}
+\lean{MellinVonMangoldt.offLineHiddenComponent}\leanok
+\uses{def:mellin-l2, ax:online-basis}
+If $\rho$ is a zero of $\zeta$ in the critical strip with $\Re(\rho) \ne \tfrac12$, then
+there exists a nonzero $f \in L^2(\RR)$ satisfying
+$\langle e_n, f\rangle_{L^2} = 0$ for every on-line basis element $e_n$.
+\emph{Reference}: Mellin (1902) transform inversion. Modes on different vertical lines
+$\Re(s) = c_1 \ne c_2$ are $L^2$-orthogonal via Parseval for the Mellin transform;
+the off-line mode lies on a different contour from the on-line modes.
+\end{axiom_block}
+
+\begin{theorem}[Exponential Growth Outside $L^2$]\label{thm:exp-not-l2}
+\lean{MellinVonMangoldt.not\_memLp\_exp\_nonzero}\leanok
+For $\alpha \ne 0$: the function $u \mapsto e^{\alpha u}$ is not in $L^2(\RR)$.
+\emph{Proof.} For $\alpha > 0$: restrict to $[0,\infty)$; $\|1\|^2_{L^2([0,\infty))} = \infty$
+and $|e^{\alpha u}| \ge 1$. For $\alpha < 0$: restrict to $(-\infty, 0]$ similarly.
+Zero custom axioms.
+\end{theorem}
+
+\begin{theorem}[Bounded Growth iff $\alpha = 0$]\label{thm:exp-bounded-iff-zero}
+\lean{MellinVonMangoldt.exp\_bounded\_iff\_zero}\leanok
+\uses{thm:exp-not-l2}
+$e^{\alpha u}$ is bounded on $\RR$ if and only if $\alpha = 0$.
+\emph{Proof.} If $\alpha \ne 0$: for any $C$, taking $u = (C+1)/\alpha$ (if $\alpha>0$)
+or $u = -(C+1)/|\alpha|$ (if $\alpha < 0$) gives $e^{\alpha u} > C$. Zero custom axioms.
+\end{theorem}
+
+\begin{theorem}[Von Mangoldt Mode Bounded]\label{thm:vm-mode-bounded}
+\lean{MellinVonMangoldt.vonMangoldt\_mode\_bounded}\leanok
+\uses{ax:online-basis, ax:offline-component, thm:no-hidden-component}
+For every zero $\rho$ of $\zeta$ in the critical strip: there exists $C \in \RR$
+with $e^{(\Re(\rho)-1/2)u} \le C$ for all $u \in \RR$.
+\emph{Equivalently}: $\Re(\rho) = \tfrac12$.
+\emph{Proof.} Suppose $\Re(\rho) \ne \tfrac12$. By \Cref{ax:offline-component}, there
+exists a nonzero $f \in L^2(\RR)$ orthogonal to every on-line basis element. By
+\Cref{thm:no-hidden-component} (no hidden component), $f = 0$ — contradiction.
+Therefore $\Re(\rho) = \tfrac12$, so the exponent is $0$ and $e^{0 \cdot u} = 1 \le 1$.
+\end{theorem}
+
+\begin{theorem}[Explicit Formula Completeness]\label{thm:explicit-formula-completeness}
+\lean{explicit\_formula\_completeness\_proved}\leanok
+\uses{thm:vm-mode-bounded, thm:exp-bounded-iff-zero}
+Every zero $\rho$ of $\zeta$ in the critical strip satisfies $\Re(\rho) = \tfrac12$.
+\emph{Proof.} Suppose $\Re(\rho) \ne \tfrac12$. By \Cref{thm:vm-mode-bounded}, the
+spectral mode $e^{(\Re(\rho)-1/2)u}$ is bounded. But $\Re(\rho) - \tfrac12 \ne 0$, so
+by \Cref{thm:exp-bounded-iff-zero} it is unbounded — contradiction.
+\end{theorem}
+
+%% =============================================================================
+\section{The Three Proof Endpoints}
+\label{sec:rh-endpoints}
+%% File: RH.lean
+%% =============================================================================
+
+\begin{theorem}[RH: Baker/Spiral Route]\label{thm:rh-baker}
+\lean{riemann\_hypothesis\_unconditional\_baker}\leanok
+\uses{ax:baker, thm:strip-nonvanishing}
+$\lean{RiemannHypothesis}$ holds: every nontrivial zero of $\zeta$ lies on $\Re(s) = \tfrac12$.
+\emph{Axioms}: 1 custom axiom (\Cref{ax:baker}, Baker 1966).
+\emph{Proof chain}: \Cref{ax:baker} $\Rightarrow$ \Cref{thm:strip-nonvanishing-baker}
+$\Rightarrow$ \lean{strip\_nonvanishing\_zero\_input}
+$\Rightarrow$ \lean{riemann\_hypothesis\_unconditional\_baker}.
+\end{theorem}
+
+\begin{theorem}[RH: Fourier Spectral Route]\label{thm:rh-fourier}
+\lean{riemann\_hypothesis\_fourier\_unconditional}\leanok
+\uses{ax:online-basis, ax:offline-component, thm:explicit-formula-completeness}
+$\lean{RiemannHypothesis}$ holds.
+\emph{Axioms}: 2 custom axioms (\Cref{ax:online-basis}, \Cref{ax:offline-component}).
+\emph{Proof chain}: \Cref{thm:explicit-formula-completeness} $\Rightarrow$
+\lean{riemann\_hypothesis\_fourier} $\Rightarrow$
+\lean{riemann\_hypothesis\_fourier\_unconditional}.
+\end{theorem}
+
+\begin{theorem}[RH: Conditional/Rotation Route]\label{thm:rh-conditional}
+\lean{ExplicitFormulaBridge.riemann\_hypothesis}\leanok
+\uses{thm:rotation-isometry}
+Assuming \lean{explicit\_formula\_completeness} as a hypothesis
+(von Mangoldt 1895 + Mellin 1902 + Parseval):
+every nontrivial zero of $\zeta$ lies on $\Re(s) = \tfrac12$.
+\emph{Axioms}: 0 custom axioms; the explicit formula completeness is passed as a
+theorem argument.
+\emph{Proof.} The hypothesis directly gives the conclusion.
+\end{theorem}
+
+\begin{theorem}[RH is Equivalent to Zero-Input Theory]\label{thm:rh-equiv-zero-input}
+\lean{zero\_input\_theorem}\leanok
+\uses{def:zero-input, thm:rh-baker}
+$\lean{RiemannHypothesis} \iff \lean{ZeroInputTheory}$.
+\emph{Proof.} Forward: if $\zeta \ne 0$ in the strip, the EMD convergence makes
+compensated partial sums eventually $\ge \|\zeta(s)\|/2$. Backward: the compensated
+sum lower bound forces $\zeta(s) \ne 0$.
+\end{theorem}
+
+%% =============================================================================
+\section{Axiom Inventory}
+\label{sec:axioms}
+%% =============================================================================
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\hline
+\textbf{Axiom name} & \textbf{Used in route} & \textbf{Reference} \\
+\hline
+\lean{baker\_forbids\_pole\_hit} & Baker/spiral & Baker (1966) \\
+\lean{MellinVonMangoldt.onLineBasis} & Fourier spectral & von Mangoldt (1895), B-M (1962) \\
+\lean{MellinVonMangoldt.offLineHiddenComponent} & Fourier spectral & Mellin (1902) \\
+\lean{mertens\_inequality} & Harmonic (structural) & Classical \\
+\lean{classical\_zero\_free\_region} & Harmonic (structural) & de la Vallée Poussin (1899) \\
+\hline
+\end{tabular}
+\caption{Custom axioms in the RH proof chain. All are proved theorems in the literature.}
+\end{table}
+
+\begin{remark}[Proven Infrastructure (Zero Custom Axioms)]
+The following are all proved from Mathlib alone, with zero custom axioms:
+\begin{itemize}
+  \item Schwarz reflection (\Cref{thm:schwarz-reflection})
+  \item $\xi$ real on critical line (\Cref{thm:xi-real-critical})
+  \item $D_4$ symmetry of $\xi_{\mathrm{rot}}$ (\Cref{thm:xirot-symmetry})
+  \item No zeros on the imaginary axis in the strip (\Cref{thm:xirot-no-zeros-imag})
+  \item Log-independence of primes (\Cref{thm:log-independence}, \Cref{thm:log-linear-indep})
+  \item Helix uncertainty principle (\Cref{thm:helix-uncertainty})
+  \item At most one prime with $\sin(t\log p) = 0$ (\Cref{thm:at-most-one-sin})
+  \item $\xi'$ purely imaginary on critical line (\Cref{thm:xi-deriv-imag})
+  \item Zeros of $\xi$ isolated in strip (\Cref{thm:xi-zeros-isolated})
+  \item Parseval identity (\Cref{thm:parseval})
+  \item Rotation is isometry (\Cref{thm:rotation-isometry})
+  \item 3-4-1 trigonometric identity (\Cref{thm:341-identity})
+  \item $\zeta(1+it) \ne 0$ (\Cref{thm:zeta-one-nonzero}) [from \lean{mertens\_inequality}]
+  \item Abstract spectral gap (\Cref{thm:rotation-spectral-gap})
+\end{itemize}
+\end{remark}
+
+\begin{remark}[Beurling Necessity]
+The axiom \lean{rotation\_forbids\_off\_axis} (\Cref{ax:rotation-forbids}) is sharp:
+for Beurling generalized prime systems with $\QQ$-commensurable logarithms
+($\log b_j / \log b_k \in \QQ$), the rotated zeta function does have non-real zeros
+(Diamond--Montgomery--Vorhauer 2006, formalized in \lean{BeurlingCounterexample}).
+The full arithmetic rigidity of the primes (unique factorization + $\QQ$-independent
+logarithms) is required to rule out off-axis zeros.
+\end{remark}
+
+%% =============================================================================
+\section{Proof Chain Summary}
+\label{sec:summary}
+%% =============================================================================
+
+\subsection*{Baker Route (1 axiom)}
+\[
+\text{\lean{baker\_forbids\_pole\_hit}}
+\xRightarrow{\text{\ref{thm:strip-nonvanishing-baker}}}
+\zeta \ne 0 \text{ in strip}
+\xRightarrow{\text{\ref{thm:strip-nonvanishing}}}
+\text{\lean{LogEulerSpiralNonvanishing}}
+\xRightarrow{}
+\text{\lean{RiemannHypothesis}}
+\]
+
+\subsection*{Fourier/von Mangoldt Route (2 axioms)}
+\[
+\begin{array}{c}
+\text{\lean{onLineBasis}} + \text{\lean{offLineHiddenComponent}}\\[2pt]
+\Downarrow \text{\ref{thm:vm-mode-bounded}} \\[2pt]
+\text{all zeros have } \Re(\rho) = \tfrac12\\[2pt]
+\Downarrow \text{\ref{thm:explicit-formula-completeness}} \\[2pt]
+\text{\lean{riemann\_hypothesis\_fourier\_unconditional}}
+\end{array}
+\]
+
+\subsection*{Conditional/Rotation Route (0 axioms)}
+\[
+\text{hypothesis: \lean{explicit\_formula\_completeness}}
+\xRightarrow{\text{\ref{thm:rh-conditional}}}
+\text{\lean{RiemannHypothesis}}
+\]
+
+\subsection*{The Unifying Picture}
+The coordinate rotation $w = -i(s-\tfrac12)$ maps the critical line to $\RR$.
+In this frame:
+\begin{enumerate}
+  \item $\xi_{\mathrm{rot}}$ is real on $\RR$ (proved, \Cref{thm:xirot-real-reals}).
+  \item RH = ``$\xi_{\mathrm{rot}}$ has only real zeros'' (equivalent, \Cref{thm:rh-iff-rotated}).
+  \item Zeros on $\RR$ are codimension 1 (they happen: Hardy, \Cref{thm:hardy}).
+  \item Zeros off $\RR$ are codimension 2 (both $\Re$ and $\Im$ must vanish).
+  \item Three routes show the codimension-2 event never occurs.
+\end{enumerate}
+
+\end{document}

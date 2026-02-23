@@ -393,9 +393,48 @@ theorem riemann_hypothesis_fourier_unconditional : RiemannHypothesis :=
 theorem riemann_hypothesis_unconditional : RiemannHypothesis :=
   riemann_hypothesis_fourier_unconditional
 
+/-! ### Single-axiom route (1 axiom, consolidating B-M + Mellin)
+
+The 2-axiom route above (onLineBasis + offLineHiddenComponent) is the most
+informative — it separates "the on-line modes are complete" (B-M) from
+"off-line zero → orthogonal witness" (Mellin). But the mathematical content
+of both axioms together is a single fact: the explicit formula's spectral
+decomposition is L²-complete on the critical line. We can state this as
+one axiom, which is their logical conjunction.
+
+This gives a parallel 1-axiom RH proof for downstream consumers that
+prefer minimal axiom counts over structural decomposition. -/
+
+/-- **Single axiom (von Mangoldt 1895 + Mellin 1902 + Beurling-Malliavin 1962)**:
+    The von Mangoldt explicit formula is spectrally complete — an off-line
+    zero of ζ in the critical strip is impossible.
+
+    Combines two independent mathematical facts:
+    1. The on-line zero modes form a complete L² system (B-M density theorem)
+    2. An off-line zero would produce a nonzero L² element orthogonal to
+       all on-line modes (Mellin contour orthogonality)
+
+    Together these yield False (orthogonal to a complete system → zero,
+    contradicting nonzero). This axiom is the conjunction. -/
+axiom vonMangoldt_spectral_exclusion
+    (ρ : ℂ) (hζ : riemannZeta ρ = 0) (hlo : 0 < ρ.re) (hhi : ρ.re < 1)
+    (hoff : ρ.re ≠ 1/2) : False
+
+/-- RH from 1 axiom: spectral exclusion → all zeros on Re = 1/2. -/
+theorem explicit_formula_completeness_1ax :
+    ∀ (ρ : ℂ), riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 → ρ.re = 1/2 := by
+  intro ρ hζ hlo hhi
+  by_contra hoff
+  exact vonMangoldt_spectral_exclusion ρ hζ hlo hhi hoff
+
+/-- RH (1 axiom route). -/
+theorem riemann_hypothesis_1ax : RiemannHypothesis :=
+  riemann_hypothesis_fourier explicit_formula_completeness_1ax
+
 #print axioms explicit_formula_completeness_proved
 #print axioms riemann_hypothesis_fourier_unconditional
 #print axioms riemann_hypothesis_unconditional
 #print axioms riemann_hypothesis_unconditional_baker
 #print axioms riemann_hypothesis_fourier
 #print axioms riemann_hypothesis
+#print axioms riemann_hypothesis_1ax

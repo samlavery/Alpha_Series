@@ -43,3 +43,6 @@ import Collatz.WeylIntegration
 import Collatz.AFECoordinationConstructive
 import Collatz.BSD
 import Collatz.NavierStokes
+import Collatz.GRH
+import Collatz.GRHTwinPrimes
+import Collatz.PNTBridge

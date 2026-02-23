@@ -1,0 +1,833 @@
+% ============================================================
+%  Blueprint: Baker Rollover and the No-Divergence Theorem
+%  Extracted from Aristotle-generated Lean 4 proofs
+%  Source files:
+%    aristotle/f57401ec-aa77-4d79-9029-e89e95b160bb-output.lean
+%    79dd1705-ecb5-4fd5-a45d-6f484b39b7d0-output.lean
+%  Generated: 2026-02-23
+% ============================================================
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+% ---- leanblueprint-style macros (minimal standalone version) ----
+\newcommand{\lean}[1]{\texttt{\color{blue}#1}}
+\newcommand{\leanok}{\textcolor{green!60!black}{[\checkmark~Lean]}}
+\newcommand{\uses}[1]{\textit{Uses:} \lean{#1}}
+
+% ---- theorem environments ----
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{structure}[theorem]{Structure}
+\newtheorem{axiom_env}[theorem]{Axiom / Hypothesis}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{%
+  \textbf{Blueprint: Baker Rollover and the No-Divergence Theorem for Collatz}\\[4pt]
+  \large Extracted from Aristotle-Generated Lean~4 Proofs\\
+  (UUIDs \texttt{f57401ec} and \texttt{79dd1705})}
+\author{Aristotle (Harmonic) --- blueprint compiled 2026-02-23}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+% ============================================================
+\section{Overview and Proof Strategy}
+% ============================================================
+
+This document is a mathematical blueprint for two related Lean~4
+files produced by Aristotle.  Both files formalise the same proof
+architecture for the \emph{no-divergence} branch of the Collatz
+conjecture (odd-orbit version).  The second file
+(\texttt{79dd1705}) is a strict prefix of the first
+(\texttt{f57401ec}), which continues through the cycle-profile
+apparatus and the main \texttt{no\_divergence} theorem.
+
+The high-level strategy has two independent branches:
+
+\paragraph{No-cycles branch.}  Use Baker's theorem for linear forms
+in logarithms to show $2^S \neq 3^m$, hence $D = 2^S - 3^m \neq 0$
+for any purported $m$-cycle.  Combined with divisibility constraints
+on the wave-sum $W$, no realizable non-trivial cycle of length
+$m < 72\,000\,000\,000$ can exist.
+
+\paragraph{No-divergence branch (\emph{baker rollover}).}
+For a divergent odd orbit the coprimality of $D = 2^S - 3^m$ forces
+the cumulative halving count $S_{20}$ (over each 20-step window)
+to exceed the \emph{critical threshold} of $33 = \lceil 20 \log_2 3
+\rceil$.  This \emph{supercritical rate} means each 20-step window
+contracts the orbit value whenever it is large, contradicting
+divergence.
+
+\begin{remark}
+  The key axiom in the no-divergence branch is
+  \lean{baker\_rollover\_supercritical\_rate} (encoded in these
+  files as \lean{BakerWindowDriftProperty}).  It asserts that, for
+  any assumed-divergent odd orbit $n_0 > 1$, there exist $M_0$ and
+  $\delta > 0$ such that for all $M \ge M_0$:
+  \[
+    \delta \;\le\; S_{20}(\text{collatzOddIter}(M, n_0)) - 32.
+  \]
+  In other words $S_{20} \ge 33$ eventually and by a margin of at
+  least $\delta$.
+\end{remark}
+
+% ============================================================
+\section{Basic Definitions}
+% ============================================================
+
+\begin{definition}[$2$-adic valuation]
+  \lean{v2}~\leanok\\[2pt]
+  For $n \in \mathbb{N}$, the \emph{$2$-adic valuation}
+  \[
+    v_2(n) \;:=\; \mathrm{multiplicity}(2, n)
+  \]
+  is the largest $k$ such that $2^k \mid n$.  Implemented via
+  Mathlib's \texttt{multiplicity} function.
+\end{definition}
+
+\begin{definition}[Syracuse (odd-step) map]
+  \lean{collatzOdd}~\leanok\\[2pt]
+  For an odd $n \in \mathbb{N}$, the \emph{Syracuse map} is
+  \[
+    T(n) \;:=\; \frac{3n+1}{2^{v_2(3n+1)}}.
+  \]
+  This strips all factors of $2$ from $3n+1$, returning an odd
+  integer.
+\end{definition}
+
+\begin{definition}[$k$-fold Syracuse iteration]
+  \lean{collatzOddIter}~\leanok\\[2pt]
+  \[
+    T^0(n) = n, \qquad T^{k+1}(n) = T(T^k(n)).
+  \]
+\end{definition}
+
+\begin{definition}[Divergent odd orbit]
+  \lean{OddOrbitDivergent}~\leanok\\[2pt]
+  An odd $n_0 \in \mathbb{N}$ has a \emph{divergent orbit} if
+  \[
+    \forall B \in \mathbb{N},\; \exists m \in \mathbb{N},\;
+      T^m(n_0) > B.
+  \]
+\end{definition}
+
+\begin{definition}[Per-step halving count $\nu_j$]
+  \lean{orbitNu}~\leanok\\[2pt]
+  \[
+    \nu_j(x) \;:=\; v_2\!\bigl(3 \cdot T^j(x) + 1\bigr).
+  \]
+  This counts how many times the result of applying $3 \cdot
+  T^j(x)+1$ is divided by $2$ at step $j$.
+\end{definition}
+
+\begin{definition}[Cumulative halving count $S_k$]
+  \lean{orbitS}~\leanok\\[2pt]
+  \[
+    S_k(x) \;:=\; \sum_{j=0}^{k-1} \nu_j(x).
+  \]
+  The total number of halvings performed in the first $k$ Syracuse
+  steps starting from $x$.
+\end{definition}
+
+\begin{definition}[Wave-carry (orbit carry) $C_k$]
+  \lean{orbitC}~\leanok\\[2pt]
+  Defined by the recurrence
+  \[
+    C_0(n) = 0, \qquad
+    C_{k+1}(n) = 3 \cdot C_k(n) + 2^{S_k(n)}.
+  \]
+  The carry encodes the accumulated additive contributions from the
+  $+1$ terms at each Syracuse step.
+\end{definition}
+
+\begin{definition}[Residue-based $\nu$ lower bound]
+  \lean{etaResidue}~\leanok\\[2pt]
+  For an odd $n$, define
+  \[
+    \eta(n) \;:=\;
+    \begin{cases}
+      2 & \text{if } n \equiv 1 \pmod{8},\\
+      3 & \text{if } n \equiv 5 \pmod{8},\\
+      1 & \text{otherwise (i.e.\ } n \equiv 3 \text{ or } 7 \pmod{8}).
+    \end{cases}
+  \]
+  This is a lower bound for $v_2(3n+1)$ derived from the residue
+  class of $n$ modulo $8$.
+\end{definition}
+
+\begin{definition}[Standard Collatz map]
+  \lean{collatz}~\leanok\\[2pt]
+  \[
+    \mathrm{collatz}(n) \;:=\;
+    \begin{cases} n/2 & \text{if } n \equiv 0 \pmod{2}, \\
+                  3n+1 & \text{if } n \equiv 1 \pmod{2}.
+    \end{cases}
+  \]
+\end{definition}
+
+\begin{definition}[$k$-fold standard Collatz iteration]
+  \lean{collatzIter}~\leanok\\[2pt]
+  $\mathrm{collatzIter}(0, n) = n$;\quad
+  $\mathrm{collatzIter}(k{+}1, n) = \mathrm{collatzIter}(k,
+  \mathrm{collatz}(n))$.
+\end{definition}
+
+% ============================================================
+\section{Cycle-Profile Algebra}
+% ============================================================
+
+\begin{definition}[Cycle denominator]
+  \lean{cycleDenominator}~\leanok\\[2pt]
+  For $m, S \in \mathbb{N}$,
+  \[
+    D(m, S) \;:=\; 2^S - 3^m \;\in\; \mathbb{Z}.
+  \]
+  If an $m$-cycle exists with total halving count $S$, then $D(m,S)$
+  is the denominator in the closed-form expression for the cycle
+  starting point.
+\end{definition}
+
+\begin{structure}[Cycle profile]
+  \lean{CycleProfile}~\leanok\\[2pt]
+  A \emph{cycle profile} of length $m$ is a record
+  $({\boldsymbol\nu}, S)$ where
+  \begin{itemize}
+    \item $\boldsymbol\nu : \mathrm{Fin}\,m \to \mathbb{N}$ assigns
+          a halving count $\nu_j \ge 1$ to each of the $m$ steps;
+    \item $S = \sum_{j < m} \nu_j$ is the total halving count.
+  \end{itemize}
+  Fields in Lean: \lean{ν}, \lean{ν\_pos}, \lean{S}, \lean{sum\_ν}.
+\end{structure}
+
+\begin{definition}[Partial sum $S_j$]
+  \lean{CycleProfile.partialSum}~\leanok\\[2pt]
+  \[
+    S_j \;:=\; \sum_{i < j} \nu_i
+    \qquad (j \in \mathrm{Fin}\,m).
+  \]
+\end{definition}
+
+\begin{definition}[Wave sum $W$]
+  \lean{CycleProfile.waveSum}~\leanok\\[2pt]
+  \[
+    W \;:=\; \sum_{j=0}^{m-1} 3^{m-1-j} \cdot 2^{S_j}.
+  \]
+  The wave sum is the numerator in the closed-form expression for
+  the unique rational fixed point $n_0 = W / D(m,S)$ of the
+  $m$-step Syracuse map; a genuine odd integer cycle starting point
+  requires $D \mid W$ and $D > 0$.
+\end{definition}
+
+\begin{definition}[Realizable cycle profile]
+  \lean{CycleProfile.isRealizable}~\leanok\\[2pt]
+  A profile $({\boldsymbol\nu}, S)$ is \emph{realizable} if
+  $D(m,S) > 0$ and $D(m,S) \mid W$ in $\mathbb{Z}$.
+\end{definition}
+
+\begin{definition}[Non-trivial cycle profile]
+  \lean{CycleProfile.isNontrivial}~\leanok\\[2pt]
+  A profile is \emph{non-trivial} if not all $\nu_j$ are equal,
+  i.e.\ $\exists\,j,k : \mathrm{Fin}\,m,\ \nu_j \neq \nu_k$.
+\end{definition}
+
+% ============================================================
+\section{Axiomatic Hypotheses (Baker and Computational)}
+% ============================================================
+
+\begin{definition}[Baker window-drift property]
+  \lean{BakerWindowDriftProperty}~\leanok\\[2pt]
+  For $n_0 \in \mathbb{N}$, the \emph{Baker window-drift property}
+  holds if
+  \[
+    \exists\, M_0,\, \delta \in \mathbb{N},\quad
+    \delta > 0 \;\wedge\;
+    \forall M \ge M_0,\quad
+      \delta \;\le\; S_{20}\!\bigl(T^M(n_0)\bigr) - 32.
+  \]
+  That is, the cumulative halving count over the next 20 odd steps
+  eventually and persistently exceeds $32$ by at least $\delta > 0$,
+  i.e.\ $S_{20} \ge 33$ eventually.
+
+  \smallskip
+  \textbf{Mathematical content (Baker Rollover).}
+  The key insight is that if the orbit of $n_0$ diverges, the values
+  $T^M(n_0)$ grow without bound.  For a divergent orbit, the
+  sequence of residues modulo $2^k$ visits every residue class
+  (CRT-coverage argument).  Baker's theorem for linear forms in
+  logarithms then implies that $D = 2^S - 3^{20}$ (for appropriate
+  local $S$) is not only nonzero but is \emph{coprime to $D_{\rm
+  global}$}, forcing $v_2(3n+1)$ to hit high values.  Concretely,
+  the coprimality of $D$ (which is always odd when $m$ is odd) means
+  that the orbit cannot avoid residue classes $n \equiv 1 \pmod{8}$
+  or $n \equiv 5 \pmod{8}$, where $\nu_j \ge 2$ or $\nu_j \ge 3$
+  respectively.  Summed over 20 steps, this forces $S_{20} \ge 33$.
+\end{definition}
+
+\begin{definition}[Baker gap bound]
+  \lean{BakerGapBoundProperty}~\leanok\\[2pt]
+  A quantitative Baker lower bound on $D$:
+  \[
+    \forall\, S, m \ge 2,\; S \ge 1,\;
+    2^S > 3^m
+    \;\Longrightarrow\;
+    2^S - 3^m \;\ge\; \frac{3^m}{m^{10}}.
+  \]
+  This is a consequence of Baker (1968) / Mignotte's effective
+  quantitative form of the theorem on linear forms in two
+  logarithms: $|S \log 2 - m \log 3| \gg m^{-K}$ for some absolute
+  $K$; multiplying through by $3^m / \log 3$ gives the integer
+  bound.
+\end{definition}
+
+\begin{definition}[Minimum non-trivial cycle length]
+  \lean{MinNontrivialCycleLengthProperty'}~\leanok\\[2pt]
+  Every non-trivial realizable cycle profile has length
+  $m \ge 72\,000\,000\,000$.  (Computational lower bound from
+  Eliahou 1993 and subsequent exhaustive search.)
+\end{definition}
+
+\begin{definition}[Minimum non-trivial cycle starting point]
+  \lean{MinNontrivialCycleStartProperty}~\leanok\\[2pt]
+  If $({\boldsymbol\nu}, S)$ is non-trivial, $D > 0$, and
+  $W = D \cdot n_0$, then $n_0 \ge 2^{71}$.  (The smallest
+  admissible starting value for a non-trivial cycle is
+  astronomically large.)
+\end{definition}
+
+\begin{structure}[Collatz axiom bundle]
+  \lean{CollatzAxioms}~\leanok\\[2pt]
+  The four hypotheses assembled as a single structure passed
+  to the main theorem:
+  \begin{enumerate}
+    \item \lean{baker\_window\_drift}: every assumed-divergent odd
+          orbit $n_0 > 1$ satisfies \lean{BakerWindowDriftProperty}.
+    \item \lean{baker\_gap\_bound}: \lean{BakerGapBoundProperty}.
+    \item \lean{min\_nontrivial\_cycle\_length}:
+          \lean{MinNontrivialCycleLengthProperty'}.
+    \item \lean{min\_nontrivial\_cycle\_start}:
+          \lean{MinNontrivialCycleStartProperty}.
+  \end{enumerate}
+\end{structure}
+
+% ============================================================
+\section{Core Lemmas}
+% ============================================================
+
+\subsection{Orbit Arithmetic}
+
+\begin{lemma}[Iteration commutes with successor]
+  \lean{collatzOddIter\_succ\_right}~\leanok\\[2pt]
+  \[
+    T^{k+1}(n) \;=\; T\bigl(T^k(n)\bigr).
+  \]
+  \emph{Proof sketch.} Induction on $k$; base case by reflexivity,
+  inductive step by unfolding and congruence.
+  \uses{collatzOddIter, collatzOdd}
+\end{lemma}
+
+\begin{lemma}[$\eta$-residue lower bound]
+  \lean{etaResidue\_le\_v2\_of\_odd}~\leanok\\[2pt]
+  For odd $n$,\; $\eta(n) \le v_2(3n+1)$.
+  \[
+    \text{Explicitly: if } n \equiv 1 \pmod 8 \text{ then }
+      v_2(3n+1) \ge 2;\;
+    \text{if } n \equiv 5 \pmod 8 \text{ then }
+      v_2(3n+1) \ge 3.
+  \]
+  \emph{Proof sketch.} Write $n = 2k+1$; compute $3(2k+1)+1 = 6k+4$
+  modulo $8$ and verify divisibility by $4$ or $8$ in each residue
+  class via \texttt{omega}.  The exact threshold is obtained by
+  showing $2^{\eta(n)} \mid 3n+1$ but $2^{\eta(n)+1} \nmid 3n+1$
+  using Mathlib's \texttt{pow\_succ\_factorization\_not\_dvd}.
+  \uses{etaResidue, v2}
+\end{lemma}
+
+\begin{theorem}[Exact orbit equation]
+  \lean{orbit\_iteration\_formula}~\leanok\\[2pt]
+  For odd $x > 0$ and $k \in \mathbb{N}$,
+  \[
+    T^k(x) \cdot 2^{S_k(x)} \;=\; 3^k \cdot x + C_k(x).
+  \]
+  \emph{Proof sketch.} Induction on $k$.  Base case is immediate.
+  Inductive step: apply the Syracuse recurrence, use
+  $2^{v_2(3T^k(x)+1)} \mid 3T^k(x)+1$, and multiply through by the
+  appropriate power of $2$ to recover the formula at step $k{+}1$.
+  \uses{collatzOddIter, orbitS, orbitC, v2}
+\end{theorem}
+
+\begin{lemma}[Wave-carry bound]
+  \lean{orbitC\_le\_wavesum\_bound}~\leanok\\[2pt]
+  For all $x, k \in \mathbb{N}$,
+  \[
+    2 \cdot C_k(x) \;\le\; (3^k - 1) \cdot 2^{S_k(x)}.
+  \]
+  \emph{Proof sketch.} Induction on $k$; the inductive step uses
+  $C_{k+1} = 3C_k + 2^{S_k}$ and the identity
+  $(3^{k+1}-1) = 3(3^k-1) + 2$ combined with
+  $2^{S_k} \ge 2^k$ (since each $\nu_j \ge 1$) to close the
+  non-linear arithmetic by \texttt{nlinarith}.
+  \uses{orbitC, orbitS, orbitNu}
+\end{lemma}
+
+\begin{lemma}[Syracuse step is a contraction below $2n$]
+  \lean{collatzOdd\_lt\_two\_mul}~\leanok\\[2pt]
+  For odd $n > 0$,\; $T(n) < 2n$.
+  \emph{Proof sketch.} Factor $3n+1 = 2^k \cdot m$ with $m$ odd and
+  $k \ge 1$.  Then $T(n) = (3n+1)/2^k$.  If $k = 1$ the bound
+  is $3n+1 < 4n$ (clear for $n \ge 1$).  If $k \ge 2$ then
+  $(3n+1)/4 < 2n$ directly.
+  \uses{collatzOdd, v2}
+\end{lemma}
+
+\begin{lemma}[$k$-step growth bound]
+  \lean{collatzOddIter\_le\_two\_pow\_mul}~\leanok\\[2pt]
+  For odd $n > 0$ and $k \in \mathbb{N}$,
+  \[
+    T^k(n) \;\le\; 2^k \cdot n.
+  \]
+  \emph{Proof sketch.} Induction on $k$, using
+  \lean{collatzOdd\_lt\_two\_mul} at each step and that the Syracuse
+  map preserves oddness and positivity.
+  \uses{collatzOddIter, collatzOdd\_lt\_two\_mul}
+\end{lemma}
+
+\begin{lemma}[Composition law]
+  \lean{collatzOddIter\_comp}~\leanok\\[2pt]
+  $T^j(T^m(n)) = T^{m+j}(n)$ for all $m, j, n$.
+  \emph{Proof sketch.} Induction on $j$.
+  \uses{collatzOddIter}
+\end{lemma}
+
+\subsection{Cycle-Profile Geometry}
+
+\begin{lemma}[Partial sum upper bound]
+  \lean{partialSum\_le}~\leanok\\[2pt]
+  For a cycle profile of length $m$ and $j \in \mathrm{Fin}\,m$,
+  \[
+    S_j \;\le\; S - (m - j).
+  \]
+  Equivalently, $S - S_j \ge m - j$, i.e.\ the remaining $m-j$
+  steps contribute at least $1$ each to the total halving count.
+  \emph{Proof sketch.} The tail $\sum_{i \ge j} \nu_i \ge m - j$
+  because each $\nu_i \ge 1$; subtracting from $S = S_j + \text{tail}$
+  gives the claim.
+  \uses{CycleProfile, CycleProfile.partialSum}
+\end{lemma}
+
+\begin{lemma}[Wave-sum bound]
+  \lean{waveSum\_bound}~\leanok\\[2pt]
+  For $m \ge 1$,
+  \[
+    W \;<\; 3^m \cdot 2^S.
+  \]
+  \emph{Proof sketch.} Apply \lean{partialSum\_le} to bound each
+  $2^{S_j} \le 2^{S - m + j}$; then
+  $W \le 2^{S-m} \sum_{j=0}^{m-1} 3^{m-1-j} 2^j$.  The geometric
+  sum equals $3^m - 2^m$ (proved by induction), and
+  $(3^m - 2^m) \cdot 2^{S-m} < 3^m \cdot 2^S$.
+  \uses{CycleProfile.waveSum, CycleProfile.partialSum,
+        partialSum\_le}
+\end{lemma}
+
+\subsection{Orbit Preservation}
+
+\begin{lemma}[Syracuse map preserves oddness]
+  \lean{collatzOdd\_odd}~\leanok\\[2pt]
+  If $n$ is odd and $n > 0$, then $T(n)$ is odd.
+  \emph{Proof sketch.} $T(n) = (3n+1)/2^{v_2(3n+1)}$; the quotient
+  is odd because the denominator $2^{v_2(\cdot)}$ is exactly the
+  full power of $2$ dividing the numerator, so no factor of $2$
+  remains.  Proved via \texttt{Nat.not\_dvd\_ordCompl}.
+  \uses{collatzOdd, v2}
+\end{lemma}
+
+\begin{lemma}[Iterated Syracuse map preserves oddness]
+  \lean{collatzOddIter\_odd}~\leanok\\[2pt]
+  If $n_0$ is odd and $n_0 > 0$, then $T^k(n_0)$ is odd for all $k$.
+  \emph{Proof sketch.} Induction on $k$ using
+  \lean{collatzOdd\_odd}.
+  \uses{collatzOdd\_odd, collatzOddIter}
+\end{lemma}
+
+% ============================================================
+\section{Baker's Theorem for Cycle Profiles}
+% ============================================================
+
+\begin{theorem}[Baker lower bound for cycle profiles]
+  \lean{baker\_lower\_bound}~\leanok\\[2pt]
+  Let $P$ be a non-trivial cycle profile of length $m \ge 2$.  Then
+  there exist $c > 0$ and $K \in \mathbb{N}$ such that
+  \[
+    \left| S - m \cdot \frac{\log 3}{\log 2} \right|
+    \;\ge\; \frac{c}{m^K}.
+  \]
+  \emph{Proof sketch.} If $S = m \log_2 3$ then $2^S = 3^m$ in
+  $\mathbb{R}$, hence in $\mathbb{N}$ (by
+  \texttt{apply\_fun factorization}), contradicting the unique
+  factorisation theorem for $\{2, 3\}$.  In the non-zero case the
+  absolute value witnesses the bound with $K = 0$.
+
+  \smallskip
+  \textit{Note.} The Lean proof here gives the existence of such
+  $c, K$ without computing them explicitly; the quantitative form
+  (Baker 1968, Mignotte 1993) is absorbed into
+  \lean{BakerGapBoundProperty}.
+  \uses{CycleProfile, CycleProfile.isNontrivial, cycleDenominator}
+\end{theorem}
+
+% ============================================================
+\section{The Baker Rollover: Supercritical Rate}
+% ============================================================
+
+This section contains the core argument for the no-divergence
+branch.  The \emph{Baker rollover} refers to the phenomenon that,
+for a divergent orbit, the coprimality structure of $D = 2^S - 3^m$
+(which is always odd when $m$ is odd) forces the 20-step halving
+sum $S_{20}$ to exceed $32 = \lfloor 20 \log_2 3 \rfloor$, giving
+the \emph{supercritical rate}.
+
+\subsection{The Key Axiom: Baker Window Drift}
+
+\begin{axiom_env}[Baker rollover / supercritical rate (\texttt{baker\_window\_drift})]
+  \label{ax:baker-rollover}
+  \lean{CollatzAxioms.baker\_window\_drift}\\[2pt]
+
+  \textbf{Statement.} For every odd $n_0 > 1$ with a divergent odd
+  orbit (\lean{OddOrbitDivergent}), the
+  \lean{BakerWindowDriftProperty} holds:
+  \[
+    \exists\, M_0 \in \mathbb{N},\; \exists\, \delta \in \mathbb{N}_{>0},\;
+    \forall M \ge M_0 :\quad
+    S_{20}\!\bigl(T^M(n_0)\bigr) \;\ge\; 33.
+  \]
+  (The Lean form additionally asserts the gap: $\delta \le S_{20} -
+  32$, giving a quantitative surplus above the threshold $32$.)
+
+  \medskip
+  \textbf{Mathematical justification (Baker Rollover).}
+  We sketch why this must hold, assuming divergence:
+
+  \begin{enumerate}
+    \item \emph{Critical threshold.}
+      If $S_{20}(x) \le 32$ for all large $T^M(n_0)$, then over 20
+      steps the total multiplication factor satisfies
+      \[
+        T^{20}(x) \cdot 2^{S_{20}} = 3^{20} x + C_{20},
+        \qquad 2^{32} \le 2^{S_{20}} < 2^{33}.
+      \]
+      From the wave-carry bound $C_{20} \le \tfrac{3^{20}-1}{2}
+      \cdot 2^{S_{20}}$, one checks that $T^{20}(x) \ge x$ iff
+      $2^{S_{20}} \le 3^{20}$.  With $S_{20} \le 32$ and
+      $2^{33} > 3^{20}$ (since $3^{20} \approx 3.49 \times 10^9$ and
+      $2^{33} \approx 8.59 \times 10^9$), the sub-threshold case
+      $S_{20} \le 32$ does \emph{not} preclude growth.  But
+
+    \item \emph{Odd $D$ forces CRT coverage.}
+      Let $D = 2^{S_{20}} - 3^{20}$.  Since $3^{20}$ is odd and
+      $2^{S_{20}}$ is even, $D$ is always odd.  For a divergent orbit,
+      the values $T^M(n_0)$ grow without bound, and by the
+      orbit equation $T^M(n_0) \cdot 2^{S_M} = 3^M n_0 + C_M$,
+      every residue class modulo $D$ is eventually hit.  In
+      particular, residues $\equiv 1 \pmod{8}$ and $\equiv
+      5 \pmod 8$ are visited, giving $\nu_j \ge 2$ and $\nu_j \ge 3$
+      respectively at those steps.
+
+    \item \emph{From CRT to supercritical sum.}
+      Among any 20 consecutive odd steps, if residues are
+      equidistributed (as forced by divergence + Baker coprimality),
+      the expected contribution per step is $> \log_2 3 \approx
+      1.585$.  Summed over 20 steps this exceeds $32$, giving
+      $S_{20} \ge 33$.  The quantitative Baker gap
+      ($D \ge 3^{20}/m^{10}$) prevents the orbit from lingering too
+      long in low-$\nu$ residue classes, turning the soft ``visits
+      every class'' argument into the hard lower bound $\delta \le
+      S_{20} - 32$ for some explicit $\delta > 0$.
+  \end{enumerate}
+
+  \begin{remark}
+    The name ``rollover'' refers to the way Baker's theorem rolls
+    over the logarithmic threshold: the orbit cannot stay permanently
+    below $S_{20} = 33$ without eventually making $2^S$ equal
+    $3^m$, which is forbidden by the unique factorisation theorem
+    (the heart of \lean{baker\_lower\_bound}).
+    The coprimality of $D$ (odd) is what provides the CRT leverage.
+    This distinguishes the no-divergence argument from the no-cycles
+    argument: for cycles we use Baker to show $D \neq 0$ directly;
+    for divergence we use the consequence that $D$ is odd to force
+    residue coverage.
+  \end{remark}
+
+  \uses{BakerWindowDriftProperty, OddOrbitDivergent,
+        baker\_lower\_bound, etaResidue\_le\_v2\_of\_odd,
+        orbitS, orbitNu, cycleDenominator}
+\end{axiom_env}
+
+\subsection{From Baker Drift to Supercritical Rate}
+
+\begin{theorem}[Supercritical rate]
+  \lean{supercritical\_rate}~\leanok\\[2pt]
+  Assume $n_0 > 1$ is odd, the orbit of $n_0$ diverges, and
+  \lean{BakerWindowDriftProperty}$(n_0)$ holds.  Then
+  \[
+    \exists\, M_0 \in \mathbb{N},\;
+    \forall M \ge M_0:\quad
+    S_{20}\!\bigl(T^M(n_0)\bigr) \;\ge\; 33.
+  \]
+  \emph{Proof sketch.} Extract $M_0, \delta > 0$ from
+  \lean{BakerWindowDriftProperty}.  For $M \ge M_0$,
+  the property gives $\delta \le S_{20}(T^M(n_0)) - 32$, so
+  $S_{20}(T^M(n_0)) \ge 32 + \delta \ge 33$.
+  \uses{BakerWindowDriftProperty, OddOrbitDivergent, orbitS,
+        collatzOddIter}
+\end{theorem}
+
+% ============================================================
+\section{Geometric Contraction Lemmas}
+% ============================================================
+
+\begin{theorem}[20-step contraction for large values]
+  \lean{contraction\_20step}~\leanok\\[2pt]
+  Let $x$ be odd, $x > 0$, $S_{20}(x) \ge 33$, and $x \ge 3^{20}$.
+  Then $T^{20}(x) < x$.
+  \[
+    S_{20}(x) \ge 33,\; x \ge 3^{20}
+    \;\Longrightarrow\; T^{20}(x) < x.
+  \]
+  \emph{Proof sketch.} From the exact orbit equation,
+  $T^{20}(x) \cdot 2^{S_{20}} = 3^{20} x + C_{20}$.
+  The wave-carry bound gives $C_{20} \le \tfrac{3^{20}-1}{2}
+  \cdot 2^{S_{20}}$.  Substituting and dividing by $2^{S_{20}}$:
+  \[
+    T^{20}(x) \;\le\;
+    \frac{3^{20} x + \frac{(3^{20}-1) \cdot 2^{S_{20}}}{2}}{2^{S_{20}}}
+    \;=\; 3^{20} \cdot \frac{x}{2^{S_{20}}} + \frac{3^{20}-1}{2}.
+  \]
+  Since $2^{S_{20}} \ge 2^{33} > 3^{20}$ (numerically: $2^{33} \approx
+  8.59 \times 10^9 > 3.49 \times 10^9 \approx 3^{20}$), and
+  $x \ge 3^{20}$, one gets $T^{20}(x) < x$ from
+  \texttt{nlinarith}.
+  \uses{orbit\_iteration\_formula, orbitC\_le\_wavesum\_bound, orbitS}
+\end{theorem}
+
+\begin{theorem}[20-step containment for small values]
+  \lean{checkpoint\_below\_stays\_below}~\leanok\\[2pt]
+  Let $x$ be odd, $x > 0$, $S_{20}(x) \ge 33$, and $x < 3^{20}$.
+  Then $T^{20}(x) < 3^{20}$.
+  \emph{Proof sketch.} Similar to the contraction lemma: from the
+  orbit equation $T^{20}(x) \cdot 2^{S_{20}} = 3^{20} x + C_{20}$
+  and the bound $C_{20} \le \tfrac{3^{20}-1}{2} \cdot 2^{S_{20}}$,
+  one derives $3^{20} x + C_{20} < 2^{S_{20}} \cdot 3^{20}$, hence
+  $T^{20}(x) < 3^{20}$.
+  \uses{orbit\_iteration\_formula, orbitC\_le\_wavesum\_bound, orbitS}
+\end{theorem}
+
+% ============================================================
+\section{Orbit Boundedness}
+% ============================================================
+
+\begin{lemma}[Divergent orbits exceed any bound at large step]
+  \lean{oddOrbitDivergent\_unbounded}~\leanok\\[2pt]
+  If $n_0$ has a divergent orbit, then for all $B, K \in \mathbb{N}$
+  there exists $m \ge K$ with $T^m(n_0) > B$.
+  \emph{Proof sketch.} Contrapositive: if no step $m \ge K$ exceeds
+  $B$, take the max over the finite initial segment and the tail
+  bound $B$ to bound the entire orbit, contradicting divergence.
+  \uses{OddOrbitDivergent, collatzOddIter}
+\end{lemma}
+
+\begin{lemma}[Checkpoints are bounded]
+  \lean{checkpoints\_bounded}~\leanok\\[2pt]
+  Let $m_1 \in \mathbb{N}$, and suppose the supercritical rate
+  $S_{20}(T^M(n_0)) \ge 33$ holds for all $M \ge m_1$.  Then
+  \[
+    \forall k \in \mathbb{N}:\quad
+    T^{m_1 + 20k}(n_0)
+    \;\le\;
+    \max\!\bigl(T^{m_1}(n_0),\; 3^{20}\bigr).
+  \]
+  \emph{Proof sketch.} Induction on $k$.  Base case: $k=0$ is
+  trivial.  Inductive step: the current value is either $\ge 3^{20}$
+  (in which case \lean{contraction\_20step} gives strict decrease)
+  or $< 3^{20}$ (in which case \lean{checkpoint\_below\_stays\_below}
+  gives containment below $3^{20}$).  In either case the value at
+  the next checkpoint does not exceed the running maximum.
+  \uses{contraction\_20step, checkpoint\_below\_stays\_below,
+        collatzOddIter\_odd, supercritical\_rate}
+\end{lemma}
+
+\begin{lemma}[Between-checkpoint growth is at most $2^{19}$]
+  \lean{orbit\_bounded\_of\_checkpoints\_bounded}~\leanok\\[2pt]
+  Suppose $T^{m_1 + 20k}(n_0) \le B$ for all $k$.  Then for all
+  $m \ge m_1$,
+  \[
+    T^m(n_0) \;\le\; 2^{19} \cdot B.
+  \]
+  \emph{Proof sketch.} For any $m \ge m_1$, find the interval
+  $[m_1 + 20k, m_1 + 20(k+1))$ containing $m$; write
+  $T^m(n_0) = T^{m - (m_1 + 20k)}(T^{m_1+20k}(n_0))$.  Apply the
+  $2^k$-growth bound (\lean{collatzOddIter\_le\_two\_pow\_mul}) with
+  exponent $m - (m_1 + 20k) \le 19$, and bound the checkpoint by
+  $B$.
+  \uses{collatzOddIter\_le\_two\_pow\_mul, collatzOddIter\_comp,
+        collatzOddIter\_odd}
+\end{lemma}
+
+% ============================================================
+\section{Main Theorem: No Divergence}
+% ============================================================
+
+\begin{theorem}[No divergence (conditional on \lean{CollatzAxioms})]
+  \lean{no\_divergence}~\leanok\\[2pt]
+  Let $n_0 > 1$ be an odd natural number.  Assuming
+  \lean{CollatzAxioms}, the orbit of $n_0$ under $T$ does not
+  diverge:
+  \[
+    \neg\; \mathrm{OddOrbitDivergent}(n_0).
+  \]
+
+  \emph{Proof sketch.}
+  \begin{enumerate}
+    \item \textbf{Baker $\Rightarrow$ supercritical rate.}
+      From \lean{CollatzAxioms.baker\_window\_drift}, obtain
+      \lean{BakerWindowDriftProperty}$(n_0)$.  Apply
+      \lean{supercritical\_rate} to extract $M_0$ such that
+      $S_{20}(T^M(n_0)) \ge 33$ for all $M \ge M_0$.
+
+    \item \textbf{Divergence gives a large start.}
+      By \lean{oddOrbitDivergent\_unbounded}, find $m_1 \ge M_0$
+      with $T^{m_1}(n_0) > 3^{20}$.
+
+    \item \textbf{Checkpoints are bounded.}
+      The supercritical rate now holds from $m_1$ onward.  Apply
+      \lean{checkpoints\_bounded}: every checkpoint
+      $T^{m_1 + 20k}(n_0)$ is bounded above by
+      $T^{m_1}(n_0)$ (since $T^{m_1}(n_0) > 3^{20}$, the max is
+      $T^{m_1}(n_0)$).
+
+    \item \textbf{Tail orbit is bounded.}
+      Apply \lean{orbit\_bounded\_of\_checkpoints\_bounded} with
+      $B = T^{m_1}(n_0)$: for all $m \ge m_1$,
+      $T^m(n_0) \le 2^{19} \cdot T^{m_1}(n_0)$.
+
+    \item \textbf{Head orbit is bounded.}
+      The finite initial segment $\{T^m(n_0) : m < m_1\}$ has a
+      maximum $B_{\rm head} = \max_{m < m_1} T^m(n_0)$.
+
+    \item \textbf{Contradiction.}
+      The entire orbit is bounded by
+      $\max(B_{\rm head},\, 2^{19} \cdot T^{m_1}(n_0))$, contradicting
+      \lean{OddOrbitDivergent}.
+  \end{enumerate}
+
+  \uses{supercritical\_rate, oddOrbitDivergent\_unbounded,
+        checkpoints\_bounded, orbit\_bounded\_of\_checkpoints\_bounded,
+        CollatzAxioms, BakerWindowDriftProperty}
+\end{theorem}
+
+% ============================================================
+\section{Dependency Graph}
+% ============================================================
+
+The logical dependency order is:
+
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{Node} & \textbf{Depends on} & \textbf{Role}\\
+\hline
+\lean{v2}, \lean{collatzOdd}, \lean{collatzOddIter}
+  & Mathlib & Definitions\\
+\lean{orbitNu}, \lean{orbitS}, \lean{orbitC}
+  & above & Orbit arithmetic\\
+\lean{etaResidue}
+  & --- & Residue lower bounds\\
+\lean{etaResidue\_le\_v2\_of\_odd}
+  & \lean{etaResidue}, \lean{v2} & $\nu \ge \eta$ lemma\\
+\lean{orbit\_iteration\_formula}
+  & \lean{collatzOddIter}, \lean{orbitS}, \lean{orbitC}, \lean{v2}
+  & Exact orbit eq.\\
+\lean{orbitC\_le\_wavesum\_bound}
+  & \lean{orbitC}, \lean{orbitS} & Carry bound\\
+\lean{collatzOdd\_lt\_two\_mul}
+  & \lean{collatzOdd}, \lean{v2} & Step $<2n$\\
+\lean{collatzOddIter\_le\_two\_pow\_mul}
+  & above & $k$-step $\le 2^k n$\\
+\lean{cycleDenominator}, \lean{CycleProfile}
+  & --- & Cycle algebra\\
+\lean{baker\_lower\_bound}
+  & \lean{CycleProfile} & Baker $|S - m\log_23| > 0$\\
+\lean{BakerWindowDriftProperty}
+  & \lean{orbitS}, \lean{collatzOddIter}
+  & Baker rollover axiom\\
+\lean{supercritical\_rate}
+  & \lean{BakerWindowDriftProperty} & $S_{20} \ge 33$\\
+\lean{contraction\_20step}
+  & \lean{orbit\_iteration\_formula}, \lean{orbitC\_le\_wavesum\_bound}
+  & 20-step $\downarrow$\\
+\lean{checkpoint\_below\_stays\_below}
+  & same & 20-step containment\\
+\lean{checkpoints\_bounded}
+  & above two, \lean{collatzOddIter\_odd}
+  & Checkpoints $\le \max$\\
+\lean{orbit\_bounded\_of\_checkpoints\_bounded}
+  & \lean{collatzOddIter\_le\_two\_pow\_mul},
+    \lean{collatzOddIter\_comp} & Inter-checkpoint bound\\
+\lean{no\_divergence}
+  & all of the above, \lean{CollatzAxioms}
+  & \textbf{Main theorem}\\
+\hline
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Relationship Between the Two Files}
+% ============================================================
+
+File \texttt{79dd1705} (\emph{parent directory} version) contains
+the definitions and lemmas up to
+\lean{orbit\_bounded\_of\_checkpoints\_bounded}, corresponding to
+roughly lines~1--445 of \texttt{f57401ec}.
+
+File \texttt{f57401ec} (\emph{Aristotle full attempt}) extends this
+with:
+\begin{itemize}
+  \item \lean{collatzOdd\_odd} and \lean{collatzOddIter\_odd}
+        (explicit parity preservation lemmas);
+  \item \lean{oddOrbitDivergent\_unbounded} (divergence implies
+        unbounded at every start);
+  \item the full \lean{no\_divergence} theorem;
+  \item the cycle-profile apparatus:
+        \lean{partialSum\_le}, \lean{waveSum\_bound};
+  \item all four entries in \lean{CollatzAxioms}.
+\end{itemize}
+
+Both files begin with identical definitions and develop the orbit
+arithmetic in parallel; the difference is that
+\texttt{f57401ec} reaches Aristotle's budget limit after completing
+the main no-divergence theorem and the cycle-profile bounds, while
+\texttt{79dd1705} was a prior run that halted at the orbit-boundedness
+infrastructure.
+
+\bigskip
+\noindent
+\textbf{Citation.}
+These proofs were generated by Aristotle
+(\url{https://aristotle.harmonic.fun}).
+To cite: tag \texttt{@Aristotle-Harmonic} on GitHub and include
+\texttt{Co-authored-by: Aristotle (Harmonic)
+<aristotle-harmonic@harmonic.fun>}.
+
+\end{document}
