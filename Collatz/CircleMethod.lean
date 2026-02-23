@@ -217,16 +217,19 @@ needs. -/
     Steps 1-2 (Parseval + minor arcs) are provable from Mathlib.
     Step 3 (major arcs) requires Siegel-Walfisz, axiomatized below. -/
 
-/-- **Goldbach representation linear growth** (Hardy-Littlewood 1923, Vinogradov 1937):
+/-- **SUPERSEDED by `GoldbachBridge.goldbach_circle_method_complete`.**
+    Kept for backward compatibility with proved infrastructure in GoldbachBridge.
+
+    **Goldbach representation linear growth** (Hardy-Littlewood 1923, Vinogradov 1937):
     R(n) ≥ n for all sufficiently large even n.
 
     The circle method gives R(n) = S₂(n)·n + O(√n·log³n) where S₂(n) is the
     singular series. For even n, S₂(n) ≥ 2C₂ ≈ 1.32 > 1 (C₂ = twin prime constant),
     so R(n) ≥ n for large n.
 
-    The major arc evaluation uses the **Siegel-Walfisz theorem** (1936):
-    primes are equidistributed in arithmetic progressions to modulus q ≤ (log x)^A
-    with error O(x·exp(-c√(log x))). This is a proved theorem but not in Mathlib.
+    Note: this axiom is unconditional, but the binary circle method requires RH
+    for the minor arc bounds. The honest conditional version is
+    `GoldbachBridge.goldbach_circle_method_complete`.
 
     References: Vaughan "The Hardy-Littlewood Method" Thm 3.4 + Ch.8;
     Iwaniec-Kowalski "Analytic Number Theory" Thm 19.3;

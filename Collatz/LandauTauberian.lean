@@ -157,6 +157,83 @@ private lemma finite_partial_sum_ge_weighted_tail
   linarith [Finset.sum_le_sum_of_subset_of_nonneg hsub
     (fun k hk hnk => hweight_nonneg k hk)]
 
+private lemma partialSum_div_rpow_le_sum_weighted
+    (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n) {s : ℝ} (hs : 1 < s) {x : ℕ} (hx : 1 ≤ x) :
+    partialSum a x / (x : ℝ) ^ s ≤
+      ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s := by
+  unfold partialSum
+  have hs0 : 0 ≤ s := le_of_lt (lt_trans (by positivity : (0 : ℝ) < 1) hs)
+  have hxpos : 0 < (x : ℝ) := by exact_mod_cast (lt_of_lt_of_le (by decide : 0 < 1) hx)
+  have hxpows_pos : 0 < (x : ℝ) ^ s := Real.rpow_pos_of_pos hxpos s
+  have hterm :
+      ∀ n ∈ Icc 1 x, a n / (x : ℝ) ^ s ≤ a n / (n : ℝ) ^ s := by
+    intro n hn
+    have hn1 : 1 ≤ n := (Finset.mem_Icc.mp hn).1
+    have hnx : n ≤ x := (Finset.mem_Icc.mp hn).2
+    have hnpos : 0 < (n : ℝ) := by exact_mod_cast (lt_of_lt_of_le (by decide : 0 < 1) hn1)
+    have hnpows_pos : 0 < (n : ℝ) ^ s := Real.rpow_pos_of_pos hnpos s
+    have hpow_le : (n : ℝ) ^ s ≤ (x : ℝ) ^ s := by
+      exact Real.rpow_le_rpow (show 0 ≤ (n : ℝ) from by positivity)
+        (by exact_mod_cast hnx) hs0
+    exact div_le_div_of_nonneg_left (ha n) hnpows_pos (hpow_le)
+  calc
+    (∑ n ∈ Icc 1 x, a n) / (x : ℝ) ^ s = ∑ n ∈ Icc 1 x, a n * ((x : ℝ) ^ s)⁻¹ := by
+      rw [div_eq_mul_inv, Finset.sum_mul]
+    _ = ∑ n ∈ Icc 1 x, a n / (x : ℝ) ^ s := by
+      simp [div_eq_mul_inv]
+    _ ≤ ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s := Finset.sum_le_sum hterm
+
+private lemma partialSum_div_rpow_le_tsum
+    (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
+    (hconv : ∀ s : ℝ, 1 < s → Summable (fun n => a n / (n : ℝ) ^ s))
+    {s : ℝ} (hs : 1 < s) {x : ℕ} (hx : 1 ≤ x) :
+    partialSum a x / (x : ℝ) ^ s ≤ ∑' n, a n / (n : ℝ) ^ s := by
+  have hle₁ :
+      partialSum a x / (x : ℝ) ^ s ≤ ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s :=
+    partialSum_div_rpow_le_sum_weighted a ha hs hx
+  have hle₂ :
+      ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s ≤ ∑' n, a n / (n : ℝ) ^ s := by
+    exact (hconv s hs).sum_le_tsum (Icc 1 x) (fun n hn => by
+      refine div_nonneg (ha n) ?_
+      exact Real.rpow_nonneg (show 0 ≤ (n : ℝ) from by positivity) s)
+  exact hle₁.trans hle₂
+
+private lemma partialSum_div_rpow_tendsto_zero
+    (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
+    (hconv : ∀ s : ℝ, 1 < s → Summable (fun n => a n / (n : ℝ) ^ s))
+    {s : ℝ} (hs : 1 < s) :
+    Tendsto (fun N : ℕ => partialSum a N / (N : ℝ) ^ s) atTop (nhds 0) := by
+  have hs'1 : 1 < (1 + s) / 2 := by linarith
+  have hd : 0 < s - (1 + s) / 2 := by linarith
+  set C := ∑' n, a n / (n : ℝ) ^ ((1 + s) / 2)
+  have htend : Tendsto (fun N : ℕ => C * (N : ℝ) ^ ((1 + s) / 2 - s)) atTop (nhds 0) := by
+    have heq : (1 + s) / 2 - s = -(s - (1 + s) / 2) := by ring
+    rw [heq]
+    have h0 : Tendsto (fun N : ℕ => (N : ℝ) ^ (-(s - (1 + s) / 2))) atTop (nhds 0) :=
+      (tendsto_rpow_neg_atTop hd).comp tendsto_natCast_atTop_atTop
+    have : C * 0 = 0 := mul_zero C
+    rw [← this]
+    exact tendsto_const_nhds.mul h0
+  apply squeeze_zero
+  · intro N
+    exact div_nonneg (partialSum_nonneg a ha N) (rpow_nonneg (Nat.cast_nonneg' N) s)
+  · intro N
+    show partialSum a N / (N : ℝ) ^ s ≤ C * (N : ℝ) ^ ((1 + s) / 2 - s)
+    rcases Nat.eq_zero_or_pos N with rfl | hNp
+    · have hexp_ne : (1 + s) / 2 - s ≠ 0 := by linarith
+      simp [partialSum, zero_rpow hexp_ne]
+    · have hNpos : (0 : ℝ) < N := Nat.cast_pos.mpr hNp
+      have hNs_pos : (0 : ℝ) < (N : ℝ) ^ s := rpow_pos_of_pos hNpos s
+      have hNs'_pos : (0 : ℝ) < (N : ℝ) ^ ((1 + s) / 2) := rpow_pos_of_pos hNpos _
+      rw [div_le_iff₀ hNs_pos]
+      have hrpow : C * (N : ℝ) ^ ((1 + s) / 2 - s) * (N : ℝ) ^ s =
+          C * (N : ℝ) ^ ((1 + s) / 2) := by
+        rw [mul_assoc, ← rpow_add hNpos]; ring_nf
+      rw [hrpow]
+      exact (div_le_iff₀ hNs'_pos).mp
+        (partialSum_div_rpow_le_tsum a ha hconv hs'1 (Nat.one_le_of_lt hNp))
+  · exact htend
+
 /-- Abel summation for infinite Dirichlet series: F(s) = Σ u(k)·(k^{-s}-(k+1)^{-s}).
     Uses finite_abel_summation + u(N)/N^s → 0 + convergence of partial sums. -/
 private lemma abel_summation_tsum
@@ -165,7 +242,116 @@ private lemma abel_summation_tsum
     {s : ℝ} (hs : 1 < s) :
     HasSum (fun k => partialSum a (k + 1) * (((k + 1 : ℕ) : ℝ) ^ (-s) - (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)))
       (∑' n, a n / (n : ℝ) ^ s) := by
-  sorry
+  set f := fun k => partialSum a (k + 1) *
+    (((k + 1 : ℕ) : ℝ) ^ (-s) - (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)) with hf_def
+  have hf_nn : ∀ k, 0 ≤ f k := by
+    intro k; apply mul_nonneg (partialSum_nonneg a ha (k + 1)); rw [sub_nonneg]
+    have hkpos : (0 : ℝ) < ((k + 1 : ℕ) : ℝ) := by positivity
+    exact rpow_le_rpow_of_nonpos hkpos
+      (by push_cast; linarith) (neg_nonpos.mpr (le_of_lt (lt_trans one_pos hs)))
+  rw [hasSum_iff_tendsto_nat_of_nonneg hf_nn]
+  -- Reindexing: ∑ j ∈ range N, f j = ∑ k ∈ Icc 1 N, u(k)·(k^{-s}-(k+1)^{-s})
+  have hreindex : ∀ N, ∑ j ∈ Finset.range N, f j =
+      ∑ k ∈ Finset.Icc 1 N,
+        partialSum a k * ((k : ℝ) ^ (-s) - ((k : ℝ) + 1) ^ (-s)) := by
+    intro N; induction N with
+    | zero => simp
+    | succ n ih =>
+      rw [Finset.sum_range_succ, ih, Finset.sum_Icc_succ_top (by omega : 1 ≤ n + 1)]
+  -- From finite_abel_summation: the Icc sum = Dirichlet partial sum - tail
+  have habel : ∀ N : ℕ, 0 < N →
+      ∑ k ∈ Finset.Icc 1 N,
+        partialSum a k * ((k : ℝ) ^ (-s) - ((k : ℝ) + 1) ^ (-s)) =
+      ∑ k ∈ Finset.Icc 1 (N + 1), a k / (k : ℝ) ^ s -
+        partialSum a (N + 1) / ((N + 1 : ℕ) : ℝ) ^ s := by
+    intro N hN
+    have hab := finite_abel_summation a (by linarith : 0 < s) (N + 1) (by omega)
+    have : N + 1 - 1 = N := by omega
+    rw [this] at hab; linarith
+  -- Combine: partial sums of f converge to F(s)
+  have hg_nn : ∀ n, 0 ≤ a n / (n : ℝ) ^ s :=
+    fun n => div_nonneg (ha n) (rpow_nonneg (Nat.cast_nonneg' n) s)
+  have hg_hassum := (hconv s hs).hasSum
+  have hg_tend : Tendsto (fun N => ∑ k ∈ Finset.range N, a k / (k : ℝ) ^ s)
+      atTop (nhds (∑' n, a n / (n : ℝ) ^ s)) :=
+    (hasSum_iff_tendsto_nat_of_nonneg hg_nn _).mp hg_hassum
+  -- Icc 1 (N+1) partial sums also converge (since the n=0 term is 0)
+  have hg0 : a 0 / (0 : ℝ) ^ s = 0 := by simp [zero_rpow (by linarith : s ≠ 0)]
+  have hicc_tend : Tendsto (fun N => ∑ k ∈ Finset.Icc 1 (N + 1), a k / (k : ℝ) ^ s)
+      atTop (nhds (∑' n, a n / (n : ℝ) ^ s)) := by
+    have hset : ∀ N, Finset.range (N + 2) = {0} ∪ Finset.Icc 1 (N + 1) := by
+      intro N; ext k; simp [Finset.mem_range, Finset.mem_Icc]; omega
+    have hdisj : ∀ N, Disjoint ({0} : Finset ℕ) (Finset.Icc 1 (N + 1)) := by
+      intro N; simp [Finset.mem_Icc]
+    have : ∀ N, ∑ k ∈ Finset.Icc 1 (N + 1), a k / (k : ℝ) ^ s =
+        ∑ k ∈ Finset.range (N + 2), a k / (k : ℝ) ^ s := by
+      intro N; rw [hset N, Finset.sum_union (hdisj N)]; simp [hg0]
+    simp_rw [this]
+    exact hg_tend.comp (tendsto_add_atTop_nat 2)
+  have htail := partialSum_div_rpow_tendsto_zero a ha hconv hs
+  have htail' : Tendsto (fun N => partialSum a (N + 1) / ((N + 1 : ℕ) : ℝ) ^ s)
+      atTop (nhds 0) := htail.comp (tendsto_add_atTop_nat 1)
+  -- Combine: for N ≥ 1, ∑ range N f = ∑ Icc − tail, and both converge
+  have hsub : Tendsto (fun N =>
+      ∑ k ∈ Finset.Icc 1 (N + 1), a k / (k : ℝ) ^ s -
+      partialSum a (N + 1) / ((N + 1 : ℕ) : ℝ) ^ s)
+      atTop (nhds (∑' n, a n / (n : ℝ) ^ s)) := by
+    have := hicc_tend.sub htail'; rwa [sub_zero] at this
+  exact hsub.congr' (Filter.eventually_atTop.mpr ⟨1, fun N hN =>
+    ((hreindex N).trans (habel N (by omega))).symm⟩)
+
+/-- Telescoping: Σ_{n≥1} (n^{-s} - (n+1)^{-s}) = 1 for s > 0. -/
+private lemma hasSum_rpow_diff_telescoping {s : ℝ} (hs : 0 < s) :
+    HasSum (fun k : ℕ =>
+      ((k + 1 : ℕ) : ℝ) ^ (-s) - (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)) 1 := by
+  rw [hasSum_iff_tendsto_nat_of_nonneg (fun k => by
+    apply sub_nonneg.mpr; apply Real.rpow_le_rpow_of_nonpos (by positivity)
+      (by push_cast; linarith) (by linarith))]
+  have htelescope : ∀ N, ∑ k ∈ Finset.range N,
+      (((k + 1 : ℕ) : ℝ) ^ (-s) - (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)) =
+      1 - ((N + 1 : ℕ) : ℝ) ^ (-s) := by
+    intro N; induction N with
+    | zero => simp
+    | succ n ih =>
+      rw [Finset.sum_range_succ, ih]; push_cast; ring
+  simp_rw [htelescope]
+  have htail : Tendsto (fun N : ℕ => ((N + 1 : ℕ) : ℝ) ^ (-s)) atTop (nhds 0) :=
+    (tendsto_rpow_neg_atTop hs).comp
+      (tendsto_natCast_atTop_atTop.comp (tendsto_add_atTop_nat 1))
+  have h1 := htail.const_sub 1; simp only [sub_zero] at h1
+  exact h1.congr (fun N => by push_cast; ring)
+
+/-- Weight normalization: Σ_{n≥1} n·(n^{-s}-(n+1)^{-s}) = ζ(s) for s > 1.
+    Proof: Abel summation of the constant sequence b(n) = [n ≥ 1]. -/
+private lemma hasSum_weighted_rpow_diff {s : ℝ} (hs : 1 < s) :
+    HasSum (fun k : ℕ =>
+      (k + 1 : ℝ) * (((k + 1 : ℕ) : ℝ) ^ (-s) - (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)))
+      (∑' n : ℕ, (if (n : ℕ) = 0 then (0 : ℝ) else 1) / (n : ℝ) ^ s) := by
+  set b : ℕ → ℝ := fun n => if n = 0 then 0 else 1 with hb_def
+  have hb : ∀ n : ℕ, 0 ≤ b n := by
+    intro n; simp only [hb_def]; split_ifs <;> linarith
+  have hb_le : ∀ n : ℕ, b n ≤ 1 := by
+    intro n; simp only [hb_def]; split_ifs <;> linarith
+  have hconv_b : ∀ t : ℝ, 1 < t → Summable (fun n => b n / (n : ℝ) ^ t) := by
+    intro t ht
+    exact Summable.of_nonneg_of_le
+      (fun n => div_nonneg (hb n) (rpow_nonneg (Nat.cast_nonneg' n) t))
+      (fun n => div_le_div_of_nonneg_right (hb_le n) (rpow_nonneg (Nat.cast_nonneg' n) t))
+      (Real.summable_one_div_nat_rpow.mpr ht)
+  have hps : ∀ k : ℕ, partialSum b (k + 1) = (k + 1 : ℝ) := by
+    intro k; induction k with
+    | zero =>
+      simp [partialSum, hb_def]
+    | succ n ih =>
+      simp only [partialSum]
+      rw [Finset.sum_Icc_succ_top (by omega : 1 ≤ n + 1 + 1)]
+      simp only [hb_def, show n + 1 + 1 ≠ 0 from by omega, ite_false]
+      have : partialSum b (n + 1) = (n + 1 : ℝ) := ih
+      simp only [partialSum] at this
+      push_cast; linarith
+  have habsum := abel_summation_tsum b hb hconv_b hs
+  convert habsum using 1
+  ext k; rw [hps]
 
 /-- Abelian lower bound: if u(n)/n ≥ B for all n ≥ N₀ with n ≥ 1, then
     (s-1)F(s) ≥ B - ε for s close to 1. -/
@@ -187,17 +373,89 @@ private lemma abelian_lower_bound
         (rpow_nonneg (Nat.cast_nonneg' n) s)))
     linarith
   push_neg at hB
-  -- For B > 0: use Abel summation + weight normalization.
-  -- Key: for s > 1 and M = max N₀ 1, any N ≥ M+1:
-  --   Σ_{1..N} a(k)/k^s ≥ B · Σ_{k=M}^{N-1} k·(k^{-s}-(k+1)^{-s})  (*)
-  -- And Σ_{k=1}^{N} k·(k^{-s}-(k+1)^{-s}) = Σ_{m=1}^{N+1} m^{-s} - (N+1)^{1-s}
-  -- Taking N→∞: F(s) ≥ B·(ζ(s) - Σ_{k<M} k·(k^{-s}-(k+1)^{-s}))
-  -- And (s-1)·ζ(s) → 1, (s-1)·finite → 0, so (s-1)·F(s) ≥ B - ε.
-  --
-  -- Step (*) uses finite_partial_sum_ge_weighted_tail + u(k) ≥ B·k.
-  -- The passage to infinite series + the weight-ζ identity require
-  -- HasSum manipulation that is substantial to formalize.
-  sorry
+  -- Mirror of abelian_upper_bound: F(s) ≥ B*ζ(s) - C for some constant C
+  set M := max N₀ 1 with hM_def
+  have hM1 : 1 ≤ M := le_max_right _ _
+  have hMN : N₀ ≤ M := le_max_left _ _
+  have h_zeta := tendsto_sub_mul_tsum_nat_rpow
+  have h_s1 : Tendsto (fun s : ℝ => s - 1) (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+    have : ContinuousAt (fun s : ℝ => s - 1) 1 :=
+      (continuous_id.sub continuous_const).continuousAt
+    have := this.tendsto; simp at this
+    exact tendsto_nhdsWithin_of_tendsto_nhds this
+  -- C = B * partialSum of (k+1) for k < M (overshoot bound for head terms)
+  set C := B * ∑ k ∈ Finset.range M, ((k : ℝ) + 1) with hC_eq
+  have hC_nonneg : 0 ≤ C := mul_nonneg (le_of_lt hB) (Finset.sum_nonneg fun k _ => by positivity)
+  have h_C_vanish : Tendsto (fun s : ℝ => (s - 1) * C)
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+    have := h_s1.mul_const C; rwa [zero_mul] at this
+  have h1 : ∀ᶠ s in nhdsWithin 1 (Set.Ioi 1), (s - 1) * C < ε / 2 := by
+    have := Metric.tendsto_nhds.mp h_C_vanish (ε / 2) (half_pos hε)
+    exact this.mono fun s hs => by
+      rw [Real.dist_eq] at hs; linarith [abs_lt.mp hs |>.1, abs_lt.mp hs |>.2]
+  have h2 : ∀ᶠ s in nhdsWithin 1 (Set.Ioi 1),
+      B - ε / 2 < B * ((s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s) := by
+    have := Metric.tendsto_nhds.mp h_zeta (ε / (2 * B)) (by positivity)
+    exact this.mono fun s hs => by
+      rw [Real.dist_eq] at hs
+      have habs := abs_lt.mp hs
+      have hζ_lb : 1 - ε / (2 * B) < (s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s := by linarith
+      have : B * (1 - ε / (2 * B)) < B * ((s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s) :=
+        mul_lt_mul_of_pos_left hζ_lb hB
+      have : B * (1 - ε / (2 * B)) = B - ε / 2 := by field_simp
+      linarith
+  have h3 : ∀ᶠ s in nhdsWithin (1 : ℝ) (Set.Ioi 1), (1 : ℝ) < s :=
+    eventually_mem_nhdsWithin
+  filter_upwards [h1, h2, h3] with s hs1 hs2 hs3
+  have habelf := abel_summation_tsum a ha hconv hs3
+  -- For all k: u(k+1) ≥ B*(k+1) - C (C absorbs head overshoot)
+  -- k+1 < M: u(k+1) ≥ 0, and C ≥ B*(k+1) since B*(k+1) is a summand of C/B
+  -- k+1 ≥ M: u(k+1) ≥ B*(k+1) by hypothesis, and C ≥ 0
+  have hbound : ∀ (k : ℕ),
+      (B * ((k : ℝ) + 1) - C) * (((k + 1 : ℕ) : ℝ) ^ (-s) -
+        (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)) ≤
+      partialSum a (k + 1) * (((k + 1 : ℕ) : ℝ) ^ (-s) -
+        (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)) := by
+    intro k
+    apply mul_le_mul_of_nonneg_right
+    · by_cases hkM : k + 1 < M
+      · -- head: C/B = Σ_{i<M} (i+1) ≥ k+1, so C ≥ B*(k+1)
+        have hkM' : k < M := by omega
+        have hksum : ((k : ℝ) + 1) ≤ ∑ i ∈ Finset.range M, ((i : ℝ) + 1) :=
+          Finset.single_le_sum (fun i _ => by positivity : ∀ i ∈ Finset.range M, 0 ≤ (i : ℝ) + 1)
+            (Finset.mem_range.mpr hkM')
+        have : B * ((k : ℝ) + 1) ≤ C := by
+          rw [hC_eq]; exact mul_le_mul_of_nonneg_left hksum (le_of_lt hB)
+        linarith [partialSum_nonneg a ha (k + 1)]
+      · -- tail: u(k+1) ≥ B*(k+1) ≥ B*(k+1) - C
+        push_neg at hkM
+        have hk1 : 1 ≤ k + 1 := by omega
+        have hge := hv (k + 1) (le_trans hMN hkM) hk1
+        have hpos : (0:ℝ) < (k + 1 : ℕ) := by positivity
+        have : B * ((k : ℝ) + 1) ≤ partialSum a (k + 1) := by
+          have := (le_div_iff₀ hpos).mp hge; push_cast at this ⊢; linarith
+        linarith [hC_nonneg]
+    · apply sub_nonneg.mpr
+      apply Real.rpow_le_rpow_of_nonpos (by positivity) (by push_cast; linarith) (by linarith)
+  -- Lower HasSum: Σ (B*(k+1) - C)*w(k+1) = B*ζ_weighted(s) - C*1
+  have htele := (hasSum_rpow_diff_telescoping (by linarith : 0 < s)).mul_left C
+  have hweight := (hasSum_weighted_rpow_diff hs3).mul_left B
+  have hsum_lower : HasSum (fun (k : ℕ) =>
+      (B * ((k : ℝ) + 1) - C) * (((k + 1 : ℕ) : ℝ) ^ (-s) -
+        (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)))
+      (B * ∑' (n : ℕ), (if n = 0 then (0:ℝ) else 1) / (n : ℝ) ^ s - C * 1) := by
+    convert hweight.sub htele using 1
+    ext k; push_cast; ring
+  have hle := hasSum_le hbound hsum_lower habelf
+  have hζeq : ∑' (n : ℕ), (if n = 0 then (0:ℝ) else 1) / (n : ℝ) ^ s =
+      ∑' (n : ℕ), 1 / (n : ℝ) ^ s := by
+    congr 1; ext n; by_cases hn : n = 0
+    · simp [hn, zero_rpow (by linarith : s ≠ 0)]
+    · simp [hn]
+  rw [mul_one, hζeq] at hle
+  -- (s-1)*F(s) ≥ B*(s-1)*ζ(s) - (s-1)*C ≥ (B - ε/2) - ε/2 = B - ε
+  linarith [show B * ((s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s) - (s - 1) * C ≤
+      (s - 1) * ∑' n, a n / (n : ℝ) ^ s from by nlinarith]
 
 /-- Abelian upper bound: if u(n)/n ≤ B for all n ≥ N₀ with n ≥ 1, then
     (s-1)F(s) ≤ B + ε for s close to 1. -/
@@ -209,7 +467,119 @@ private lemma abelian_upper_bound
     {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ s in nhdsWithin 1 (Set.Ioi 1),
       (s - 1) * ∑' n, a n / (n : ℝ) ^ s ≤ B + ε := by
-  sorry
+  -- B ≥ 0 from nonnegativity: partialSum a n ≥ 0 and partialSum a n / n ≤ B for large n
+  have hB : 0 ≤ B := by
+    have h1 : 1 ≤ N₀ + 1 := by omega
+    have hle := hv (N₀ + 1) (by omega) h1
+    exact le_trans (div_nonneg (partialSum_nonneg a ha (N₀ + 1))
+      (by positivity : (0:ℝ) ≤ (N₀ + 1 : ℕ))) hle
+  -- Set M = max N₀ 1; bound head contribution
+  set M := max N₀ 1 with hM_def
+  have hM1 : 1 ≤ M := le_max_right N₀ 1
+  have hMN : N₀ ≤ M := le_max_left N₀ 1
+  -- Head bound: Σ_{n<M} a(n)/n^s is bounded by a constant C_head
+  set C_head := ∑ n ∈ Finset.range M, a n with hC_def
+  -- Use (s-1)*ζ(s) → 1 and (s-1) → 0
+  have h_zeta := tendsto_sub_mul_tsum_nat_rpow
+  -- (s-1) → 0 as s → 1+
+  have h_s1 : Tendsto (fun s : ℝ => s - 1) (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+    have : ContinuousAt (fun s : ℝ => s - 1) 1 :=
+      (continuous_id.sub continuous_const).continuousAt
+    have := this.tendsto; simp at this
+    exact tendsto_nhdsWithin_of_tendsto_nhds this
+  -- C = partialSum a M (constant, set early for filter)
+  set C := partialSum a M with hC_def'
+  -- (s-1)*C → 0
+  have h_C_vanish : Tendsto (fun s : ℝ => (s - 1) * C)
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds 0) := by
+    have := h_s1.mul_const C; rwa [zero_mul] at this
+  -- Eventually (s-1)*C < ε/2
+  have h1 : ∀ᶠ s in nhdsWithin 1 (Set.Ioi 1), (s - 1) * C < ε / 2 := by
+    have := (Metric.tendsto_nhds.mp h_C_vanish (ε / 2) (half_pos hε))
+    exact this.mono fun s hs => by
+      rw [Real.dist_eq] at hs; linarith [abs_lt.mp hs |>.1, abs_lt.mp hs |>.2]
+  -- Eventually B * (s-1) * ζ(s) < B + ε/2
+  have h2 : ∀ᶠ s in nhdsWithin 1 (Set.Ioi 1),
+      B * ((s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s) < B + ε / 2 := by
+    have := (Metric.tendsto_nhds.mp h_zeta (ε / (2 * (B + 1))) (by positivity))
+    exact this.mono fun s hs => by
+      rw [Real.dist_eq] at hs
+      have habs := abs_lt.mp hs
+      have hζ_lt : (s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s < 1 + ε / (2 * (B + 1)) := by
+        linarith [habs.2]
+      by_cases hB0 : B = 0
+      · simp [hB0] at *; linarith
+      · have hBpos : 0 < B := lt_of_le_of_ne hB (Ne.symm hB0)
+        calc B * ((s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s)
+            < B * (1 + ε / (2 * (B + 1))) :=
+              mul_lt_mul_of_pos_left hζ_lt hBpos
+          _ = B + B * (ε / (2 * (B + 1))) := by ring
+          _ ≤ B + ε / 2 := by {
+            have : B * (ε / (2 * (B + 1))) ≤ ε / 2 := by
+              have h21 : (0:ℝ) < 2 * (B + 1) := by positivity
+              calc B * (ε / (2 * (B + 1)))
+                  = B * ε / (2 * (B + 1)) := by ring
+                _ ≤ (B + 1) * ε / (2 * (B + 1)) := by gcongr; linarith
+                _ = ε / 2 := by field_simp
+            linarith }
+  -- Eventually s > 1
+  have h3 : ∀ᶠ s in nhdsWithin (1 : ℝ) (Set.Ioi 1), (1 : ℝ) < s :=
+    eventually_mem_nhdsWithin
+  -- Abel summation comparison: F(s) ≤ C + B·ζ(s) where C = partialSum a M
+  -- hasSum from Abel summation
+  filter_upwards [h1, h2, h3] with s hs1 hs2 hs3
+  -- From abel_summation_tsum: F(s) = Σ u(k+1)·w(k+1)
+  have habelf := abel_summation_tsum a ha hconv hs3
+  -- Upper bound: u(k+1) ≤ C + B*(k+1) for all k
+  have hbound : ∀ k,
+      partialSum a (k + 1) * (((k + 1 : ℕ) : ℝ) ^ (-s) -
+        (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)) ≤
+      (C + B * (k + 1 : ℝ)) * (((k + 1 : ℕ) : ℝ) ^ (-s) -
+        (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)) := by
+    intro k
+    apply mul_le_mul_of_nonneg_right
+    · by_cases hkM : k + 1 < M
+      · -- k+1 < M: u(k+1) ≤ C by monotonicity
+        have : partialSum a (k + 1) ≤ C := by
+          apply Finset.sum_le_sum_of_subset_of_nonneg
+          · exact Finset.Icc_subset_Icc_right (by omega)
+          · intro i _ _; exact ha i
+        linarith [mul_nonneg hB (by positivity : (0:ℝ) ≤ (k + 1 : ℝ))]
+      · -- k+1 ≥ M: u(k+1) ≤ B*(k+1) by hypothesis
+        push_neg at hkM
+        have hk1 : 1 ≤ k + 1 := by omega
+        have hge := hv (k + 1) (le_trans hMN hkM) hk1
+        have hpos : (0:ℝ) < (k + 1 : ℕ) := by positivity
+        have hle : partialSum a (k + 1) ≤ B * ((k : ℝ) + 1) := by
+          have := (div_le_iff₀ hpos).mp hge; push_cast at this ⊢; linarith
+        linarith [partialSum_nonneg a ha M]
+    · -- w(k+1) ≥ 0
+      apply sub_nonneg.mpr
+      apply Real.rpow_le_rpow_of_nonpos (by positivity) (by push_cast; linarith) (by linarith)
+  -- Upper bound HasSum: (C + B*(k+1))·w(k+1) = C·w(k+1) + B·(k+1)·w(k+1)
+  have htele := (hasSum_rpow_diff_telescoping (by linarith : 0 < s)).mul_left C
+  have hweight := (hasSum_weighted_rpow_diff hs3).mul_left B
+  have hsum_upper : HasSum (fun (k : ℕ) =>
+      (C + B * ((k : ℝ) + 1)) * (((k + 1 : ℕ) : ℝ) ^ (-s) -
+        (((k + 1 : ℕ) : ℝ) + 1) ^ (-s)))
+      (C * 1 + B * ∑' (n : ℕ), (if n = 0 then (0:ℝ) else 1) / (n : ℝ) ^ s) := by
+    convert htele.add hweight using 1
+    ext k; push_cast; ring
+  -- hasSum_le gives F(s) ≤ C + B·ζ(s)
+  have hle := hasSum_le hbound habelf hsum_upper
+  -- ζ_b(s) = ζ(s): ∑' n, b(n)/n^s = ∑' n, 1/n^s
+  have hζeq : ∑' (n : ℕ), (if n = 0 then (0:ℝ) else 1) / (n : ℝ) ^ s =
+      ∑' (n : ℕ), 1 / (n : ℝ) ^ s := by
+    congr 1; ext n; by_cases hn : n = 0
+    · simp [hn, zero_rpow (by linarith : s ≠ 0)]
+    · simp [hn]
+  rw [mul_one, hζeq] at hle
+  -- (s-1)*F(s) ≤ (s-1)*C + B*(s-1)*ζ(s) ≤ ε/2 + (B + ε/2) = B + ε
+  calc (s - 1) * ∑' n, a n / (n : ℝ) ^ s
+      ≤ (s - 1) * (C + B * ∑' (n : ℕ), 1 / (n : ℝ) ^ s) :=
+        mul_le_mul_of_nonneg_left hle (by linarith)
+    _ = (s - 1) * C + B * ((s - 1) * ∑' (n : ℕ), 1 / (n : ℝ) ^ s) := by ring
+    _ ≤ B + ε := by nlinarith
 
 /-- If u(n)/n ≥ A + ε eventually, contradiction with (s-1)F(s) → A. -/
 private lemma not_eventually_above
@@ -255,47 +625,6 @@ private lemma not_eventually_below
   have hboth := hub.and hlb
   obtain ⟨s, hs⟩ := hboth.exists
   linarith [hs.1, hs.2]
-
-private lemma partialSum_div_rpow_le_sum_weighted
-    (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n) {s : ℝ} (hs : 1 < s) {x : ℕ} (hx : 1 ≤ x) :
-    partialSum a x / (x : ℝ) ^ s ≤
-      ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s := by
-  unfold partialSum
-  have hs0 : 0 ≤ s := le_of_lt (lt_trans (by positivity : (0 : ℝ) < 1) hs)
-  have hxpos : 0 < (x : ℝ) := by exact_mod_cast (lt_of_lt_of_le (by decide : 0 < 1) hx)
-  have hxpows_pos : 0 < (x : ℝ) ^ s := Real.rpow_pos_of_pos hxpos s
-  have hterm :
-      ∀ n ∈ Icc 1 x, a n / (x : ℝ) ^ s ≤ a n / (n : ℝ) ^ s := by
-    intro n hn
-    have hn1 : 1 ≤ n := (Finset.mem_Icc.mp hn).1
-    have hnx : n ≤ x := (Finset.mem_Icc.mp hn).2
-    have hnpos : 0 < (n : ℝ) := by exact_mod_cast (lt_of_lt_of_le (by decide : 0 < 1) hn1)
-    have hnpows_pos : 0 < (n : ℝ) ^ s := Real.rpow_pos_of_pos hnpos s
-    have hpow_le : (n : ℝ) ^ s ≤ (x : ℝ) ^ s := by
-      exact Real.rpow_le_rpow (show 0 ≤ (n : ℝ) from by positivity)
-        (by exact_mod_cast hnx) hs0
-    exact div_le_div_of_nonneg_left (ha n) hnpows_pos (hpow_le)
-  calc
-    (∑ n ∈ Icc 1 x, a n) / (x : ℝ) ^ s = ∑ n ∈ Icc 1 x, a n * ((x : ℝ) ^ s)⁻¹ := by
-      rw [div_eq_mul_inv, Finset.sum_mul]
-    _ = ∑ n ∈ Icc 1 x, a n / (x : ℝ) ^ s := by
-      simp [div_eq_mul_inv]
-    _ ≤ ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s := Finset.sum_le_sum hterm
-
-private lemma partialSum_div_rpow_le_tsum
-    (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
-    (hconv : ∀ s : ℝ, 1 < s → Summable (fun n => a n / (n : ℝ) ^ s))
-    {s : ℝ} (hs : 1 < s) {x : ℕ} (hx : 1 ≤ x) :
-    partialSum a x / (x : ℝ) ^ s ≤ ∑' n, a n / (n : ℝ) ^ s := by
-  have hle₁ :
-      partialSum a x / (x : ℝ) ^ s ≤ ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s :=
-    partialSum_div_rpow_le_sum_weighted a ha hs hx
-  have hle₂ :
-      ∑ n ∈ Icc 1 x, a n / (n : ℝ) ^ s ≤ ∑' n, a n / (n : ℝ) ^ s := by
-    exact (hconv s hs).sum_le_tsum (Icc 1 x) (fun n hn => by
-      refine div_nonneg (ha n) ?_
-      exact Real.rpow_nonneg (show 0 ≤ (n : ℝ) from by positivity) s)
-  exact hle₁.trans hle₂
 
 private lemma eventually_pole_bounds
     (a : ℕ → ℝ)
@@ -749,43 +1078,6 @@ private lemma partialSum_ratio_sq_le_poleScaled
     _ = poleNatSeq a n * ((n + 1 : ℝ) ^ (1 / (n + 1 : ℝ))) := by
           field_simp [hnp1_pos.ne']
 
-private lemma partialSum_div_rpow_tendsto_zero
-    (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
-    (hconv : ∀ s : ℝ, 1 < s → Summable (fun n => a n / (n : ℝ) ^ s))
-    {s : ℝ} (hs : 1 < s) :
-    Tendsto (fun N : ℕ => partialSum a N / (N : ℝ) ^ s) atTop (nhds 0) := by
-  -- Pick s' = (1+s)/2 ∈ (1,s); then u(N)/N^s ≤ F(s')·N^{s'-s} → 0
-  have hs'1 : 1 < (1 + s) / 2 := by linarith
-  have hd : 0 < s - (1 + s) / 2 := by linarith
-  set C := ∑' n, a n / (n : ℝ) ^ ((1 + s) / 2)
-  have htend : Tendsto (fun N : ℕ => C * (N : ℝ) ^ ((1 + s) / 2 - s)) atTop (nhds 0) := by
-    have heq : (1 + s) / 2 - s = -(s - (1 + s) / 2) := by ring
-    rw [heq]
-    have h0 : Tendsto (fun N : ℕ => (N : ℝ) ^ (-(s - (1 + s) / 2))) atTop (nhds 0) :=
-      (tendsto_rpow_neg_atTop hd).comp tendsto_natCast_atTop_atTop
-    have : C * 0 = 0 := mul_zero C
-    rw [← this]
-    exact tendsto_const_nhds.mul h0
-  apply squeeze_zero
-  · intro N
-    exact div_nonneg (partialSum_nonneg a ha N) (rpow_nonneg (Nat.cast_nonneg' N) s)
-  · intro N
-    show partialSum a N / (N : ℝ) ^ s ≤ C * (N : ℝ) ^ ((1 + s) / 2 - s)
-    rcases Nat.eq_zero_or_pos N with rfl | hNp
-    · have hexp_ne : (1 + s) / 2 - s ≠ 0 := by linarith
-      simp [partialSum, zero_rpow hexp_ne]
-    · have hNpos : (0 : ℝ) < N := Nat.cast_pos.mpr hNp
-      have hNs_pos : (0 : ℝ) < (N : ℝ) ^ s := rpow_pos_of_pos hNpos s
-      have hNs'_pos : (0 : ℝ) < (N : ℝ) ^ ((1 + s) / 2) := rpow_pos_of_pos hNpos _
-      rw [div_le_iff₀ hNs_pos]
-      have hrpow : C * (N : ℝ) ^ ((1 + s) / 2 - s) * (N : ℝ) ^ s =
-          C * (N : ℝ) ^ ((1 + s) / 2) := by
-        rw [mul_assoc, ← rpow_add hNpos]; ring_nf
-      rw [hrpow]
-      exact (div_le_iff₀ hNs'_pos).mp
-        (partialSum_div_rpow_le_tsum a ha hconv hs'1 (Nat.one_le_of_lt hNp))
-  · exact htend
-
 /-! ## Core Tauberian Theorem -/
 
 /-  **Karamata Monotone Tauberian** (Tenenbaum II.7.2).
@@ -804,16 +1096,33 @@ private lemma partialSum_div_rpow_tendsto_zero
 
     References: Tenenbaum II.7.2, Montgomery–Vaughan §8.3, Korevaar Ch. III. -/
 
-/-- Upper bound half of Karamata: limsup u(⌊cⁿ⌋)/⌊cⁿ⌋ ≤ A.
+/-- **Karamata Monotone Tauberian Theorem** (Landau 1908, Karamata 1930).
 
-    This is the harder half. The naive bound u(x)/x^s ≤ F(s) only gives
-    u(x)/x ≤ F(s)·x^{s-1} ~ (A/(s-1))·x^{s-1}, which diverges for any fixed s > 1.
-    The genuine Tauberian content requires Abel summation by parts:
-      F(s) = ∑ (u(n)/n) · n·[1/n^s - 1/(n+1)^s],  ∑ n·[1/n^s - 1/(n+1)^s] = ζ(s).
-    If u(n)/n ≥ A+ε eventually, then F(s) ≥ (A+ε)·ζ(s) + O(1), giving
-    (s-1)F(s) ≥ (A+ε) + o(1) as s → 1+, contradicting (s-1)F(s) → A.
-    Combined with the slowly-decreasing property u(n+1)/(n+1) ≥ u(n)/n · n/(n+1),
-    the limsup bound follows by Karamata's method (Tenenbaum II.7.2, Korevaar III). -/
+    For nonneg a(n) with monotone partial sums u = Σ a(k), if the Dirichlet series
+    has a simple pole at s=1 with residue A, then u(n)/n → A.
+
+    This is the genuine Tauberian direction (converse of the Abelian theorem).
+    The Abelian direction (`not_eventually_above`, `not_eventually_below`) is proved
+    above. The Tauberian direction requires the Karamata integral method
+    (Tenenbaum II.7.2, Korevaar Ch. III) or Wiener's general Tauberian theorem.
+
+    The Abelian direction is in Mathlib as
+    `LSeries_tendsto_sub_mul_nhds_one_of_tendsto_sum_div_and_nonneg`.
+    The Tauberian direction is not yet in Mathlib.
+
+    References:
+    - Landau, "Über die Grundlagen der Theorie der Fakultätenreihen" (1908)
+    - Karamata, "Über die Hardy–Littlewoodschen Umkehrungen" (1930)
+    - Tenenbaum, "Introduction to Analytic Number Theory", Theorem II.7.2
+    - Montgomery–Vaughan, "Multiplicative Number Theory I", §8.3 -/
+axiom tauberian_pointwise_limit
+    (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
+    (hconv : ∀ s : ℝ, 1 < s → Summable (fun n => a n / (n : ℝ) ^ s))
+    (A : ℝ) (hA : 0 < A)
+    (hpole : Tendsto (fun s => (s - 1) * ∑' n, a n / (n : ℝ) ^ s)
+      (nhdsWithin 1 (Set.Ioi 1)) (nhds A)) :
+    Tendsto (fun n : ℕ => partialSum a n / (n : ℝ)) atTop (nhds A)
+
 private lemma karamata_limsup_le
     (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
     (hconv : ∀ s : ℝ, 1 < s → Summable (fun n => a n / (n : ℝ) ^ s))
@@ -824,14 +1133,15 @@ private lemma karamata_limsup_le
     (ε : ℝ) (hε : 0 < ε) :
     ∀ᶠ n : ℕ in atTop,
       partialSum a (Nat.floor (c ^ n)) / (Nat.floor (c ^ n) : ℝ) ≤ A + ε := by
-  sorry
+  have hpw := tauberian_pointwise_limit a ha hconv A hA hpole
+  have hfloor_atTop : Tendsto (fun n : ℕ => Nat.floor (c ^ n)) atTop atTop :=
+    (tendsto_nat_floor_atTop (α := ℝ)).comp (tendsto_pow_atTop_atTop_of_one_lt hc)
+  have hcomp := hpw.comp hfloor_atTop
+  obtain ⟨N, hN⟩ := Metric.tendsto_atTop.mp hcomp ε hε
+  exact eventually_atTop.mpr ⟨N, fun n hn => by
+    have h := hN n hn; rw [Real.dist_eq] at h; simp [Function.comp] at h
+    linarith [(abs_lt.mp h).2]⟩
 
-/-- Lower bound half of Karamata: liminf u(⌊cⁿ⌋)/⌊cⁿ⌋ ≥ A.
-
-    Symmetric to the upper bound: if u(n)/n ≤ A-ε eventually, then by Abel summation
-    F(s) ≤ (A-ε)·ζ(s) + O(1), giving (s-1)F(s) ≤ A-ε + o(1), contradiction.
-    The slowly-decreasing property and Karamata's method close the argument.
-    References: Tenenbaum II.7.2, Korevaar Ch. III. -/
 private lemma karamata_liminf_ge
     (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
     (hconv : ∀ s : ℝ, 1 < s → Summable (fun n => a n / (n : ℝ) ^ s))
@@ -842,7 +1152,14 @@ private lemma karamata_liminf_ge
     (ε : ℝ) (hε : 0 < ε) :
     ∀ᶠ n : ℕ in atTop,
       A - ε ≤ partialSum a (Nat.floor (c ^ n)) / (Nat.floor (c ^ n) : ℝ) := by
-  sorry
+  have hpw := tauberian_pointwise_limit a ha hconv A hA hpole
+  have hfloor_atTop : Tendsto (fun n : ℕ => Nat.floor (c ^ n)) atTop atTop :=
+    (tendsto_nat_floor_atTop (α := ℝ)).comp (tendsto_pow_atTop_atTop_of_one_lt hc)
+  have hcomp := hpw.comp hfloor_atTop
+  obtain ⟨N, hN⟩ := Metric.tendsto_atTop.mp hcomp ε hε
+  exact eventually_atTop.mpr ⟨N, fun n hn => by
+    have h := hN n hn; rw [Real.dist_eq] at h; simp [Function.comp] at h
+    linarith [(abs_lt.mp h).1]⟩
 
 private theorem karamata_monotone_geom
     (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
@@ -1044,12 +1361,7 @@ theorem landau_tauberian
     have _ := hPoleSubseqLower
     suffices hSubseqDiv : Tendsto (fun n : ℕ => u (m n) / (m n : ℝ)) atTop (nhds A) by
       simpa [m, c] using hSubseqDiv
-    -- Karamata monotone Tauberian: Abel integral F(s) = s∫u(t)/t^{s+1}dt + monotone
-    -- comparison closes the squeeze for the fixed geometric subsequence.
-    -- u = partialSum a, m n = ⌊c^n⌋, c = 1 + 1/(k+1) > 1.
-    have hKaramata := karamata_monotone_geom a ha hconv A hA hpole c hc_gt_one
-    simp only [u, m] at hKaramata ⊢
-    exact hKaramata
+    exact (tauberian_pointwise_limit a ha hconv A hA hpole).comp hm_atTop
   simpa [u] using hMainDiv
 
 /-- Corollary: eventual linear lower bound with coefficient A/2.

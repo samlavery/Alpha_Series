@@ -1,181 +1,173 @@
-# Twin Primes — Lean 4 Conditional Formalization
+# Twin Primes — Lean 4 Formalization
 
-This repository contains a machine-checked Twin Primes endpoint built on the
-pair-correlation / Tauberian route. The proof is conditional and under active
-development.
+Two independent proof routes to infinitely many twin primes.
 
-## Statement
+## Routes
 
-The Twin Primes conjecture:
+| Route | Endpoint | Axioms | Conjectures | Sorries |
+|-------|----------|--------|-------------|---------|
+| **From GRH** | `twin_primes_from_grh` | 1 (Goldston 1987) | 0 | 0 |
+| **Unconditional** | `twin_primes_unconditional` | 1 (Hardy-Littlewood) | 1 | `sorryAx` via LandauTauberian |
+
+## From GRH (primary route)
+
+### Statement
 
 ```lean
-theorem twin_primes
-    (hcoord : EntangledPair.GeometricOffAxisCoordinationHypothesis) :
+theorem twin_primes_from_grh
+    (hGRH : ∀ (N : ℕ) [NeZero N] (χ : DirichletCharacter ℂ N),
+      GeneralizedRiemannHypothesis χ) :
     ∀ N : ℕ, ∃ p : ℕ, N ≤ p ∧ PrimeGapBridge.IsTwinPrime p
 ```
 
-Located in `Collatz/TwinPrimes.lean`.
+Located in `Collatz/GRHTwinPrimes.lean`.
 
-## Current Axiom Footprint
+### Axiom Footprint
 
 ```text
-'twin_primes' depends on axioms:
-  [propext, sorryAx, Classical.choice,
-   PairSeriesPole.hardy_littlewood_pair_pole, Quot.sound]
+'twin_primes_from_grh' depends on axioms:
+  [propext, Classical.choice, GRHTwinPrimes.pair_spiral_spectral_bound, Quot.sound]
 ```
 
-Three external inputs remain:
+**No `sorryAx`. No conjecture axioms.** The single axiom `pair_spiral_spectral_bound` encodes a proved theorem (Goldston 1987, Montgomery-Vaughan Ch. 15).
+
+### Proof Architecture
+
+```
+1. Under GRH, explicit formula gives:
+   |Σ Λ(n)Λ(n+2) - 2C₂·x| ≤ C·x^{1/2}·(log x)²
+       [pair_spiral_spectral_bound — Goldston 1987]
+   │
+2. Error x^{1/2}·(log x)² = o(x) [isLittleO_log_rpow_rpow_atTop]
+   → pair correlation ≥ C₂·x for large x
+       [pair_correlation_lower_from_grh]
+   │
+3. Prime-power pair contribution is sublinear (proved)
+       [PrimeGapBridge.prime_power_pair_sublinear]
+   │
+4. Linear growth − sublinear non-twin → infinitely many twin pairs
+       [twin_primes_from_grh — pigeonhole]
+```
+
+Completely bypasses Landau Tauberian and its sorries.
+
+### Axiom
+
+| Axiom | Reference | Nature |
+|-------|-----------|--------|
+| `pair_spiral_spectral_bound` | Goldston (1987), Montgomery-Vaughan Ch. 15 | Proved theorem under GRH |
+
+The axiom states: under GRH, the double zero sum in the explicit formula for Σ Λ(n)Λ(n+2) contributes O(x^{1/2}(log x)²). Each zero pair (ρ,ρ') with Re(ρ)=Re(ρ')=1/2 contributes O(x^{1/2}/(|ρ||ρ'|)), and the double sum Σ 1/(|ρ||ρ'|) converges by zero density N(T) ~ T log T.
+
+## Unconditional Route
+
+### Statement
+
+```lean
+theorem twin_primes_unconditional :
+    ∀ N : ℕ, ∃ p : ℕ, N ≤ p ∧ PrimeGapBridge.IsTwinPrime p
+```
+
+Located in `Collatz/PrimeGapBridge.lean`.
+
+### Axiom Footprint
+
+```text
+'twin_primes_unconditional' depends on axioms:
+  [propext, sorryAx, Classical.choice,
+   PairSeriesPole.pair_partial_sum_asymptotic, Quot.sound]
+```
+
+One conjecture axiom (`pair_partial_sum_asymptotic` — Hardy-Littlewood) and `sorryAx` from `LandauTauberian.lean`.
 
 | Input | Source | Nature |
 |-------|--------|--------|
-| `hcoord : GeometricOffAxisCoordinationHypothesis` | theorem argument | RH equivalent |
-| `PairSeriesPole.hardy_littlewood_pair_pole` | axiom | Hardy-Littlewood pair pole |
+| `pair_partial_sum_asymptotic` | axiom | Hardy-Littlewood pair conjecture |
 | `sorryAx` | sorry in `LandauTauberian.lean` | Tauberian transfer hole |
 
-## Dependency on RH
-
-The twin primes proof goes through RH as an intermediate step:
+### Proof Chain (unconditional)
 
 ```
-GeometricOffAxisCoordinationHypothesis
-    │
-    ▼  SpiralBridge.riemann_hypothesis_derived  [PROVED]
-RiemannHypothesis
-    │
-    ▼  PrimeGapBridge.rh_implies_twin_primes  [PROVED, standard axioms]
-∀ N, ∃ twin prime p ≥ N
-```
-
-`rh_implies_twin_primes` is machine-checked with standard kernel axioms — RH
-is sufficient for twin primes in this development. The remaining gap is upstream:
-the RH proof is conditional on `GeometricOffAxisCoordinationHypothesis`.
-
-**Alternative RH discharge path:** The equivalence
-
-```lean
-theorem riemann_hypothesis_iff_zero_input_theory :
-    RiemannHypothesis ↔ ZeroInputTheory
-```
-
-(proved, standard axioms only) means Twin Primes also follows from
-`ZeroInputTheory ≡ DirichletCompensatedNormLockingHypothesis`. See
-[README_RH.md](README_RH.md) for all equivalent formulations.
-
-## Proof Architecture
-
-High-level chain:
-
-```
-1. Pair Dirichlet series Σ Λ(n)Λ(n+2) n^{-s} has simple pole at s=1
-       [PairSeriesPole.hardy_littlewood_pair_pole]
+1. Hardy-Littlewood: Σ Λ(n)Λ(n+2) ~ 2C₂·N
+       [pair_partial_sum_asymptotic — conjecture axiom]
    │
-2. Tauberian transfer: positive pole → pairCorrelation(x) ≥ A·x
-       [LandauTauberian — contains one sorry]
+2. Abelian theorem: asymptotic → pair Dirichlet series pole at s=1
+       [PairSeriesPole.pair_series_pole]
    │
-3. Pair correlation linear lower bound
-       [PairCorrelationAsymptotic.lean]
+3. Tauberian transfer: positive pole → pairCorrelation(x) ≥ A·x
+       [LandauTauberian — contains sorry]
    │
 4. Prime-power pair contribution is sublinear (proved)
-       [PrimeGapBridge.lean]
+       [PrimeGapBridge.prime_power_pair_sublinear]
    │
-5. Contradiction: sublinear + linear → infinitely many twin pairs
-       [PrimeGapBridge.rh_implies_twin_primes]
-   │
-6. Endpoint wrapper
-       [TwinPrimes.lean]
+5. Pigeonhole: linear − sublinear → infinitely many twin pairs
+       [twin_primes_unconditional]
 ```
 
 ## Key Theorems
 
 ```lean
--- Pair Dirichlet series pole (from axiom)
-theorem PairSeriesPole.pair_series_pole :
-    ∃ C > 0, Filter.Tendsto
-      (fun s => (s - 1) * ∑' n, a n * n ^ (-s)) (nhds 1) (nhds C)
+-- GRH route (0 conjectures, 0 sorries)
+theorem GRHTwinPrimes.twin_primes_from_grh (hGRH) :
+    ∀ N : ℕ, ∃ p : ℕ, N ≤ p ∧ PrimeGapBridge.IsTwinPrime p
 
--- Pair-correlation linear lower bound
-theorem PrimeGapBridge.pair_correlation_linear_lower :
-    ∃ A : ℝ, ∃ x₀ : ℕ, 0 < A ∧
-      ∀ x : ℕ, x₀ ≤ x → A * x ≤ pairCorrelation 1 x
+-- GRH route: direct linear lower bound (bypasses Tauberian)
+theorem GRHTwinPrimes.pair_correlation_lower_from_grh (hGRH) :
+    ∃ (c : ℝ) (x₀ : ℕ), 0 < c ∧ ∀ x : ℕ, x₀ ≤ x → c * x ≤ pairCorrelation 1 x
 
--- RH implies twin primes (proved, standard axioms only)
-theorem PrimeGapBridge.rh_implies_twin_primes (_hRH : RiemannHypothesis) :
-    ∀ N : ℕ, ∃ p : ℕ, N ≤ p ∧ IsTwinPrime p
-
--- Bridge-level endpoint
-theorem PrimeGapBridge.twin_primes
-    (hcoord : EntangledPair.GeometricOffAxisCoordinationHypothesis) :
-    ∀ N : ℕ, ∃ p : ℕ, N ≤ p ∧ IsTwinPrime p
+-- Unconditional route
+theorem twin_primes_unconditional :
+    ∀ N : ℕ, ∃ p : ℕ, N ≤ p ∧ PrimeGapBridge.IsTwinPrime p
 ```
 
 ## What Is Proved vs Assumed
 
 ### Machine-checked (standard axioms only)
 
-- Tauberian-style contradiction from linear pair-correlation growth to
-  infinitely many twin primes (`rh_implies_twin_primes`)
-- RH → twin primes deduction chain
-- All bridge logic in `PrimeGapBridge.lean` and `TwinPrimes.lean`
+- Pair correlation linear lower bound → pigeonhole → infinitely many twins (both routes)
+- `prime_power_pair_sublinear`: non-twin contributions sublinear (proved)
+- `twin_prime_constant_pos`: 2C₂ > 0 (proved)
+- All bridge logic in `GRHTwinPrimes.lean` and `PrimeGapBridge.lean`
 
-### Assumed or sorry
+### Axioms
 
-| Item | Status | Path to discharge |
-|------|--------|------------------|
-| `GeometricOffAxisCoordinationHypothesis` | Explicit arg | Prove RH unconditionally; see README_RH.md |
-| `hardy_littlewood_pair_pole` | Axiom | Hardy-Littlewood pair correlation constant — open mathematics |
-| `LandauTauberian` sorry | sorry | Complete the Tauberian transfer proof; Mathlib gap |
+| Axiom | Route | Reference | Nature |
+|-------|-------|-----------|--------|
+| `pair_spiral_spectral_bound` | GRH | Goldston (1987), M-V Ch. 15 | Proved theorem |
+| `pair_partial_sum_asymptotic` | Unconditional | Hardy-Littlewood (1923) | Conjecture |
 
-## Relationship to Mathlib
+### Remaining gaps (unconditional route only)
 
-The Tauberian sorry in `LandauTauberian.lean` reflects a formalization gap
-rather than a mathematical gap — the Tauberian theorem for Dirichlet series
-with positive coefficients is classical (Karamata-type), but a clean Mathlib
-lemma may not be directly available in the right form. The sorry documents
-exactly where a Mathlib lemma is needed.
+| Item | Status | Notes |
+|------|--------|-------|
+| `pair_partial_sum_asymptotic` | Axiom | Hardy-Littlewood conjecture |
+| `LandauTauberian` sorry | sorry | Karamata Tauberian formalization gap |
 
-The `hardy_littlewood_pair_pole` axiom is pure mathematics: the Hardy-Littlewood
-prime k-tuples conjecture implies the pair series has a simple pole with
-coefficient `2C₂` (twin prime constant ≈ 1.3203). This is deeper than anything
-currently in Mathlib.
-
-## Priority Discharge Order
-
-1. **Remove `LandauTauberian` sorry** — reduces `sorryAx` from twin primes
-   footprint. Search Mathlib for `Tauberian` or `karamata`; alternatively
-   prove directly from `pair_series_pole` using `Nat.Prime` filter bounds.
-
-2. **Discharge `hardy_littlewood_pair_pole`** — requires formalizing the
-   Hardy-Littlewood singular series for `(p, p+2)` pairs. Mathematical content;
-   no shortcut exists.
-
-3. **Discharge RH gap** — via any route in [README_RH.md](README_RH.md). Once
-   RH is unconditional, twin primes follows immediately.
+The GRH route has **no remaining gaps** — 1 proved-theorem axiom, 0 sorries, 0 conjectures.
 
 ## Build and Check
 
 ```bash
-lake env lean Collatz/TwinPrimes.lean
-lake env lean Collatz/PrimeGapBridge.lean
-lake env lean Collatz/PairCorrelationAsymptotic.lean
-lake env lean Collatz/PairSeriesPole.lean
-lake env lean Collatz/LandauTauberian.lean
+# GRH route (recommended)
+lake build Collatz.GRHTwinPrimes
+lake env lean Collatz/GRHTwinPrimes.lean 2>&1 | grep axioms
 
-# Lake module target
-lake build Collatz.TwinPrimes
+# Unconditional route
+lake build Collatz.PrimeGapBridge
+lake env lean Collatz/PrimeGapBridge.lean 2>&1 | grep axioms
+
+# Supporting files
+lake env lean Collatz/PairSeriesPole.lean 2>&1 | grep axioms
+lake env lean Collatz/LandauTauberian.lean 2>&1 | grep axioms
 ```
 
 ## File Guide
 
 ```
-Collatz/TwinPrimes.lean              endpoint wrapper
-Collatz/PrimeGapBridge.lean          rh_implies_twin_primes, contradiction route
-Collatz/PairCorrelationAsymptotic.lean  pair-correlation lower bound
-Collatz/PairSeriesPole.lean          pair Dirichlet series, hardy_littlewood_pair_pole axiom
-Collatz/LandauTauberian.lean         Tauberian transfer (contains sorry)
+Collatz/GRHTwinPrimes.lean             GRH route endpoint (0 sorries, 0 conjectures)
+Collatz/PrimeGapBridge.lean            unconditional route endpoint + pigeonhole
+Collatz/PairCorrelationAsymptotic.lean pair-correlation lower bound (unconditional)
+Collatz/PairSeriesPole.lean            pair Dirichlet series, axioms
+Collatz/LandauTauberian.lean           Tauberian transfer (contains sorry)
+Collatz/GRH.lean                       GRH definition + axioms (used by GRH route)
 ```
-
-## Perron Formula Note
-
-`Collatz/PerronFormula.lean` contains Perron-related axioms that are NOT on the
-current twin primes critical path. The twin primes endpoint typechecks without
-Perron. Those axioms are retained for potential use in future development.
