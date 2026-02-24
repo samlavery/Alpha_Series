@@ -37,7 +37,8 @@ set_option maxHeartbeats 1600000
 
 /-- Combined Baker rollover: divergent orbit has supercritical ν-sum rate.
     Baker coprimality (D = 2^S - 3^m is always odd) prevents the orbit from
-    avoiding high-v₂ residue classes, yielding Σ η ≥ 33 per 20 steps. -/
+    avoiding high-v₂ residue classes, yielding Σ η ≥ 33 per 20 steps.
+    See NumberTheoryAxioms.lean Layers 1-3 for the decomposition. -/
 theorem baker_tao_supercritical (n₀ : ℕ) (h_n₀ : n₀ > 1) (h_odd : Odd n₀)
     (h_div : ∀ B : ℕ, ∃ m, collatzOddIter m n₀ > B) :
     ∃ M₀ : ℕ, ∃ delta : ℕ, 0 < delta ∧

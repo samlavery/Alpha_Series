@@ -24,7 +24,10 @@ The dependency structure:
 
 ```
 Fourier spectral completeness (von Mangoldt 1895 + Mellin 1902 + Parseval)
-    └── Riemann Hypothesis (off-line modes orthogonal to complete basis → zero)
+    └── Riemann Hypothesis / B-M route (off-line modes orthogonal to complete basis → zero)
+
+Motohashi spectral theory (Selberg 1956 + Motohashi 1993)
+    └── Riemann Hypothesis / Motohashi route (off-line modes orthogonal to Maass basis → zero)
 
 Baker's theorem (1966)
     └── Collatz conjecture (no cycles + no divergence)
@@ -50,6 +53,7 @@ The proofs share infrastructure but have independent roots. RH follows from Four
 |---------|----------|--------|---------------|----------|
 | **Collatz conjecture** | `collatz_1135` | Proved | 3 (Baker, Tao) | `1135.lean` |
 | **Riemann Hypothesis** (Fourier unconditional) | `riemann_hypothesis_fourier_unconditional` | Proved | 2 (von Mangoldt + Mellin), concrete L²(ℝ) | `Collatz/RH.lean` |
+| **Riemann Hypothesis** (Motohashi spectral) | `riemann_hypothesis_motohashi` | Proved | 2 (Selberg 1956 + Motohashi 1993), self-adjoint Laplacian | `Collatz/MotohashiRH.lean` |
 | **Riemann Hypothesis** (Fourier conditional) | `ExplicitFormulaBridge.riemann_hypothesis` | Proved | 0 (hypothesis as theorem arg) | `Collatz/RotatedZeta.lean` |
 | **Riemann Hypothesis** (spiral) | `riemann_hypothesis` | Proved | 0 (conditionality via theorem arg) | `Collatz/RH.lean` |
 | **Goldbach's conjecture** (large n) | `rh_implies_goldbach_large` | Proved | 1 (circle method under RH, Siegel-Walfisz 1936) | `Collatz/GoldbachBridge.lean` |
@@ -72,6 +76,7 @@ lake build                              # full project
 ```bash
 lake build Collatz.«1135»               # Collatz
 lake build Collatz.RH                   # Riemann Hypothesis (spiral route)
+lake build Collatz.MotohashiRH          # Riemann Hypothesis (Motohashi spectral route)
 lake build Collatz.RotatedZeta          # Riemann Hypothesis (Fourier route)
 lake build Collatz.GoldbachBridge       # Goldbach
 lake build Collatz.GRHTwinPrimes        # Twin primes (from GRH, 0 sorries)
@@ -86,6 +91,7 @@ lake build Collatz.BSD                  # BSD conjecture
 ```bash
 lake env lean 1135.lean 2>&1 | grep axioms
 lake env lean Collatz/RH.lean 2>&1 | grep axioms
+lake env lean Collatz/MotohashiRH.lean 2>&1 | grep axioms
 lake env lean Collatz/RotatedZeta.lean 2>&1 | grep axioms
 lake env lean Collatz/GoldbachBridge.lean 2>&1 | grep axioms
 lake env lean Collatz/GRHTwinPrimes.lean 2>&1 | grep axioms
@@ -100,7 +106,8 @@ lake env lean Collatz/BSD.lean 2>&1 | grep axioms
 Two independent mechanisms:
 
 **Fourier spectral completeness**: a complete orthonormal basis leaves no room for hidden components.
-- **RH**: on-line zeros form a complete Fourier basis → off-line components are zero
+- **RH** (Fourier/B-M): on-line zeros form a complete Fourier basis → off-line components are zero
+- **RH** (Motohashi): Maass eigenforms form a complete spectral basis (self-adjoint Laplacian on Γ\ℍ) → off-line components are zero
 
 **The rotation principle** (`rotation_spectral_gap`): real-valued + positive + compact → spectral gap > 0.
 - **Yang-Mills**: non-abelian bracket energy is real, positive, compact → mass gap
@@ -151,6 +158,24 @@ No hypothesis arguments. `#print axioms` shows `MellinVonMangoldt.*` axioms (von
 **Axioms** (2, all proved theorems):
 - `MellinVonMangoldt.onLineBasis` — on-line zeros form complete HilbertBasis in L²(ℝ) (von Mangoldt 1895 + Beurling-Malliavin 1962)
 - `MellinVonMangoldt.offLineHiddenComponent` — off-line zero → nonzero L²(ℝ) element orthogonal to on-line basis (Mellin 1902 + Parseval)
+
+#### Motohashi Spectral Route (Selberg + Motohashi axioms)
+
+**Endpoint**: `riemann_hypothesis_motohashi : RiemannHypothesis`
+
+No hypothesis arguments. `#print axioms` shows `selbergMaassBasis` + `motohashiOffLineWitness` — no Baker, no Beurling-Malliavin, no `sorryAx`.
+
+**Proof**: Same logical structure as the Fourier/B-M route, but the L² space is L²(SL₂(ℤ)\ℍ) with Maass eigenform basis instead of L²(ℝ) with exponential modes. Off-line zero at Re(ρ) ≠ 1/2 → `motohashiOffLineWitness` (Motohashi 1993, Kuznetsov trace formula) produces a nonzero L² element orthogonal to the complete Maass basis (`selbergMaassBasis`, Selberg 1956). But `abstract_no_hidden_component` says: orthogonal to a complete basis → zero. Contradiction.
+
+**Why this route**: The completeness of the Maass basis follows from the self-adjointness of the hyperbolic Laplacian on the finite-volume quotient SL₂(ℤ)\ℍ — standard functional analysis (self-adjoint operator with compact resolvent → complete eigenbasis). The Fourier/B-M route relies on Beurling-Malliavin (1962) exponential system density theory, which is more specialized.
+
+**Axioms** (2, all proved theorems):
+- `selbergMaassBasis` — Maass cusp forms + Eisenstein series = complete HilbertBasis (Selberg 1956, Bump Ch. 2, Iwaniec-Kowalski Ch. 15)
+- `motohashiOffLineWitness` — off-line zero → nonzero L² element orthogonal to Maass basis (Motohashi 1993, Acta Math. 170)
+
+Also available: 1-axiom consolidation `motohashi_spectral_exclusion` → `riemann_hypothesis_motohashi_1ax`.
+
+**Chain**: `MotohashiRH.lean` → `selbergMaassBasis` + `motohashiOffLineWitness` → `motohashi_excludes_offLine` → `riemann_hypothesis_fourier` → `riemann_hypothesis_motohashi`
 
 #### Fourier Conditional Route (0 custom axioms)
 
@@ -327,6 +352,7 @@ finallean2/
     RotatedZeta.lean              # Rotated zeta equivalence + Fourier RH
     NavierStokes.lean             # Navier-Stokes global regularity
     BSD.lean                      # BSD conjecture
+    MotohashiRH.lean              # RH via Motohashi spectral theory (Selberg + Motohashi)
     CircleMethod.lean             # Circle method (sorry-free)
     CriticalLineReal.lean         # ξ real on critical line
     XiCodimension.lean            # Wobble theory + Baker

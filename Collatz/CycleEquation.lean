@@ -50,6 +50,17 @@ lemma collatzOddIter_succ_right (k n : ℕ) :
     rw [ih (collatzOdd n)]
     congr 1
 
+/-- Iteration composition: T^{a+b}(n) = T^a(T^b(n)). -/
+lemma collatzOddIter_add (a b n : ℕ) :
+    collatzOddIter (a + b) n = collatzOddIter a (collatzOddIter b n) := by
+  induction a generalizing n with
+  | zero => simp [collatzOddIter]
+  | succ a ih =>
+    rw [show a + 1 + b = (a + b) + 1 from by omega]
+    rw [collatzOddIter_succ_right, collatzOddIter_succ_right]
+    congr 1
+    exact ih n
+
 /-! ## 2-adic valuation properties -/
 
 lemma pow_v2_dvd (m : ℕ) (hm : m ≠ 0) : 2 ^ v2 m ∣ m :=
@@ -110,6 +121,12 @@ lemma collatzOddIter_odd {n : ℕ} (hn : Odd n) (hn_pos : 0 < n) (k : ℕ) :
       have h_dvd := pow_v2_dvd (3 * n + 1) h_ne
       exact Nat.div_pos (Nat.le_of_dvd (by omega) h_dvd) (by positivity)
     exact ih h_odd_T h_pos_T
+
+lemma collatzOddIter_pos {n : ℕ} (hn : Odd n) (hn_pos : 0 < n) (k : ℕ) :
+    0 < collatzOddIter k n := by
+  have := collatzOddIter_odd hn hn_pos k
+  obtain ⟨r, hr⟩ := this
+  omega
 
 /-! ## Orbit partial sums and path constant -/
 

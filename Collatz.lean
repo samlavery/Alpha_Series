@@ -46,3 +46,6 @@ import Collatz.NavierStokes
 import Collatz.GRH
 import Collatz.GRHTwinPrimes
 import Collatz.PNTBridge
+import Collatz.MotohashiRH
+import Collatz.MotohashiGRH
+import Collatz.GRHMixing
