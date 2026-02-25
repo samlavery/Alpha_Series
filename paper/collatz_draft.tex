@@ -4,6 +4,7 @@
 \usepackage{hyperref}
 \usepackage{geometry}
 \usepackage{tikz}
+\usepackage{float}
 \usepackage{tcolorbox}
 \usetikzlibrary{arrows.meta,positioning}
 \geometry{margin=1in}
@@ -527,7 +528,7 @@ with zero custom axioms.
 \end{remark}
 
 %% ====================================================================
-\section{No Divergent Orbits (Conditional)}
+\section{No Divergent Orbits}
 \label{sec:nodiv}
 %% ====================================================================
 
@@ -1848,16 +1849,18 @@ in several ways:
 \label{sec:diagram}
 %% ====================================================================
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-  node distance=0.8cm and 1.5cm,
-  block/.style={rectangle, draw, text width=4cm, text centered,
-    minimum height=0.8cm, font=\small},
-  axiom/.style={rectangle, draw, dashed, text width=4cm, text centered,
-    minimum height=0.8cm, font=\small},
+  node distance=0.7cm and 2.5cm,
+  block/.style={rectangle, draw, text width=3.8cm, text centered,
+    minimum height=0.7cm, font=\small},
+  paper/.style={rectangle, draw, dashed, fill=yellow!8,
+    text width=3.8cm, text centered,
+    minimum height=0.7cm, font=\small},
   thm/.style={rectangle, draw, rounded corners, fill=gray!10,
-    text width=4cm, text centered, minimum height=0.8cm, font=\small},
+    text width=4.2cm, text centered, minimum height=0.7cm, font=\small},
   arr/.style={-{Stealth[length=3mm]}}
 ]
 
@@ -1865,32 +1868,32 @@ in several ways:
 \node[thm] (main) {\textbf{Main Theorem}\\$\forall n > 0, \exists k, T^k(n) = 1$};
 
 % Split
-\node[block, below left=1cm and 1cm of main] (nocyc) {No nontrivial cycles\\(\textbf{unconditional},\\0 custom axioms)};
-\node[block, below right=1cm and 1cm of main] (nodiv) {No divergent orbits\\(Lean: conditional, 0 axioms\\Paper: Baker Cutoff)};
+\node[block, below left=1cm and 2.5cm of main] (nocyc) {No nontrivial cycles\\(\textbf{Lean-verified},\\0 custom axioms)};
+\node[block, below right=1cm and 2.5cm of main] (nodiv) {No divergent orbits\\(\textbf{Lean}: conditional, 0 axioms)};
 
 \draw[arr] (nocyc) -- (main);
 \draw[arr] (nodiv) -- (main);
 
 % No-cycles paths
-\node[block, below left=0.8cm and -0.5cm of nocyc] (drift) {Path 1: Drift\\$2^{-L\varepsilon} \ne 1$};
+\node[block, below left=0.8cm and -0.3cm of nocyc] (drift) {Path 1: Drift\\$2^{-L\varepsilon} \ne 1$};
 \node[block, below=0.8cm of nocyc] (lattice) {Path 2: Lattice\\Cosets empty};
-\node[block, below right=0.8cm and -0.5cm of nocyc] (cyclo) {Path 3: Cyclotomic\\Rigidity};
+\node[block, below right=0.8cm and -0.3cm of nocyc] (cyclo) {Path 3: Cyclotomic\\Rigidity};
 
 \draw[arr] (drift) -- (nocyc);
 \draw[arr] (lattice) -- (nocyc);
 \draw[arr] (cyclo) -- (nocyc);
 
 % Foundation
-\node[thm, below=0.8cm of drift] (ufd) {$2^S \ne 3^m$\\(unique factorization)};
+\node[thm, below=0.8cm of lattice] (ufd) {$2^S \ne 3^m$\\(unique factorization)};
 \draw[arr] (ufd) -- (drift);
 \draw[arr] (ufd) -- (lattice);
 
 % No-divergence chain
-\node[block, below=0.8cm of nodiv] (sumid) {Sum identity (proved)\\$\Sigma + A = 33N + B$};
-\node[block, below=0.6cm of sumid] (ax1) {Baker Cutoff (proved)\\$\alpha_C < 0 \notin \N$};
-\node[block, below=0.6cm of ax1] (derive) {Each block $S \ge 33$ (proved)\\$\Rightarrow A = 0 \le B$};
-\node[block, below=0.6cm of derive] (suffix) {$S_K \ge 32E + 33$\\(suffix bound)};
-\node[block, below=0.6cm of suffix] (super) {Super-block contraction\\$T^K(x) < x$ when $x \ge 3^K$};
+\node[block, below=0.8cm of nodiv] (sumid) {Sum identity\\$\Sigma + A = 33N + B$};
+\node[paper, below=0.6cm of sumid] (ax1) {Baker Cutoff\\$\alpha_C < 0 \notin \N$\\{\footnotesize(paper proof${}^\dagger$)}};
+\node[block, below=0.6cm of ax1] (derive) {Each block $S \ge 33$\\$\Rightarrow A = 0 \le B$};
+\node[block, below=0.6cm of derive] (suffix) {Suffix bound\\$S_K \ge 32E + 33$};
+\node[block, below=0.6cm of suffix] (super) {Super-block contraction\\$T^K(x) < x$ for $x \ge 3^K$};
 \node[block, below=0.6cm of super] (bounded) {Orbit bounded\\$\Rightarrow \bot$};
 
 \draw[arr] (sumid) -- (ax1);
@@ -1898,12 +1901,14 @@ in several ways:
 \draw[arr] (derive) -- (suffix);
 \draw[arr] (suffix) -- (super);
 \draw[arr] (super) -- (bounded);
-\draw[arr] (bounded) -- (nodiv);
+\draw[arr] (bounded.west) -- +(-0.5,0) |- (nodiv.south east);
 
-\end{tikzpicture}
+\end{tikzpicture}%
+}% end resizebox
 \caption{Proof dependency diagram.  Solid rectangles are Lean-verified
-theorems; the Baker Cutoff box is proved on paper (not yet
-machine-checked); rounded gray boxes are the main results.
+theorems; the dashed box ($\dagger$) is proved on paper but not yet
+machine-checked (requires Baker's theorem in Mathlib); rounded gray
+boxes are assembled results.
 The left branch (no-cycles) is fully Lean-verified.
 The right branch (no-divergence) is Lean-verified \emph{conditional}
 on the template-ladder cap, which the Baker Cutoff discharges
@@ -2026,13 +2031,13 @@ independently verified.
 \hline
 \textbf{Item} & \textbf{Value} \\
 \hline
-Repository & \url{https://github.com/samlavery/Alpha_Series/releases/tag/snap2} \\
+Repository & \url{https://github.com/samlavery/Alpha_Series/} \\
 Lean toolchain & \texttt{leanprover/lean4:v4.27.0} \\
 Mathlib commit & \texttt{[a3a10db0e9d66acbebf76c5e6a135066525ac900]} \\
 Build command & \texttt{lake build} \\
 Axiom verification & \texttt{lake build \&\& lake env lean} \\
  & \quad \texttt{Collatz/1135.lean 2>\&1 | grep axioms} \\
-Zenodo DOI & \texttt{[DOI 10.5281/zenodo.18749888]} \\
+Zenodo DOI & \texttt{[DOI --]} \\
 \hline
 \end{tabular}
 \end{center}

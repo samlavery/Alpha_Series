@@ -52,8 +52,8 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.5}The Liouville counterexample: sensitivity to the base}{9}{subsection.4.5}\protected@file@percent }
 \newlabel{subsec:liouville-detail}{{4.5}{9}{The Liouville counterexample: sensitivity to the base}{subsection.4.5}{}}
 \newlabel{thm:fragility}{{4.7}{9}{Collatz sensitivity}{theorem.4.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}No Divergent Orbits (Conditional)}{9}{section.5}\protected@file@percent }
-\newlabel{sec:nodiv}{{5}{9}{No Divergent Orbits (Conditional)}{section.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}No Divergent Orbits}{9}{section.5}\protected@file@percent }
+\newlabel{sec:nodiv}{{5}{9}{No Divergent Orbits}{section.5}{}}
 \newlabel{def:divergent}{{5.1}{9}{Divergent orbit}{theorem.5.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Growth-block decomposition}{10}{subsection.5.1}\protected@file@percent }
 \newlabel{def:block}{{5.2}{10}{Block quantities}{theorem.5.2}{}}
@@ -133,16 +133,18 @@
 \newlabel{subsec:lean-boundary}{{7.4}{25}{What Lean verifies vs.\ what the axioms assert}{subsection.7.4}{}}
 \citation{tao2022}
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Comparison with Tao's approach}{26}{subsection.7.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}Proof Dependency Diagram}{26}{section.8}\protected@file@percent }
-\newlabel{sec:diagram}{{8}{26}{Proof Dependency Diagram}{section.8}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {9}Discussion}{26}{section.9}\protected@file@percent }
-\newlabel{sec:discussion}{{9}{26}{Discussion}{section.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}The template-supply principle}{26}{subsection.9.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}What would it take to formalize the Baker Cutoff?}{27}{subsection.9.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}The role of $3^{20}/2^{33}$}{27}{subsection.9.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Open questions}{27}{subsection.9.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {10}Reproducibility}{28}{section.10}\protected@file@percent }
-\newlabel{sec:reproducibility}{{10}{28}{Reproducibility}{section.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Proof Dependency Diagram}{27}{section.8}\protected@file@percent }
+\newlabel{sec:diagram}{{8}{27}{Proof Dependency Diagram}{section.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Proof dependency diagram. Solid rectangles are Lean-verified theorems; the dashed box ($\dagger $) is proved on paper but not yet machine-checked (requires Baker's theorem in Mathlib); rounded gray boxes are assembled results. The left branch (no-cycles) is fully Lean-verified. The right branch (no-divergence) is Lean-verified \emph  {conditional} on the template-ladder cap, which the Baker Cutoff discharges at the paper level.}}{27}{figure.1}\protected@file@percent }
+\newlabel{fig:deps}{{1}{27}{Proof dependency diagram. Solid rectangles are Lean-verified theorems; the dashed box ($\dagger $) is proved on paper but not yet machine-checked (requires Baker's theorem in Mathlib); rounded gray boxes are assembled results. The left branch (no-cycles) is fully Lean-verified. The right branch (no-divergence) is Lean-verified \emph {conditional} on the template-ladder cap, which the Baker Cutoff discharges at the paper level}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Discussion}{27}{section.9}\protected@file@percent }
+\newlabel{sec:discussion}{{9}{27}{Discussion}{section.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}The template-supply principle}{27}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}What would it take to formalize the Baker Cutoff?}{28}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}The role of $3^{20}/2^{33}$}{28}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Open questions}{28}{subsection.9.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Reproducibility}{29}{section.10}\protected@file@percent }
+\newlabel{sec:reproducibility}{{10}{29}{Reproducibility}{section.10}{}}
 \bibcite{baker1966}{1}
 \bibcite{baker1968}{2}
 \bibcite{bakerwustholz1993}{3}
@@ -158,6 +160,4 @@
 \bibcite{wirsching1998}{13}
 \bibcite{zsigmondy1892}{14}
 \bibcite{aristotle}{15}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Proof dependency diagram. Solid rectangles are Lean-verified theorems; the Baker Cutoff box is proved on paper (not yet machine-checked); rounded gray boxes are the main results. The left branch (no-cycles) is fully Lean-verified. The right branch (no-divergence) is Lean-verified \emph  {conditional} on the template-ladder cap, which the Baker Cutoff discharges at the paper level.}}{30}{figure.1}\protected@file@percent }
-\newlabel{fig:deps}{{1}{30}{Proof dependency diagram. Solid rectangles are Lean-verified theorems; the Baker Cutoff box is proved on paper (not yet machine-checked); rounded gray boxes are the main results. The left branch (no-cycles) is fully Lean-verified. The right branch (no-divergence) is Lean-verified \emph {conditional} on the template-ladder cap, which the Baker Cutoff discharges at the paper level}{figure.1}{}}
 \gdef \@abspage@last{30}
