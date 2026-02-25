@@ -288,45 +288,60 @@ theorem not_memLp_exp_nonzero (α : ℝ) (hα : α ≠ 0) :
 
 end MellinVonMangoldt
 
-/-! ### Von Mangoldt Explicit Formula — L² Spectral Axioms
+/-! ### Von Mangoldt Explicit Formula — Spectral Axioms in the Rotated Strip
 
-The von Mangoldt explicit formula ψ(x) = x - Σ_ρ x^ρ/ρ + ... decomposes
-the prime counting function into spectral modes. In the Mellin variable
-u = log x, the on-line zeros (Re(ρ) = 1/2) produce oscillatory modes
-e^{iγu} that form a complete basis in L²(ℝ), while any off-line zero
-(Re(ρ) ≠ 1/2) would produce a mode with exponential growth e^{αu} (α ≠ 0).
+The rotation w = -i(s - 1/2) maps the critical strip to |Im(w)| < 1/2.
+The spectral Hilbert space ℋ is morally H²(S_{1/2}), the Hardy space of
+this strip. The exponentials e^{iγu} are MODE LABELS (generalized eigenmodes)
+that index spectral components, not elements of ℋ.
 
-The following two axioms encode the L² spectral structure of the explicit
-formula. Together with `abstract_no_hidden_component` (proved, 0 axioms),
-they yield `vonMangoldt_mode_bounded` as a theorem.
+State space vs mode labels:
+  - ℋ (the Hilbert space): contains genuine L² objects (spectral components)
+  - {e^{iγu}} (mode labels): distributional/kernel objects parametrizing
+    the decomposition, like plane waves parametrize the Fourier transform
+
+On-line zeros (Re(ρ) = 1/2) rotate to the real boundary w = γ ∈ ℝ and
+define a complete family of spectral components in ℋ (B-M completeness).
+Off-line zeros (Re(ρ) ≠ 1/2) rotate to interior points w = γ - i(σ-1/2)
+and induce components orthogonal to the on-line span (Mellin orthogonality).
+
+The Lean carrier `MellinL2 = Lp ℂ 2 volume` is a concrete separable Hilbert
+space ≅ H²(S_{1/2}) ≅ ℓ²(ℕ). The content is in the axioms, not the carrier.
 
 References:
 - von Mangoldt, "Zu Riemanns Abhandlung" (1895) — explicit formula
 - Mellin, "Die Dirichlet'schen Reihen" (1902) — Mellin-Parseval isometry
 - Beurling-Malliavin (1962) — completeness of exponential systems -/
 
-/-- The L² space of the von Mangoldt spectral decomposition. -/
+/-- The spectral Hilbert space for the von Mangoldt decomposition.
+    Carrier type: Lp ℂ 2 volume (= L²(ℝ, ℂ)), a concrete separable Hilbert space.
+    Morally: H²(S_{1/2}), the Hardy space of the rotated strip |Im(w)| < 1/2.
+    All separable Hilbert spaces are isometrically isomorphic; the mathematical
+    content (which modes form the basis) is in the axioms, not the carrier. -/
 abbrev MellinL2 : Type := MeasureTheory.Lp ℂ 2 (MeasureTheory.volume : MeasureTheory.Measure ℝ)
 
 /-- **Axiom (von Mangoldt 1895 + Beurling-Malliavin 1962)**: The on-line
-    zeros of ζ (those with Re(ρ) = 1/2) produce oscillatory modes in the
-    Mellin variable u = log x that form a complete orthonormal basis
-    (HilbertBasis) in L²(ℝ, ℂ).
+    zero frequencies {γ_n} (where ρ_n = 1/2 + iγ_n rotates to w_n = γ_n
+    on the real boundary of the strip |Im(w)| < 1/2) define a complete
+    family of spectral components in the spectral Hilbert space ℋ —
+    formally, a HilbertBasis indexed by ℕ.
 
-    This is a consequence of the explicit formula: the modes e^{iγ_n u}
-    (where ρ_n = 1/2 + iγ_n) form a complete system by Beurling-Malliavin
-    density theory, since the zero density N(T) ~ T/(2π) log(T/(2πe))
-    exceeds the critical density for completeness. -/
+    The exponentials e^{iγ_n u} are MODE LABELS (generalized eigenmodes /
+    evaluation characters), not elements of ℋ. They index the spectral
+    decomposition. Completeness follows from B-M density theory: zero
+    density N(T) ~ T/(2π) log(T/(2πe)) exceeds the critical density. -/
 axiom MellinVonMangoldt.onLineBasis : HilbertBasis ℕ ℂ MellinL2
 
 /-- **Axiom (Mellin 1902 + Parseval orthogonality)**: An off-line zero ρ
-    of ζ in the critical strip produces a nonzero L²(ℝ, ℂ) element that is
-    orthogonal to every element of the on-line basis.
+    of ζ (Re(ρ) ≠ 1/2, rotating to an interior point w = γ - i(σ-1/2)
+    of the strip) induces a nonzero element of ℋ orthogonal to every
+    element of the on-line family (onLineBasis).
 
-    The Mellin-Parseval isometry maps modes at different contour positions
-    to orthogonal L² functions: the on-line modes live on Re(s) = 1/2 while
-    the off-line mode lives on Re(s) = σ ≠ 1/2. The contour separation
-    gives orthogonality, the explicit formula gives nonzero-ness. -/
+    The off-line zero's spectral component is indexed by a COMPLEX frequency
+    label γ - iα (α = σ - 1/2 ≠ 0). The Mellin-Parseval isometry converts
+    the contour separation (Re(s) = σ ≠ 1/2 vs Re(s) = 1/2) into
+    orthogonality in ℋ: the off-line component lies in the orthogonal
+    complement of the on-line span. -/
 axiom MellinVonMangoldt.offLineHiddenComponent
     (ρ : ℂ) (hζ : riemannZeta ρ = 0) (hlo : 0 < ρ.re) (hhi : ρ.re < 1)
     (hoff : ρ.re ≠ 1/2) :

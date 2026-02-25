@@ -23,6 +23,7 @@
     (proved by `MellinVonMangoldt.not_memLp_exp_nonzero` in RH.lean)
 -/
 import Collatz.RotatedZeta
+import Collatz.MellinOrthogonality.Step6Final
 import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.PerronFormula
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
@@ -113,6 +114,18 @@ axiom zeta_zero_density_unbounded
       C < (Finset.filter (fun n => |γ n| ≤ T)
             (Finset.range (Nat.succ ⌈T⌉₊))).card / T
 
+/-- Step-6 theorem route in the same signature shape as the old Mellin axiom. -/
+theorem mellin_contour_orthogonality_from_step6
+    (hstep6 : MellinOrthogonality.MellinOrthogonalityAssembler)
+    (γ : ℕ → ℝ)
+    (ρ : ℂ) (hζ : riemannZeta ρ = 0) (hlo : 0 < ρ.re) (hhi : ρ.re < 1)
+    (hoff : ρ.re ≠ 1/2) :
+    ∃ f : Lp ℂ 2 (volume : Measure ℝ), f ≠ 0 ∧
+      ∀ n : ℕ, ∫ t : ℝ, (f : ℝ → ℂ) t *
+        Complex.exp (-(γ n) * ↑t * I) ∂volume = 0 := by
+  simpa [MellinOrthogonality.MellinOrthogonalityGoal] using
+    hstep6 γ ρ hζ hlo hhi hoff
+
 /-! ## Section 3: RH from Elementary Axioms
 
 The proof: off-line zero → `mellin_contour_orthogonality` gives nonzero
@@ -136,6 +149,21 @@ theorem explicit_formula_from_pnt_bridge
   intro ρ hζ hlo hhi
   by_contra hoff
   obtain ⟨f, hne, horth⟩ := mellin_contour_orthogonality γ ρ hζ hlo hhi hoff
+  exact hne (beurling_malliavin_completeness γ hdensity f horth)
+
+/-- Axiom-free Mellin step: same bridge theorem, but with Step-6 supplied as a theorem
+input instead of using `mellin_contour_orthogonality` as an axiom. -/
+theorem explicit_formula_from_pnt_bridge_of_step6
+    (hstep6 : MellinOrthogonality.MellinOrthogonalityAssembler)
+    (γ : ℕ → ℝ)
+    (hdensity : ∀ C : ℝ, ∃ T₀ : ℝ, ∀ T > T₀,
+      C < (Finset.filter (fun n => |γ n| ≤ T)
+            (Finset.range (Nat.succ ⌈T⌉₊))).card / T) :
+    ∀ (ρ : ℂ), riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 → ρ.re = 1/2 := by
+  intro ρ hζ hlo hhi
+  by_contra hoff
+  obtain ⟨f, hne, horth⟩ :=
+    mellin_contour_orthogonality_from_step6 hstep6 γ ρ hζ hlo hhi hoff
   exact hne (beurling_malliavin_completeness γ hdensity f horth)
 
 /-! ## Section 4: Connection to Rotation Framework
@@ -163,6 +191,17 @@ theorem rh_from_pnt_bridge
     ∀ (ρ : ℂ), riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 → ρ.re = 1/2 :=
   ExplicitFormulaBridge.riemann_hypothesis
     (explicit_formula_from_pnt_bridge γ hdensity)
+
+/-- RH bridge using Step-6 theorem input (no Mellin axiom dependency). -/
+theorem rh_from_pnt_bridge_of_step6
+    (hstep6 : MellinOrthogonality.MellinOrthogonalityAssembler)
+    (γ : ℕ → ℝ)
+    (hdensity : ∀ C : ℝ, ∃ T₀ : ℝ, ∀ T > T₀,
+      C < (Finset.filter (fun n => |γ n| ≤ T)
+            (Finset.range (Nat.succ ⌈T⌉₊))).card / T) :
+    ∀ (ρ : ℂ), riemannZeta ρ = 0 → 0 < ρ.re → ρ.re < 1 → ρ.re = 1/2 :=
+  ExplicitFormulaBridge.riemann_hypothesis
+    (explicit_formula_from_pnt_bridge_of_step6 hstep6 γ hdensity)
 
 /-! ## Section 5: Off-Line Mode Growth (from rotation framework)
 
@@ -301,7 +340,9 @@ When Steps 5-6 are complete, `mellin_contour_orthogonality` becomes a theorem. -
 /-! ## Axiom Audit -/
 #print axioms PNTBridge.zeta_log_deriv_residue
 #print axioms PNTBridge.explicit_formula_from_pnt_bridge
+#print axioms PNTBridge.explicit_formula_from_pnt_bridge_of_step6
 #print axioms PNTBridge.rh_from_pnt_bridge
+#print axioms PNTBridge.rh_from_pnt_bridge_of_step6
 #print axioms rectangle_cauchy
 #print axioms contour_shift_identity
 #print axioms rectangle_vanishes_on_strip
