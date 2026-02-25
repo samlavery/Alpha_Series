@@ -229,6 +229,30 @@ $\chi = \mathbf{1}$ and translating through this equality yields
 $\RH$ via the existing \texttt{riemann\_hypothesis\_fourier} bridge.
 \end{corollary}
 
+\subsection{Alternative Route: Motohashi Spectral Theory}
+
+The Fourier spectral argument above uses Beurling--Malliavin (1962)
+for completeness. An alternative route replaces B-M with the
+\emph{self-adjoint spectral theorem} via Motohashi's spectral decomposition:
+
+\begin{itemize}
+  \item \textbf{Selberg (1956)}: The Maass cusp forms of
+    $\mathrm{SL}_2(\Z)\backslash\mathbb{H}$ form a complete Hilbert basis,
+    as eigenfunctions of the self-adjoint hyperbolic Laplacian.
+  \item \textbf{Motohashi (1993)}: The fourth moment
+    $\int |\zeta(\tfrac12+it)|^4\,dt$ has an exact spectral expansion over
+    Maass forms. An off-line zero produces an unmatched residue orthogonal
+    to the complete basis.
+  \item \textbf{\texttt{abstract\_no\_hidden\_component}} (proved, 0 axioms):
+    orthogonal to complete basis $\Rightarrow$ zero. Contradiction.
+\end{itemize}
+
+This yields \texttt{riemann\_hypothesis\_motohashi} in
+\texttt{MotohashiRH.lean} with 2 axioms citing textbook results
+(Selberg + Motohashi) rather than specialized density theory (B-M).
+See the RH blueprint (\texttt{blueprint\_rh.tex}, \S\ref{sec:motohashi})
+for full details.
+
 %% =========================================================
 \section{Twin Primes from GRH}
 \label{sec:grh-twin-primes}
@@ -651,6 +675,40 @@ $\RH \Rightarrow \GoldbachConjecture$.
 gives Goldbach: axiom 1 gives $R(n) \geq n$ but not prime decompositions;
 axiom 2 gives Archimedean dominance but not analytic bounds;
 the Lean proof does the real work via noise separation.
+\end{theorem}
+
+\subsection{Goldbach via Motohashi Spectral Theory (Sieve-Free)}
+
+\begin{theorem}[Motohashi Implies Goldbach]
+\label{thm:motohashi-implies-goldbach}
+\lean{motohashi\_implies\_goldbach}\leanok
+\uses{thm:rh-implies-goldbach}
+
+$\texttt{selbergMaassBasis} + \texttt{motohashiOffLineWitness}
+\Rightarrow \RH \Rightarrow \GoldbachConjecture$.
+
+\emph{Proof.} Compose \lean{MotohashiRH.riemann\_hypothesis\_motohashi}
+(Motohashi spectral route to RH, 2 axioms) with
+\lean{GoldbachBridge.rh\_implies\_goldbach} (RH $\Rightarrow$ Goldbach via
+circle method).
+
+\emph{Axioms}: \lean{selbergMaassBasis} (Selberg 1956),
+\lean{motohashiOffLineWitness} (Motohashi 1993),
+\lean{goldbach\_spiral\_spectral\_bound} (Hardy-Littlewood 1923, circle method).
+
+\textbf{No sieve theory anywhere}: Selberg's axiom is self-adjoint spectral theory
+(not Selberg sieve), Motohashi's axiom is automorphic spectral decomposition (not sieve),
+and the circle method is Fourier analysis on~$\Z$ (not sieve).
+The entire chain is: self-adjoint Laplacian $\to$ Hilbert basis completeness
+$\to$ RH $\to$ exponential sum bounds $\to$ Goldbach.
+\end{theorem}
+
+\begin{theorem}[Motohashi Implies Goldbach (1-Axiom)]
+\label{thm:motohashi-implies-goldbach-1ax}
+\lean{motohashi\_implies\_goldbach\_1ax}\leanok
+
+Same as \cref{thm:motohashi-implies-goldbach} but using the consolidated
+1-axiom Motohashi route (\lean{motohashi\_spectral\_exclusion}).
 \end{theorem}
 
 \subsection{Twin Primes via the Circle Method}

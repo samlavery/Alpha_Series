@@ -1,0 +1,30 @@
+\contentsline {section}{\numberline {1}Schwarz Reflection and Reality on the Critical Line}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Hardy's Theorem from Sign Changes}{3}{subsection.1.1}%
+\contentsline {section}{\numberline {2}The Rotated Zeta Function and Codimensionality}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Abstract Spectral Gap Principle}{5}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Fourier Completeness Infrastructure}{5}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Wobble Theory and Off-Axis Nonvanishing}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Number-Theoretic Uncertainty Principle}{7}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Baker's Axiom and Strip Nonvanishing}{7}{subsection.3.2}%
+\contentsline {section}{\numberline {4}The Functional Equation Scalar and $\chi $-Attenuation}{8}{section.4}%
+\contentsline {section}{\numberline {5}Weyl Integration and Zero-Input Closure}{9}{section.5}%
+\contentsline {section}{\numberline {6}Harmonic Analysis: The 3-4-1 Method}{9}{section.6}%
+\contentsline {section}{\numberline {7}Hadamard Factorization Infrastructure}{10}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Proved Infrastructure (Zero Axioms)}{10}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Axioms}{10}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Derived Theorems}{11}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Hadamard Bridge: Explicit Formula}{11}{subsection.7.4}%
+\contentsline {section}{\numberline {8}The Von Mangoldt Spectral Route (Primary)}{12}{section.8}%
+\contentsline {subsection}{\numberline {8.1}How Rotation and Mellin Work Together}{12}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}The Spectral Hilbert Space $\mathcal {H}$}{12}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Spectral Axioms and Proof}{13}{subsection.8.3}%
+\contentsline {section}{\numberline {9}The Motohashi Spectral Route}{14}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Relationship to Rotation (Motivational, Not Structural)}{14}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}The Maass L$^2$ Space}{14}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Axioms}{14}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Proof Chain}{15}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Single-Axiom Consolidation}{15}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Comparison: Fourier vs Motohashi}{16}{subsection.9.6}%
+\contentsline {section}{\numberline {10}The Four Proof Endpoints}{16}{section.10}%
+\contentsline {section}{\numberline {11}Axiom Inventory}{17}{section.11}%
+\contentsline {section}{\numberline {12}Proof Chain Summary}{18}{section.12}%

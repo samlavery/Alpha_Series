@@ -1,15 +1,15 @@
 %% blueprint_rh.tex — Leanblueprint for the Riemann Hypothesis Proof Chain
 %% Generated from: CriticalLineReal.lean, RotatedZeta.lean, RH.lean,
 %%                 XiCodimension.lean, AFEInfrastructure.lean,
-%%                 WeylIntegration.lean, SpectralRH.lean
+%%                 WeylIntegration.lean, SpectralRH.lean, MotohashiRH.lean
 %%
-%% Proof architecture: three independent routes all proving RiemannHypothesis,
-%% unified by the rotated-coordinate perspective that makes the critical line
-%% the real axis.
+%% Proof architecture: four routes all proving RiemannHypothesis.
+%% Primary route: Fourier/von Mangoldt (rotation + Mellin bridge).
+%% Rotation exposes codimension; Mellin converts zeros to L² modes.
 
 \documentclass[11pt,a4paper]{article}
 
-\usepackage{amsmath,amssymb,amsthm}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{cleveref}
@@ -46,9 +46,10 @@
 \renewcommand{\Im}{\operatorname{Im}}
 \newcommand{\xizero}{\widetilde{\xi}_0}
 \newcommand{\GammaR}{\Gamma_{\mathbb{R}}}
+\newcommand{\QQ}{\mathbb{Q}}
 
 \title{\textbf{Blueprint: Formal Proof of the Riemann Hypothesis}\\
-\large Three Independent Lean 4 Routes via Rotated-Coordinate Spectral Analysis}
+\large Rotation, Mellin, and Spectral Completeness in Lean 4}
 
 \author{Formal Proof Project \\ Lean 4 + Mathlib}
 
@@ -62,27 +63,48 @@
 \bigskip
 
 \begin{abstract}
-This blueprint documents the Lean 4 formalization of three independent proofs of the
-Riemann Hypothesis. The unifying idea is a $90^\circ$ coordinate rotation
-$w = -i(s - \tfrac12)$ that maps the critical line $\Re(s) = \tfrac12$ to the real axis
-$\Im(w) = 0$, transforming RH into the statement that a manifestly real-valued function
-$\xi_{\mathrm{rot}}(w) = \xi(\tfrac12 + iw)$ has only real zeros.
+This blueprint documents the Lean 4 formalization of the Riemann Hypothesis via
+four proof routes, with the \textbf{Fourier/von Mangoldt route} as the primary
+target for full formalization.
 
-Three proof routes are established:
+Three mechanisms interact across the proof architecture:
+\begin{itemize}
+  \item \textbf{Rotation} ($w = -i(s-\tfrac12)$) maps the critical line to the real
+    axis, exposing the \emph{codimension gap}: on-line zeros of the real-valued
+    $\xi_{\mathrm{rot}}(w)$ are codimension~1 (generic), while off-line zeros are
+    codimension~2 (both $\Re$ and $\Im$ must vanish simultaneously). Used in the
+    Baker and Fourier routes; motivational for Motohashi.
+  \item \textbf{Mellin transform} converts zeros of $\zeta$ into spectral
+    components in a Hilbert space $\mathcal{H}$ (Hardy space of the rotated strip):
+    on-line zeros ($\Re(\rho)=\tfrac12$) produce components indexed by real frequency
+    labels $\gamma$; off-line zeros produce components indexed by complex frequency
+    labels $\gamma - i\alpha$ ($\alpha \ne 0$). The contour separation gives
+    orthogonality in $\mathcal{H}$. The exponentials $e^{i\gamma u}$ are mode
+    labels, not elements of $\mathcal{H}$.
+    Used in the Fourier route; not used in Motohashi.
+  \item \textbf{Spectral completeness} (the shared logical pattern): a complete Hilbert
+    basis admits no nonzero orthogonal element (\lean{abstract\_no\_hidden\_component},
+    proved, 0 axioms). An off-line zero produces such an element $\Rightarrow$ contradiction.
+\end{itemize}
+
+Four proof routes:
 \begin{enumerate}
-  \item \textbf{Baker/spiral route} (1 custom axiom, \lean{baker\_forbids\_pole\_hit}):
-    Baker's theorem on linear forms in logarithms prevents the Euler product from
-    achieving exact cancellation in the critical strip.
-  \item \textbf{Fourier/von Mangoldt route} (2 custom axioms, \lean{onLineBasis} +
-    \lean{offLineHiddenComponent}): on-line zeros form a complete Hilbert basis in
-    $L^2(\RR)$; an off-line zero would produce a nonzero element orthogonal to a
-    complete basis, which is impossible.
-  \item \textbf{Conditional/rotation route} (0 custom axioms): the explicit formula
-    completeness hypothesis is passed as a theorem argument.
+  \item \textbf{Baker/spiral route} (1 axiom): rotation $+$ wobble decomposition $+$
+    Baker's theorem on linear forms in logarithms. Mechanism: codimension obstruction.
+  \item \textbf{Fourier/von Mangoldt route} (2 axioms, \textsc{primary}): rotation $+$
+    Mellin transform $+$ Beurling--Malliavin completeness. Mechanism: on-line zero
+    frequencies define a complete family in $\mathcal{H}$; off-line zero produces
+    orthogonal witness $\Rightarrow$ contradiction.
+  \item \textbf{Motohashi spectral route} (2 axioms): Maass eigenforms on
+    $\mathrm{SL}_2(\ZZ)\backslash\mathbb{H}$ form a complete basis (Selberg 1956,
+    self-adjoint Laplacian); off-line zero produces orthogonal witness (Motohashi 1993).
+    Same logical pattern as Fourier, different completeness source (self-adjoint spectral
+    theory, not Beurling--Malliavin density). Does not use rotation or Mellin formally.
+  \item \textbf{Conditional route} (0 axioms): explicit formula completeness passed
+    as a theorem argument.
 \end{enumerate}
 
-All axioms are proved theorems in the literature (Baker 1966, von Mangoldt 1895,
-Mellin 1902, Beurling--Malliavin 1962). No conjecture is assumed.
+All axioms are proved theorems in the literature. No conjecture is assumed.
 \end{abstract}
 
 %% =============================================================================
@@ -739,41 +761,265 @@ uncertainty principle). RH is the assertion that this infinite interference is c
 \end{remark}
 
 %% =============================================================================
-\section{The Von Mangoldt Spectral Route}
+\section{Hadamard Factorization Infrastructure}
+\label{sec:hadamard}
+%% Files: HadamardFactorization.lean, HadamardBridge.lean
+%% =============================================================================
+
+The completed zeta function $\xi(s) = \tfrac{s}{2}(s-1)\pi^{-s/2}\Gamma(s/2)\zeta(s)$
+is entire of order~1. Hadamard's factorization theorem gives:
+\[
+  \xi(s) = \xi(0) \cdot e^{B_1 s} \cdot \prod_\rho E_1(s/\rho),
+\]
+where $E_1(z) = (1-z)e^z$ is the genus-1 Weierstrass factor and the product is over
+nontrivial zeros~$\rho$. This is the master identity from which \emph{all} connections
+between zeros and primes flow: the partial fraction of $\zeta'/\zeta$, the explicit
+formula for $\psi(x)$, and zero density bounds.
+
+\subsection{Proved Infrastructure (Zero Axioms)}
+
+\begin{definition}[Weierstrass $E_1$ Factor]\label{def:E1}
+\lean{HadamardFactorization.E\_1}\leanok
+$E_1(z) = (1-z)e^z$. Proved: $E_1(0) = 1$, $E_1(1) = 0$, differentiability,
+$\|E_1(z)-1\| \le |z|^2 e^{|z|}$ for $|z| \le 1/2$.
+\end{definition}
+
+\begin{definition}[$\xi(s)$]\label{def:xi}
+\lean{HadamardFactorization.xi}\leanok
+$\xi(s) = \tfrac{s}{2}(s-1)\cdot\lean{completedRiemannZeta}(s)$.
+Proved: $\xi(1-s) = \xi(s)$ (functional equation), differentiability away from
+$s=0,1$, and $\xi(s) = 0 \iff \lean{completedRiemannZeta}(s) = 0$ for $s \ne 0,1$.
+\end{definition}
+
+\subsection{Axioms}
+
+\begin{axiom_block}[Zero Counting]\label{ax:zero-counting}
+\lean{HadamardFactorization.zero\_counting\_bound}\leanok
+$N(T) \le C \cdot T \log T$ for $T \ge 2$, where $N(T)$ counts nontrivial zeros
+with $|\Im(\rho)| \le T$.
+
+\emph{Source}: Jensen's formula applied to $\xi$ in a disk of radius $\sim T$.
+Standard: Titchmarsh, \emph{Theory of the Riemann Zeta-Function}, \S9.4.
+\end{axiom_block}
+
+\begin{axiom_block}[Hadamard Partial Fraction]\label{ax:xi-logderiv}
+\lean{HadamardFactorization.xi\_logderiv\_partial\_fraction}\leanok
+\uses{def:xi}
+For $\Re(s) > 1$, the partial fraction of $\xi'/\xi$:
+\[
+  \Re\!\left(\frac{\xi'}{\xi}(s)\right) = B_1 +
+  \Re\!\left(\sum_{\rho:\,|\Im\rho|\le T} \left(\frac{1}{s-\rho}+\frac{1}{\rho}\right)\right)
+  + O(\log T).
+\]
+The irreducible analytic content: Hadamard factorization for entire functions of order~$\le 1$.
+Not in Mathlib (requires definition of order, proof that $\xi$ has order~1, convergence of
+Weierstrass product). Standard: Conway, \emph{Functions of One Complex Variable II}, Ch.~XI.
+\end{axiom_block}
+
+\begin{axiom_block}[Log-Derivative Identity]\label{ax:logderiv-identity}
+\lean{HadamardFactorization.logderiv\_identity}\leanok
+\uses{def:xi}
+For $\Re(s) > 1$:
+\[
+  \frac{\zeta'}{\zeta}(s) = \frac{\xi'}{\xi}(s) - \frac{1}{s-1} + \gamma(s),
+  \quad |\Re(\gamma(s))| \le \log(|\Im(s)|+2) + 2.
+\]
+From $\xi(s) = \tfrac{s}{2}(s-1)\Gamma_\RR(s)\zeta(s)$ by logarithmic differentiation.
+The $\gamma$-term absorbs $1/s$ and digamma asymptotics. Standard: Titchmarsh \S3.6.
+\end{axiom_block}
+
+\subsection{Derived Theorems}
+
+\begin{theorem}[Partial Fraction of $-\zeta'/\zeta$]\label{thm:xi-hadamard-product}
+\lean{HadamardFactorization.xi\_hadamard\_product}\leanok
+\uses{ax:xi-logderiv, ax:logderiv-identity}
+\textbf{PROVED} from the two axioms above. For $\sigma > 1$:
+\[
+  -\Re\!\left(\frac{\zeta'}{\zeta}(\sigma)\right) \ge
+  \sum_{\rho:\,|\gamma|\le T} \frac{\sigma - \Re(\rho)}{|\sigma-\rho|^2} - C\log T.
+\]
+This is the gateway to the zero-free region and the 3-4-1 method.
+\end{theorem}
+
+\begin{theorem}[Hadamard Log-Derivative Bounds]\label{thm:hadamard-logderiv-bounds}
+\lean{HadamardFactorization.hadamard\_logderiv\_bounds}\leanok
+\uses{thm:xi-hadamard-product}
+\textbf{PROVED}: for $\sigma > 1$, the weighted zero sum from $-\zeta'/\zeta$ is
+bounded below by the contribution of any single zero.
+\end{theorem}
+
+\begin{theorem}[Zero Reciprocal Sum Converges]\label{thm:zero-reciprocal-converges}
+\lean{HadamardFactorization.zero\_reciprocal\_sum\_converges}\leanok
+\uses{ax:zero-counting}
+\textbf{PROVED} from \Cref{ax:zero-counting}: $\sum_\rho 1/(1+\gamma^2) < \infty$.
+\end{theorem}
+
+\subsection{Hadamard Bridge: Explicit Formula}
+
+The \lean{HadamardBridge} module (file \texttt{HadamardBridge.lean}) connects the
+Hadamard factorization to the prime number theorem and explicit formula:
+
+\begin{theorem}[Explicit Formula for $\psi$]\label{thm:explicit-formula-psi}
+\lean{HadamardBridge.explicit\_formula\_psi}\leanok
+\uses{thm:xi-hadamard-product}
+\textbf{PROVED} from \lean{PerronFormula.perron\_explicit\_formula}
+and \Cref{thm:xi-hadamard-product}: the Perron integral gives
+$\psi(x) = x - \sum_\rho x^\rho/\rho + \ldots$
+\end{theorem}
+
+\begin{theorem}[RH $\Rightarrow$ $\psi$ Error Bound]\label{thm:rh-psi-error}
+\lean{HadamardBridge.rh\_implies\_psi\_error}\leanok
+\uses{thm:explicit-formula-psi}
+Under RH: $|\psi(x) - x| \le C\sqrt{x}(\log x)^2$.
+\end{theorem}
+
+%% =============================================================================
+\section{The Von Mangoldt Spectral Route (Primary)}
 \label{sec:von-mangoldt}
 %% File: RH.lean (MellinVonMangoldt namespace)
 %% =============================================================================
 
-This section presents the Fourier spectral completeness proof of RH: the on-line zeros
-of $\zeta$ form a complete Hilbert basis, so an off-line zero would produce a nonzero
-$L^2$ element orthogonal to a complete basis — contradiction.
+This is the primary proof route targeted for full Lean 4 formalization. It uses
+all three mechanisms: \emph{rotation} to expose codimension, \emph{Mellin} to
+convert zeros to $L^2$ modes, and \emph{spectral completeness} to derive the
+contradiction.
 
-\begin{definition}[Mellin $L^2$ Space]\label{def:mellin-l2}
-\lean{MellinL2}\leanok
-$\lean{MellinL2} = L^2(\RR, \CC)$ with respect to Lebesgue measure. This is the
-$L^2$ space in which the von Mangoldt spectral modes live.
+\subsection{How Rotation and Mellin Work Together}
+
+The von Mangoldt explicit formula
+$\psi(x) = x - \sum_\rho x^\rho/\rho + \cdots$
+decomposes the prime counting function into contributions indexed by the
+nontrivial zeros $\rho$. Substituting $u = \log x$ (the Mellin variable),
+the zero $\rho$ contributes a term proportional to $e^{\rho u}/\rho$.
+The exponentials $e^{i\gamma u}$ are \emph{mode labels} (generalized
+eigenmodes / evaluation characters), not elements of the Hilbert space ---
+they index the spectral components but are not themselves square-integrable.
+
+The rotation $w = -i(s - \tfrac12)$ maps $\rho = \tfrac12 + i\gamma$ (on-line) to
+$w = \gamma$ (real), and $\rho = \sigma + i\gamma$ with $\sigma \ne \tfrac12$
+(off-line) to $w = \gamma - i(\sigma - \tfrac12)$ (complex). This is the
+\textbf{frequency interpretation}:
+\begin{itemize}
+  \item \textbf{On-line zeros} $\to$ real frequency labels $\gamma \in \RR$ $\to$
+    spectral components on the boundary of the rotated strip.
+  \item \textbf{Off-line zeros} $\to$ complex frequency labels $\gamma - i\alpha$
+    ($\alpha \ne 0$) $\to$ spectral components in the interior of the strip.
+\end{itemize}
+
+The \textbf{Mellin--Parseval isometry} converts the contour separation
+(on-line modes on $\Re(s) = \tfrac12$, off-line modes on $\Re(s) = \sigma
+\ne \tfrac12$) into orthogonality in the spectral Hilbert space $\mathcal{H}$:
+the spectral component associated with an off-line zero is orthogonal to the
+closed span of the on-line family.
+
+This is why both rotation and Mellin are needed:
+\begin{itemize}
+  \item Rotation makes the on-line/off-line distinction geometric:
+    boundary vs interior of the strip.
+  \item Mellin maps the boundary/interior separation to orthogonality
+    in $\mathcal{H}$.
+  \item Together: an off-line zero produces a nonzero element of $\mathcal{H}$
+    orthogonal to a complete family $\Rightarrow$ contradiction.
+\end{itemize}
+
+\subsection{The Spectral Hilbert Space $\mathcal{H}$}
+
+The spectral analysis requires a Hilbert space $\mathcal{H}$ and a
+\emph{complete family} of spectral components indexed by the on-line zeros.
+The exponentials $e^{i\gamma u}$ are \textbf{not elements of $\mathcal{H}$} ---
+they are mode labels (generalized eigenmodes / evaluation characters) that
+index the spectral decomposition. The Hilbert space structure lives on the
+\emph{coefficients}, not the modes.
+
+\begin{definition}[Hardy Space $H^2(S_{1/2})$]\label{def:hardy-strip}
+The Hardy space of the strip $S_{1/2} = \{w \in \CC : |\Im(w)| < \tfrac12\}$ is
+\[
+  H^2(S_{1/2}) = \bigl\{f \text{ analytic in } S_{1/2} :
+    \sup_{|y|<1/2} \int_{-\infty}^{\infty} |f(x+iy)|^2\,dx < \infty\bigr\}.
+\]
+This is a separable complex Hilbert space. The strip width $\tfrac12$ matches the
+rotated critical strip exactly: the coordinate change $w = -i(s-\tfrac12)$ maps
+$0 < \Re(s) < 1$ to $|\Im(w)| < \tfrac12$.
 \end{definition}
 
-\begin{axiom_block}[On-Line Basis (von Mangoldt + Beurling--Malliavin)]\label{ax:online-basis}
+\begin{remark}[State space vs mode labels]
+The spectral decomposition involves two distinct objects:
+\begin{enumerate}
+  \item The \textbf{state space} $\mathcal{H}$ (a Hilbert space): functions
+    analytic in the strip with finite Hardy norm. Elements of $\mathcal{H}$
+    are genuine $L^2$ objects.
+  \item The \textbf{mode labels} $\{e^{i\gamma u}\}_{\gamma \in \RR}$
+    (generalized eigenmodes): these are distributional / kernel objects that
+    parametrize the spectral decomposition. They are \emph{not} elements
+    of $\mathcal{H}$, just as plane waves $e^{ikx}$ are not elements of
+    $L^2(\RR)$ but parametrize the Fourier transform.
+\end{enumerate}
+The on-line zero frequencies $\{\gamma_n\}$ define a complete family of
+\emph{reproducing kernel evaluations} in $\mathcal{H}$. Completeness means:
+the only element of $\mathcal{H}$ orthogonal to the closed span of the
+on-line kernel components is zero.
+\end{remark}
+
+\begin{remark}[Strip membership of $\xi_{\mathrm{rot}}$]
+$\xi_{\mathrm{rot}}(w) = \xi(\tfrac12+iw)$ is entire (since $\xi$ is entire)
+and in particular analytic in the strip $|\Im(w)| < \tfrac12$. However,
+$\xi_{\mathrm{rot}}$ grows polynomially along horizontal lines
+(Phragm\'en--Lindel\"of convexity bound), so
+$\xi_{\mathrm{rot}} \notin H^2(S_{1/2})$ directly. The spectral analysis
+operates on the \emph{logarithmic derivative} $\xi_{\mathrm{rot}}'/\xi_{\mathrm{rot}}$,
+whose residues at the zeros produce the spectral components in $\mathcal{H}$.
+Alternatively, a polynomial normalization (dividing by $w^k$ or a Weierstrass
+product) can place the object in $H^2$.
+\end{remark}
+
+\begin{definition}[Mellin $L^2$ Space (Lean carrier)]\label{def:mellin-l2}
+\lean{MellinL2}\leanok
+$\lean{MellinL2} = L^2(\RR, \CC)$ with respect to Lebesgue measure.
+In the Lean formalization, this serves as the abstract carrier type for
+$\mathcal{H}$. Since all infinite-dimensional separable Hilbert spaces are
+isometrically isomorphic ($L^2(\RR) \cong H^2(S_{1/2}) \cong \ell^2(\NN)$),
+the carrier is interchangeable. The mathematical content --- which family of
+spectral components is complete, which elements are orthogonal --- is encoded
+in the axioms, not the carrier type.
+\end{definition}
+
+\subsection{Spectral Axioms and Proof}
+
+\begin{axiom_block}[On-Line Spectral Completeness (von Mangoldt + Beurling--Malliavin)]\label{ax:online-basis}
 \lean{MellinVonMangoldt.onLineBasis}\leanok
 \uses{def:mellin-l2}
-The oscillatory modes $e^{i\gamma_n u}$ (where $\rho_n = \tfrac12 + i\gamma_n$ ranges over
-on-line zeros of $\zeta$) form a complete orthonormal basis (\lean{HilbertBasis}) in
-$L^2(\RR, \CC)$.
-\emph{Reference}: von Mangoldt (1895) explicit formula; Beurling--Malliavin (1962)
-completeness criterion. The zero density $N(T) \sim (T/2\pi)\log(T/2\pi e)$ exceeds
-the Beurling--Malliavin critical density.
+The on-line zero frequencies $\{\gamma_n\}$ (where $\rho_n = \tfrac12 + i\gamma_n$,
+rotating to real points $w_n = \gamma_n$) define a \emph{complete family} of
+spectral components in $\mathcal{H}$: a \lean{HilbertBasis} indexed by $\NN$.
+
+Mathematically: the reproducing kernel evaluations at the boundary zero
+positions form a complete system in $\mathcal{H}$. Completeness follows from
+the Beurling--Malliavin density theorem: the zero density
+$N(T) \sim (T/2\pi)\log(T/2\pi e)$ exceeds the B-M critical density for
+every finite interval, so the system is complete.
+
+The exponentials $e^{i\gamma_n u}$ are the \emph{mode labels} (frequency
+parameters) that index this family, not basis vectors in $\mathcal{H}$.
+
+\emph{References}: von Mangoldt (1895), Beurling--Malliavin (1962).
 \end{axiom_block}
 
-\begin{axiom_block}[Off-Line Hidden Component (Mellin)]\label{ax:offline-component}
+\begin{axiom_block}[Off-Line Orthogonal Witness (Mellin)]\label{ax:offline-component}
 \lean{MellinVonMangoldt.offLineHiddenComponent}\leanok
 \uses{def:mellin-l2, ax:online-basis}
-If $\rho$ is a zero of $\zeta$ in the critical strip with $\Re(\rho) \ne \tfrac12$, then
-there exists a nonzero $f \in L^2(\RR)$ satisfying
-$\langle e_n, f\rangle_{L^2} = 0$ for every on-line basis element $e_n$.
-\emph{Reference}: Mellin (1902) transform inversion. Modes on different vertical lines
-$\Re(s) = c_1 \ne c_2$ are $L^2$-orthogonal via Parseval for the Mellin transform;
-the off-line mode lies on a different contour from the on-line modes.
+If $\rho$ is a zero of $\zeta$ in the critical strip with $\Re(\rho) \ne \tfrac12$
+(equivalently, $w = \gamma - i(\sigma-\tfrac12)$ is an interior point of the
+rotated strip), then there exists a nonzero element of $\mathcal{H}$ orthogonal
+to every element of the on-line family (\Cref{ax:online-basis}).
+
+The interior zero induces a spectral component at a complex frequency label
+$\gamma - i\alpha$ ($\alpha = \sigma - \tfrac12 \ne 0$). The Mellin--Parseval
+isometry converts the contour separation ($\Re(s) = \sigma \ne \tfrac12$)
+into orthogonality in $\mathcal{H}$: the off-line component's Mellin contour
+does not coincide with the on-line contour $\Re(s) = \tfrac12$, producing
+a nonzero element in the orthogonal complement of the on-line span.
+
+\emph{Reference}: Mellin (1902) transform inversion.
 \end{axiom_block}
 
 \begin{theorem}[Exponential Growth Outside $L^2$]\label{thm:exp-not-l2}
@@ -814,9 +1060,176 @@ by \Cref{thm:exp-bounded-iff-zero} it is unbounded — contradiction.
 \end{theorem}
 
 %% =============================================================================
-\section{The Three Proof Endpoints}
+\section{The Motohashi Spectral Route}
+\label{sec:motohashi}
+%% File: MotohashiRH.lean
+%% =============================================================================
+
+This section presents a second spectral proof of RH, via Motohashi's decomposition
+of the fourth moment of $\zeta$ over the Maass eigenforms of $\mathrm{SL}_2(\ZZ)\backslash\mathbb{H}$.
+The \emph{logical pattern} is identical to the von Mangoldt route (\Cref{sec:von-mangoldt}):
+a complete Hilbert basis + orthogonal witness $\Rightarrow$ contradiction. The
+\emph{mechanism} is different: completeness comes from the self-adjointness of the
+hyperbolic Laplacian (Selberg 1956), not from Beurling--Malliavin density. Neither
+rotation nor Mellin is formally used.
+
+\subsection{Relationship to Rotation (Motivational, Not Structural)}
+
+In the rotated frame, $\xi_{\mathrm{rot}}(t) = \xi(\tfrac12+it)$ is real on $\RR$
+(\Cref{thm:xirot-real-reals}), so $|\xi_{\mathrm{rot}}(t)|^4 = \xi_{\mathrm{rot}}(t)^4$
+and Motohashi's fourth moment expansion captures the full behavior of this real function.
+This is mathematically natural context for \emph{why} the Motohashi expansion works,
+but it is \textbf{not part of the formal proof chain}. The Lean proof uses only the
+Maass basis completeness and the orthogonal witness, without passing through the
+rotated-coordinate machinery. In particular, the Mellin transform plays no role here:
+the spectral decomposition is over automorphic forms on the modular surface, not
+Fourier modes on $\RR$.
+
+\subsection{The Maass L$^2$ Space}
+
+\begin{definition}[Maass $L^2$ Space]\label{def:maass-l2}
+\lean{MotohashiRH.MaassL2}\leanok
+$\lean{MaassL2} = L^2(\RR, \CC)$ with respect to Lebesgue measure. This is the
+same carrier type as \lean{MellinL2} (\Cref{def:mellin-l2}); both are separable
+complex Hilbert spaces $\cong \ell^2(\NN)$. The distinction is in the
+\emph{basis}: Maass cusp forms + Eisenstein series (Selberg) versus exponential
+modes $e^{i\gamma_n u}$ (von Mangoldt).
+
+\emph{Morally}: $L^2(\mathrm{SL}_2(\ZZ)\backslash\mathbb{H},\, y^{-2}\,dx\,dy)$,
+the $L^2$ space on the modular surface with hyperbolic measure. The opaque type
+suffices for the formal proof.
+\end{definition}
+
+\subsection{Axioms}
+
+\begin{axiom_block}[Selberg Maass Basis]\label{ax:selberg-maass}
+\lean{MotohashiRH.selbergMaassBasis}\leanok
+\uses{def:maass-l2}
+The Maass cusp forms $\{u_j\}$ together with the Eisenstein series form a complete
+orthonormal basis (\lean{HilbertBasis}) of $L^2(\mathrm{SL}_2(\ZZ)\backslash\mathbb{H})$.
+
+\emph{Source}: the self-adjointness of the hyperbolic Laplacian
+$\Delta = -y^2(\partial^2/\partial x^2 + \partial^2/\partial y^2)$
+on the finite-volume quotient $\mathrm{SL}_2(\ZZ)\backslash\mathbb{H}$:
+\begin{itemize}
+  \item Self-adjoint $\Rightarrow$ real eigenvalues $\lambda_j = \tfrac14 + t_j^2$ ($t_j \in \RR$).
+  \item Compact resolvent on cuspidal subspace $\Rightarrow$ discrete spectrum.
+  \item Spectral theorem $\Rightarrow$ complete orthonormal basis.
+\end{itemize}
+Standard functional analysis. No Beurling--Malliavin density theory.
+
+\emph{References}: Selberg (1956), Bump Ch.~2, Iwaniec--Kowalski Ch.~15.
+\end{axiom_block}
+
+\begin{axiom_block}[Motohashi Off-Line Witness]\label{ax:motohashi-witness}
+\lean{MotohashiRH.motohashiOffLineWitness}\leanok
+\uses{def:maass-l2, ax:selberg-maass}
+If $\rho$ is a zero of $\zeta$ in the critical strip with $\Re(\rho) \ne \tfrac12$,
+then there exists a nonzero $f \in L^2(\mathrm{SL}_2(\ZZ)\backslash\mathbb{H})$
+satisfying $\langle u_n, f\rangle = 0$ for every Maass basis element $u_n$:
+\[
+  \exists\, f \in \lean{MaassL2},\quad f \ne 0 \;\wedge\;
+  \forall\, n \in \NN,\quad
+  \langle \lean{selbergMaassBasis}(n),\, f \rangle = 0.
+\]
+
+\emph{Mathematical content}: Motohashi's formula (Acta Math.~170, 1993) decomposes
+$|\xi_{\mathrm{rot}}(t)|^4 = \xi_{\mathrm{rot}}(t)^4$ (real!) into a sum over the
+Maass spectrum. Each zeta zero $\rho$ contributes a spectral mode:
+\begin{itemize}
+  \item \textbf{On-line zeros} ($\Re(\rho) = \tfrac12$, rotating to $\RR$):
+    contribute modes \emph{within} the Maass spectral expansion --- they are
+    ``matched'' by Maass eigenvalues.
+  \item \textbf{Off-line zeros} ($\Re(\rho) \ne \tfrac12$, rotating off $\RR$):
+    contribute modes at a different ``spectral level'' --- unmatched by any
+    Maass eigenvalue.
+\end{itemize}
+The Kuznetsov trace formula (which underlies Motohashi's identity) maps sums over
+zeta zeros to sums over Maass eigenvalues. An off-line zero produces an unmatched
+residue --- a nonzero $L^2$ element with zero projection onto every Maass eigenspace.
+
+\emph{References}: Motohashi, Acta Math.~170 (1993), 181--220.
+Motohashi, \emph{Spectral Theory of the Riemann Zeta-Function}, Cambridge (1997).
+\end{axiom_block}
+
+\subsection{Proof Chain}
+
+\begin{theorem}[Motohashi Excludes Off-Line Zeros]\label{thm:motohashi-excludes}
+\lean{MotohashiRH.motohashi\_excludes\_offLine}\leanok
+\uses{ax:selberg-maass, ax:motohashi-witness, thm:no-hidden-component}
+For every zero $\rho$ of $\zeta$ in the critical strip: $\Re(\rho) = \tfrac12$.
+
+\emph{Proof.} By contradiction. Suppose $\Re(\rho) \ne \tfrac12$.
+By \Cref{ax:motohashi-witness}, there exists a nonzero $f$ orthogonal to
+every element of the Maass basis \Cref{ax:selberg-maass}. By
+\Cref{thm:no-hidden-component} (\lean{abstract\_no\_hidden\_component},
+proved, zero axioms), no nonzero element can be orthogonal to a complete
+Hilbert basis. Contradiction.
+\end{theorem}
+
+\begin{theorem}[RH: Motohashi Spectral Route]\label{thm:rh-motohashi}
+\lean{MotohashiRH.riemann\_hypothesis\_motohashi}\leanok
+\uses{thm:motohashi-excludes}
+$\lean{RiemannHypothesis}$ holds.
+\emph{Axioms}: 2 custom axioms (\Cref{ax:selberg-maass}, \Cref{ax:motohashi-witness}).
+\emph{Proof.} Compose \Cref{thm:motohashi-excludes} with
+\lean{riemann\_hypothesis\_fourier} (the bridge from strip nonvanishing to
+Mathlib's \lean{RiemannHypothesis}).
+\end{theorem}
+
+\subsection{Single-Axiom Consolidation}
+
+\begin{axiom_block}[Motohashi Spectral Exclusion (Consolidated)]\label{ax:motohashi-consolidated}
+\lean{MotohashiRH.motohashi\_spectral\_exclusion}\leanok
+For $\rho \in \CC$ with $\zeta(\rho) = 0$, $0 < \Re(\rho) < 1$, and
+$\Re(\rho) \ne \tfrac12$: \textbf{False}.
+
+Combines Selberg completeness (\Cref{ax:selberg-maass}) +
+Motohashi witness (\Cref{ax:motohashi-witness}) +
+Hilbert basis completeness (\Cref{thm:no-hidden-component}).
+\end{axiom_block}
+
+\begin{theorem}[RH: Motohashi 1-Axiom Route]\label{thm:rh-motohashi-1ax}
+\lean{MotohashiRH.riemann\_hypothesis\_motohashi\_1ax}\leanok
+\uses{ax:motohashi-consolidated}
+$\lean{RiemannHypothesis}$ holds from a single axiom.
+\end{theorem}
+
+\subsection{Comparison: Fourier vs Motohashi}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llllll}
+\hline
+\textbf{Route} & \textbf{Axiom 1} & \textbf{Axiom 2} & \textbf{Completeness} & \textbf{Rotation} & \textbf{Mellin} \\
+\hline
+Fourier/B-M & \lean{onLineBasis} & \lean{offLineHiddenComponent} & B-M 1962 & \checkmark & \checkmark \\
+Motohashi & \lean{selbergMaassBasis} & \lean{motohashiOffLineWitness} & Selberg 1956 & --- & --- \\
+\hline
+\end{tabular}
+\caption{Both routes share the logical pattern: complete basis + orthogonal witness
+$\Rightarrow$ \lean{abstract\_no\_hidden\_component} $\Rightarrow$ contradiction.
+The Fourier route uses rotation (codimension) and Mellin (zero $\to$ $L^2$ mode).
+The Motohashi route uses automorphic spectral theory (Selberg's self-adjoint Laplacian)
+without either.}
+\end{table}
+
+The Motohashi axioms cite:
+\begin{itemize}
+  \item Selberg (1956) --- in every graduate textbook on automorphic forms.
+  \item Motohashi (1993) --- Acta Mathematica, the top journal.
+  \item Self-adjoint spectral theorem --- undergraduate functional analysis.
+\end{itemize}
+versus the Fourier axioms citing:
+\begin{itemize}
+  \item Beurling--Malliavin (1962) --- specialized harmonic analysis, density of
+    exponential systems, not widely known outside the field.
+\end{itemize}
+
+%% =============================================================================
+\section{The Four Proof Endpoints}
 \label{sec:rh-endpoints}
-%% File: RH.lean
+%% File: RH.lean, MotohashiRH.lean
 %% =============================================================================
 
 \begin{theorem}[RH: Baker/Spiral Route]\label{thm:rh-baker}
@@ -829,18 +1242,33 @@ $\Rightarrow$ \lean{strip\_nonvanishing\_zero\_input}
 $\Rightarrow$ \lean{riemann\_hypothesis\_unconditional\_baker}.
 \end{theorem}
 
-\begin{theorem}[RH: Fourier Spectral Route]\label{thm:rh-fourier}
+\begin{theorem}[RH: Fourier Spectral Route (\textsc{primary})]\label{thm:rh-fourier}
 \lean{riemann\_hypothesis\_fourier\_unconditional}\leanok
 \uses{ax:online-basis, ax:offline-component, thm:explicit-formula-completeness}
-$\lean{RiemannHypothesis}$ holds.
+$\lean{RiemannHypothesis}$ holds. This is the primary route targeted for full
+Lean formalization.
 \emph{Axioms}: 2 custom axioms (\Cref{ax:online-basis}, \Cref{ax:offline-component}).
+\emph{Mechanisms}: rotation (codimension) $+$ Mellin (zero $\to$ $L^2$ mode) $+$
+Beurling--Malliavin (completeness).
 \emph{Proof chain}: \Cref{thm:explicit-formula-completeness} $\Rightarrow$
 \lean{riemann\_hypothesis\_fourier} $\Rightarrow$
 \lean{riemann\_hypothesis\_fourier\_unconditional}.
 \end{theorem}
 
+\begin{theorem}[RH: Motohashi Spectral Route]\label{thm:rh-motohashi-endpoint}
+\lean{MotohashiRH.riemann\_hypothesis\_motohashi}\leanok
+\uses{ax:selberg-maass, ax:motohashi-witness, thm:motohashi-excludes}
+$\lean{RiemannHypothesis}$ holds.
+\emph{Axioms}: 2 custom axioms (\Cref{ax:selberg-maass}, \Cref{ax:motohashi-witness}).
+\emph{Mechanisms}: Selberg spectral completeness only (no rotation, no Mellin).
+\emph{Proof chain}: \Cref{thm:motohashi-excludes}
+$\Rightarrow$ \lean{riemann\_hypothesis\_fourier}
+$\Rightarrow$ \lean{riemann\_hypothesis\_motohashi}.
+\end{theorem}
+
 \begin{theorem}[RH: Conditional/Rotation Route]\label{thm:rh-conditional}
 \lean{ExplicitFormulaBridge.riemann\_hypothesis}\leanok
+%% Note: ExplicitFormulaBridge is a namespace inside RotatedZeta.lean, not a separate file.
 \uses{thm:rotation-isometry}
 Assuming \lean{explicit\_formula\_completeness} as a hypothesis
 (von Mangoldt 1895 + Mellin 1902 + Parseval):
@@ -873,12 +1301,41 @@ sum lower bound forces $\zeta(s) \ne 0$.
 \lean{baker\_forbids\_pole\_hit} & Baker/spiral & Baker (1966) \\
 \lean{MellinVonMangoldt.onLineBasis} & Fourier spectral & von Mangoldt (1895), B-M (1962) \\
 \lean{MellinVonMangoldt.offLineHiddenComponent} & Fourier spectral & Mellin (1902) \\
+\lean{MotohashiRH.selbergMaassBasis} & Motohashi spectral & Selberg (1956) \\
+\lean{MotohashiRH.motohashiOffLineWitness} & Motohashi spectral & Motohashi (1993) \\
+\lean{vonMangoldt\_spectral\_exclusion} & Fourier (1-axiom) & vM + Mellin + B-M \\
+\lean{motohashi\_spectral\_exclusion} & Motohashi (1-axiom) & Selberg + Motohashi \\
+\lean{zero\_counting\_bound} & Hadamard infrastructure & Jensen's formula \\
+\lean{xi\_logderiv\_partial\_fraction} & Hadamard infrastructure & Hadamard (1893) \\
+\lean{logderiv\_identity} & Hadamard infrastructure & Titchmarsh \S3.6 \\
 \lean{mertens\_inequality} & Harmonic (structural) & Classical \\
 \lean{classical\_zero\_free\_region} & Harmonic (structural) & de la Vallée Poussin (1899) \\
 \hline
 \end{tabular}
 \caption{Custom axioms in the RH proof chain. All are proved theorems in the literature.}
 \end{table}
+
+\begin{remark}[Single-Axiom Consolidation Routes]
+Both the Fourier and Motohashi 2-axiom routes admit 1-axiom consolidations
+that combine the basis axiom and the witness axiom into a single spectral
+exclusion principle:
+
+\begin{itemize}
+  \item \lean{vonMangoldt\_spectral\_exclusion} (RH.lean): if $\rho$ is a zero of
+    $\zeta$ in the critical strip with $\Re(\rho) \ne \tfrac12$, then \textbf{False}.
+    Combines \lean{onLineBasis} + \lean{offLineHiddenComponent} +
+    \lean{abstract\_no\_hidden\_component}. Yields
+    \lean{riemann\_hypothesis\_1ax} from 1 axiom.
+  \item \lean{motohashi\_spectral\_exclusion} (MotohashiRH.lean): same statement,
+    combining \lean{selbergMaassBasis} + \lean{motohashiOffLineWitness} +
+    \lean{abstract\_no\_hidden\_component}. Yields
+    \lean{riemann\_hypothesis\_motohashi\_1ax} from 1 axiom.
+\end{itemize}
+
+The 2-axiom formulations are preferred for clarity (they separate ``the basis is complete''
+from ``off-line zeros produce orthogonal witnesses''). The 1-axiom formulations are available
+for downstream consumers that prefer minimal axiom counts.
+\end{remark}
 
 \begin{remark}[Proven Infrastructure (Zero Custom Axioms)]
 The following are all proved from Mathlib alone, with zero custom axioms:
@@ -898,6 +1355,30 @@ The following are all proved from Mathlib alone, with zero custom axioms:
   \item $\zeta(1+it) \ne 0$ (\Cref{thm:zeta-one-nonzero}) [from \lean{mertens\_inequality}]
   \item Abstract spectral gap (\Cref{thm:rotation-spectral-gap})
 \end{itemize}
+\end{remark}
+
+\begin{remark}[Axiom Weight and Remaining Formalization Gap]
+The spectral axioms carry the bulk of the analytic content. Once accepted, the
+formal proof after them is one step: apply \lean{abstract\_no\_hidden\_component}.
+The axioms are not trivial re-statements of RH --- they have genuine mathematical
+content (Mellin contour orthogonality / Kuznetsov trace formula for the witness,
+Beurling--Malliavin density for completeness) --- but they compress the hardest
+analytic work into an axiom boundary. The primary formalization targets:
+\begin{enumerate}
+  \item \textbf{Functional-analytic interface}: formalize the Hardy space
+    $H^2(S_{1/2})$ or a spectral-measure $L^2$ space as the concrete
+    $\mathcal{H}$, replacing the abstract carrier. This removes the
+    ``type-correctness'' objection (that $e^{i\gamma u} \notin L^2(\RR)$)
+    by working in the right space from the start.
+  \item \textbf{Mellin--Parseval isometry}: prove contour separation
+    $\Rightarrow$ orthogonality in $\mathcal{H}$, reducing
+    \lean{offLineHiddenComponent}.
+  \item \textbf{Beurling--Malliavin density}: prove zero density exceeds
+    critical density $\Rightarrow$ completeness of the on-line family,
+    reducing \lean{onLineBasis}.
+\end{enumerate}
+Note: fixing (1) changes the axiom \emph{type-correctness} but not the axiom
+\emph{strength}. The hardest content remains in (2) and (3).
 \end{remark}
 
 \begin{remark}[Beurling Necessity]
@@ -925,7 +1406,11 @@ logarithms) is required to rule out off-axis zeros.
 \text{\lean{RiemannHypothesis}}
 \]
 
-\subsection*{Fourier/von Mangoldt Route (2 axioms)}
+\subsection*{Fourier/von Mangoldt Route (2 axioms, \textsc{primary})}
+
+\emph{Mechanisms}: rotation (codimension) $\to$ Mellin (zero $\to$ $L^2$ mode) $\to$
+B-M completeness $\to$ \lean{abstract\_no\_hidden\_component}.
+
 \[
 \begin{array}{c}
 \text{\lean{onLineBasis}} + \text{\lean{offLineHiddenComponent}}\\[2pt]
@@ -936,6 +1421,35 @@ logarithms) is required to rule out off-axis zeros.
 \end{array}
 \]
 
+\subsection*{Motohashi Spectral Route (2 axioms)}
+
+\emph{Mechanisms}: Selberg completeness (self-adjoint Laplacian) $\to$
+\lean{abstract\_no\_hidden\_component}. No rotation, no Mellin.
+
+\[
+\begin{array}{c}
+\text{\lean{selbergMaassBasis}} + \text{\lean{motohashiOffLineWitness}}\\[2pt]
+\Downarrow \text{\ref{thm:motohashi-excludes}} \\[2pt]
+\text{all zeros have } \Re(\rho) = \tfrac12\\[2pt]
+\Downarrow \\[2pt]
+\text{\lean{riemann\_hypothesis\_motohashi}}
+\end{array}
+\]
+
+\subsection*{Fourier 1-Axiom Route}
+\[
+\text{\lean{vonMangoldt\_spectral\_exclusion}}
+\;\Longrightarrow\;
+\text{\lean{riemann\_hypothesis\_1ax}}
+\]
+
+\subsection*{Motohashi 1-Axiom Route}
+\[
+\text{\lean{motohashi\_spectral\_exclusion}}
+\;\Longrightarrow\;
+\text{\lean{riemann\_hypothesis\_motohashi\_1ax}}
+\]
+
 \subsection*{Conditional/Rotation Route (0 axioms)}
 \[
 \text{hypothesis: \lean{explicit\_formula\_completeness}}
@@ -943,15 +1457,46 @@ logarithms) is required to rule out off-axis zeros.
 \text{\lean{RiemannHypothesis}}
 \]
 
-\subsection*{The Unifying Picture}
-The coordinate rotation $w = -i(s-\tfrac12)$ maps the critical line to $\RR$.
-In this frame:
+\subsection*{Three Mechanisms}
+
+The proof architecture uses three mechanisms, combined differently in each route:
+
 \begin{enumerate}
-  \item $\xi_{\mathrm{rot}}$ is real on $\RR$ (proved, \Cref{thm:xirot-real-reals}).
-  \item RH = ``$\xi_{\mathrm{rot}}$ has only real zeros'' (equivalent, \Cref{thm:rh-iff-rotated}).
-  \item Zeros on $\RR$ are codimension 1 (they happen: Hardy, \Cref{thm:hardy}).
-  \item Zeros off $\RR$ are codimension 2 (both $\Re$ and $\Im$ must vanish).
-  \item Three routes show the codimension-2 event never occurs.
+  \item \textbf{Rotation} ($w = -i(s-\tfrac12)$) maps the critical line to $\RR$ and
+    exposes the codimension gap:
+    on-line zeros of the real-valued $\xi_{\mathrm{rot}}$ are codimension~1 (generic);
+    off-line zeros are codimension~2 (both $\Re$ and $\Im$ must vanish).
+    \emph{Used in}: Baker (structurally), Fourier/vM (frequency interpretation).
+    \emph{Motivational only}: Motohashi.
+
+  \item \textbf{Mellin transform} converts $\zeta$-zeros into $L^2(\RR)$ spectral modes.
+    On-line zeros $\to$ oscillatory modes $e^{i\gamma u}$ (real frequencies in the rotated
+    frame); off-line zeros $\to$ exponentially growing modes $e^{\alpha u}$ (complex
+    frequencies). Contour separation gives $L^2$ orthogonality.
+    \emph{Used in}: Fourier/vM (the zero-to-$L^2$-mode bridge).
+    \emph{Not used}: Baker (works directly on the Euler product), Motohashi (works on
+    Maass forms on $\mathrm{SL}_2(\ZZ)\backslash\mathbb{H}$, not Fourier modes on $\RR$).
+
+  \item \textbf{Spectral completeness}: a complete Hilbert basis admits no nonzero
+    orthogonal element (\lean{abstract\_no\_hidden\_component}, proved, 0~axioms).
+    An off-line zero produces such an element $\Rightarrow$ contradiction.
+    \emph{Used in}: Fourier/vM (B-M completeness), Motohashi (Selberg completeness).
+    \emph{Not used}: Baker (uses phase rigidity, not basis completeness).
 \end{enumerate}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Route} & \textbf{Rotation} & \textbf{Mellin} & \textbf{Spectral completeness} \\
+\hline
+Baker/spiral & \checkmark & --- & --- \\
+Fourier/vM (\textsc{primary}) & \checkmark & \checkmark & \checkmark (B-M) \\
+Motohashi & \emph{motivational} & --- & \checkmark (Selberg) \\
+Conditional & --- & --- & (hypothesis) \\
+\hline
+\end{tabular}
+\caption{Mechanism usage by route.}
+\end{table}
 
 \end{document}

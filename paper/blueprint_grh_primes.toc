@@ -1,0 +1,37 @@
+\contentsline {section}{\numberline {1}Overview and Proof Architecture}{3}{section.1}%
+\contentsline {paragraph}{Axiom inventory.}{3}{section*.2}%
+\contentsline {paragraph}{Module dependency graph.}{3}{section*.3}%
+\contentsline {section}{\numberline {2}The Generalized Riemann Hypothesis via Fourier Spectral Completeness}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Definition and Axioms}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Proof Chain}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}RH as a Corollary}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Alternative Route: Motohashi Spectral Theory}{5}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Twin Primes from GRH}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Spectral Bound Axiom}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Linear Growth from Spectral Bound}{6}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Twin Primes via Pigeonhole}{6}{subsection.3.3}%
+\contentsline {section}{\numberline {4}The Circle Method and Goldbach's Conjecture under RH}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Basic Definitions}{7}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Circle Method Infrastructure}{7}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Analytic Axioms}{8}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Noise Separation Infrastructure (All Proved, Zero Axioms)}{9}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Main Goldbach Theorems}{9}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Goldbach via Motohashi Spectral Theory (Sieve-Free)}{10}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Twin Primes via the Circle Method}{10}{subsection.4.7}%
+\contentsline {section}{\numberline {5}Prime Gap Infrastructure}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Basic Definitions}{10}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}RH and Small Prime Gaps}{11}{subsection.5.2}%
+\contentsline {section}{\numberline {6}The Pair Dirichlet Series and Its Pole}{12}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Definitions}{12}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Convergence}{12}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Twin Factor Euler Product}{13}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}The Pole Residue}{13}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Landau's Real-Variable Tauberian Theorem}{13}{section.7}%
+\contentsline {section}{\numberline {8}Pair Correlation Asymptotic}{14}{section.8}%
+\contentsline {section}{\numberline {9}Twin Primes Module --- Endpoint}{14}{section.9}%
+\contentsline {section}{\numberline {10}Proof Routes and Axiom Summary}{15}{section.10}%
+\contentsline {subsection}{\numberline {10.1}GRH Proof Route}{15}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Twin Primes via GRH (Route 1 --- Conjecture-Free)}{15}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Twin Primes via Tauberian Route (Route 2)}{15}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Goldbach under RH}{15}{subsection.10.4}%
+\contentsline {subsection}{\numberline {10.5}Axiom Table}{15}{subsection.10.5}%

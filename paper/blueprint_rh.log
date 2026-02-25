@@ -1,0 +1,1221 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.8.6)  24 FEB 2026 14:09
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**blueprint_rh.tex
+(./blueprint_rh.tex
+LaTeX2e <2025-06-01> patch level 1
+L3 programming layer <2025-07-20>
+(/usr/local/texlive/2025/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(/usr/local/texlive/2025/texmf-dist/tex/latex/base/size11.clo
+File: size11.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count275
+\c@section=\count276
+\c@subsection=\count277
+\c@subsubsection=\count278
+\c@paragraph=\count279
+\c@subparagraph=\count280
+\c@figure=\count281
+\c@table=\count282
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen148
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2025/06/16 v2.17y AMS math features
+\@mathmargin=\skip51
+
+For additional information on amsmath, use the `?' option.
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2024/11/17 v2.01 AMS text
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks17
+\ex@=\dimen149
+))
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen150
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 2022/04/08 v2.04 operator names
+)
+\inf@bad=\count283
+LaTeX Info: Redefining \frac on input line 233.
+\uproot@=\count284
+\leftroot@=\count285
+LaTeX Info: Redefining \overline on input line 398.
+LaTeX Info: Redefining \colon on input line 409.
+\classnum@=\count286
+\DOTSCASE@=\count287
+LaTeX Info: Redefining \ldots on input line 495.
+LaTeX Info: Redefining \dots on input line 498.
+LaTeX Info: Redefining \cdots on input line 619.
+\Mathstrutbox@=\box53
+\strutbox@=\box54
+LaTeX Info: Redefining \big on input line 721.
+LaTeX Info: Redefining \Big on input line 722.
+LaTeX Info: Redefining \bigg on input line 723.
+LaTeX Info: Redefining \Bigg on input line 724.
+\big@size=\dimen151
+LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
+\macc@depth=\count288
+LaTeX Info: Redefining \bmod on input line 904.
+LaTeX Info: Redefining \pmod on input line 909.
+LaTeX Info: Redefining \smash on input line 939.
+LaTeX Info: Redefining \relbar on input line 969.
+LaTeX Info: Redefining \Relbar on input line 970.
+\c@MaxMatrixCols=\count289
+\dotsspace@=\muskip17
+\c@parentequation=\count290
+\dspbrk@lvl=\count291
+\tag@help=\toks18
+\row@=\count292
+\column@=\count293
+\maxfields@=\count294
+\andhelp@=\toks19
+\eqnshift@=\dimen152
+\alignsep@=\dimen153
+\tagshift@=\dimen154
+\tagwidth@=\dimen155
+\totwidth@=\dimen156
+\lineht@=\dimen157
+\@envbody=\toks20
+\multlinegap=\skip52
+\multlinetaggap=\skip53
+\mathdisplay@stack=\toks21
+LaTeX Info: Redefining \[ on input line 2949.
+LaTeX Info: Redefining \] on input line 2950.
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+))
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amscls/amsthm.sty
+Package: amsthm 2020/05/29 v2.20.6
+\thm@style=\toks22
+\thm@bodyfont=\toks23
+\thm@headfont=\toks24
+\thm@notefont=\toks25
+\thm@headpunct=\toks26
+\thm@preskip=\skip54
+\thm@postskip=\skip55
+\thm@headsep=\skip56
+\dth@everypar=\toks27
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/mathtools/mathtools.sty
+Package: mathtools 2024/10/04 v1.31 mathematical typesetting tools
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks28
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tools/calc.sty
+Package: calc 2025/03/01 v4.3b Infix arithmetic (KKT,FJ)
+\calc@Acount=\count295
+\calc@Bcount=\count296
+\calc@Adimen=\dimen158
+\calc@Bdimen=\dimen159
+\calc@Askip=\skip57
+\calc@Bskip=\skip58
+LaTeX Info: Redefining \setlength on input line 86.
+LaTeX Info: Redefining \addtolength on input line 87.
+\calc@Ccount=\count297
+\calc@Cskip=\skip59
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/mathtools/mhsetup.sty
+Package: mhsetup 2021/03/18 v1.4 programming setup (MH)
+)
+\g_MT_multlinerow_int=\count298
+\l_MT_multwidth_dim=\dimen160
+\origjot=\skip60
+\l_MT_shortvdotswithinadjustabove_dim=\dimen161
+\l_MT_shortvdotswithinadjustbelow_dim=\dimen162
+\l_MT_above_intertext_sep=\dimen163
+\l_MT_below_intertext_sep=\dimen164
+\l_MT_above_shortintertext_sep=\dimen165
+\l_MT_below_shortintertext_sep=\dimen166
+\xmathstrut@box=\box55
+\xmathstrut@dim=\dimen167
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2025-07-12 v7.01o Hypertext links for LaTeX
+
+(/usr/local/texlive/2025/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2024/12/12 v1.0g TeX engine tests
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty
+Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
+)
+(/usr/local/texlive/2025/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+)
+(/usr/local/texlive/2025/texmf-dist/tex/generic/pdfescape/pdfescape.sty
+Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+
+(/usr/local/texlive/2025/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
+)
+(/usr/local/texlive/2025/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(/usr/local/texlive/2025/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+))
+(/usr/local/texlive/2025/texmf-dist/tex/latex/hycolor/hycolor.sty
+Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/hyperref/nameref.sty
+Package: nameref 2025-06-21 v2.57 Cross-referencing by name of section
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/refcount/refcount.sty
+Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
+)
+(/usr/local/texlive/2025/texmf-dist/tex/generic/gettitlestring/gettitlestring.s
+ty
+Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/kvoptions/kvoptions.sty
+Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
+))
+\c@section@level=\count299
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/etoolbox/etoolbox.sty
+Package: etoolbox 2025/02/11 v2.5l e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count300
+)
+(/usr/local/texlive/2025/texmf-dist/tex/generic/stringenc/stringenc.sty
+Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
+)
+)
+\@linkdim=\dimen168
+\Hy@linkcounter=\count301
+\Hy@pagecounter=\count302
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2025-07-12 v7.01o Hyperref: PDFDocEncoding definition (HO)
+Now handling font encoding PD1 ...
+... no UTF-8 mapping file for font encoding PD1
+)
+(/usr/local/texlive/2025/texmf-dist/tex/generic/intcalc/intcalc.sty
+Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
+)
+\Hy@SavedSpaceFactor=\count303
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/hyperref/puenc.def
+File: puenc.def 2025-07-12 v7.01o Hyperref: PDF Unicode definition (HO)
+Now handling font encoding PU ...
+... no UTF-8 mapping file for font encoding PU
+)
+Package hyperref Info: Hyper figures OFF on input line 4195.
+Package hyperref Info: Link nesting OFF on input line 4200.
+Package hyperref Info: Hyper index ON on input line 4203.
+Package hyperref Info: Plain pages OFF on input line 4210.
+Package hyperref Info: Backreferencing OFF on input line 4215.
+Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
+Package hyperref Info: Bookmarks ON on input line 4462.
+\c@Hy@tempcnt=\count304
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/url/url.sty
+\Urlmuskip=\muskip18
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 4801.
+\XeTeXLinkMargin=\dimen169
+
+(/usr/local/texlive/2025/texmf-dist/tex/generic/bitset/bitset.sty
+Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
+
+(/usr/local/texlive/2025/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
+)
+))
+\Fld@menulength=\count305
+\Field@Width=\dimen170
+\Fld@charsize=\dimen171
+Package hyperref Info: Hyper figures OFF on input line 6078.
+Package hyperref Info: Link nesting OFF on input line 6083.
+Package hyperref Info: Hyper index ON on input line 6086.
+Package hyperref Info: backreferencing OFF on input line 6093.
+Package hyperref Info: Link coloring OFF on input line 6098.
+Package hyperref Info: Link coloring with OCG OFF on input line 6103.
+Package hyperref Info: PDF/A mode OFF on input line 6108.
+\Hy@abspage=\count306
+\c@Item=\count307
+\c@Hfootnote=\count308
+)
+Package hyperref Info: Driver (autodetected): hpdftex.
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/hyperref/hpdftex.def
+File: hpdftex.def 2025-07-12 v7.01o Hyperref driver for pdfTeX
+\Fld@listcount=\count309
+\c@bookmark@seq@number=\count310
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
+Package: rerunfilecheck 2025-06-21 v1.11 Rerun checks for auxiliary files (HO)
+
+(/usr/local/texlive/2025/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
+Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
+)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+84.
+)
+\Hy@SectionHShift=\skip61
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: pdftex.def on input line 274.
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2024/04/13 v1.2c Graphics/color driver for pdftex
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1353.
+Package xcolor Info: Model `RGB' extended on input line 1365.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/cleveref/cleveref.sty
+Package: cleveref 2018/03/27 v0.21.4 Intelligent cross-referencing
+Package cleveref Info: `hyperref' support loaded on input line 2370.
+LaTeX Info: Redefining \cref on input line 2370.
+LaTeX Info: Redefining \Cref on input line 2370.
+LaTeX Info: Redefining \crefrange on input line 2370.
+LaTeX Info: Redefining \Crefrange on input line 2370.
+LaTeX Info: Redefining \cpageref on input line 2370.
+LaTeX Info: Redefining \Cpageref on input line 2370.
+LaTeX Info: Redefining \cpagerefrange on input line 2370.
+LaTeX Info: Redefining \Cpagerefrange on input line 2370.
+LaTeX Info: Redefining \labelcref on input line 2370.
+LaTeX Info: Redefining \labelcpageref on input line 2370.
+Package cleveref Info: `amsthm' support loaded on input line 3026.
+)
+==> First Aid for cleveref.sty applied!
+(/usr/local/texlive/2025/texmf-dist/tex/latex/geometry/geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+
+(/usr/local/texlive/2025/texmf-dist/tex/generic/iftex/ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+)
+\Gm@cnth=\count311
+\Gm@cntv=\count312
+\c@Gm@tempcnt=\count313
+\Gm@bindingoffset=\dimen172
+\Gm@wd@mp=\dimen173
+\Gm@odd@mp=\dimen174
+\Gm@even@mp=\dimen175
+\Gm@layoutwidth=\dimen176
+\Gm@layoutheight=\dimen177
+\Gm@layouthoffset=\dimen178
+\Gm@layoutvoffset=\dimen179
+\Gm@dimlist=\toks29
+)
+\c@theorem=\count314
+
+
+! LaTeX Error: Command \xi already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.44 \newcommand{\xi}{\xi}
+                          
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2025-06-09 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count315
+)
+(./blueprint_rh.aux)
+\openout1 = `blueprint_rh.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 106.
+)
+\Gin@req@height=\dimen180
+\Gin@req@width=\dimen181
+)
+Package hyperref Info: Link coloring OFF on input line 58.
+
+(./blueprint_rh.out) (./blueprint_rh.out)
+\@outlinefile=\write3
+\openout3 = `blueprint_rh.out'.
+
+
+(/usr/local/texlive/2025/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count316
+\scratchdimen=\dimen182
+\scratchbox=\box56
+\nofMPsegments=\count317
+\nofMParguments=\count318
+\everyMPshowfont=\toks30
+\MPscratchCnt=\count319
+\MPscratchDim=\dimen183
+\MPnumerator=\count320
+\makeMPintoPDFobject=\count321
+\everyMPtoPDFconversion=\toks31
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: a4paper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.26999pt, 452.9679pt, 72.26999pt)
+* v-part:(T,H,B)=(72.26999pt, 700.50687pt, 72.26999pt)
+* \paperwidth=597.50787pt
+* \paperheight=845.04684pt
+* \textwidth=452.9679pt
+* \textheight=700.50687pt
+* \oddsidemargin=0.0pt
+* \evensidemargin=0.0pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=11.0pt
+* \footskip=30.0pt
+* \marginparwidth=50.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+LaTeX Font Info:    Trying to load font information for U+msa on input line 61.
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 61.
+
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+(./blueprint_rh.toc)
+\tf@toc=\write4
+\openout4 = `blueprint_rh.toc'.
+
+
+
+[1
+
+{/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+
+[2{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
+}]
+Overfull \hbox (121.88509pt too wide) in paragraph at lines 148--151
+[]\OT1/cmr/bx/n/10.95 Theorem 1.3 \OT1/cmr/m/n/10.95 ($\OML/cmm/m/it/10.95 ^^X$
+ \OT1/cmr/m/n/10.95 is Re-al--Val-ued on the Crit-i-cal Line)\OT1/cmr/bx/n/10.9
+5 . []\OT1/cmtt/m/it/10.95 CriticalLineReal.completedZeta[]real[]on[]critical[]
+line\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (52.5511pt too wide) in paragraph at lines 160--163
+[]\OT1/cmr/bx/n/10.95 Corollary 1.4 \OT1/cmr/m/n/10.95 (Ze-ros Re-duce to Real 
+Ze-ros)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 CriticalLineReal.critical[]
+line[]zero[]iff[]re[]zero\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+! LaTeX Error: Unicode character ℝ (U+211D)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.172 \lean{Gammaℝ\_ne\_zero\_of\_re\_pos}
+                                            , since $\Re(\tfrac12 + it) = \t...
+
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+Overfull \hbox (91.47195pt too wide) in paragraph at lines 169--173
+[]\OT1/cmr/bx/n/10.95 Theorem 1.5 \OT1/cmr/m/n/10.95 ($^^@[]$ Non-va-n-ish-ing 
+on the Crit-i-cal Line)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 CriticalLin
+eReal.gammaR[]ne[]zero[]on[]critical[]line\OT1/cmr/m/it/10.95 For
+ []
+
+
+Overfull \hbox (82.46793pt too wide) in paragraph at lines 176--181
+[]\OT1/cmr/bx/n/10.95 Theorem 1.6 \OT1/cmr/m/n/10.95 (Ze-ros of $\OML/cmm/m/it/
+10.95 ^^X$ \OT1/cmr/m/n/10.95 and $\OML/cmm/m/it/10.95 ^^P$ \OT1/cmr/m/n/10.95 
+Co-in-cide on the Crit-i-cal Line)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 
+CriticalLineReal.zeta[]zero[]iff[]xi[]zero\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (24.58284pt too wide) in paragraph at lines 184--189
+[]\OT1/cmr/bx/n/10.95 Theorem 1.7 \OT1/cmr/m/n/10.95 ($\OML/cmm/m/it/10.95 ^^X$
+ \OT1/cmr/m/n/10.95 is Even on the Crit-i-cal Line)\OT1/cmr/bx/n/10.95 . []\OT1
+/cmtt/m/it/10.95 CriticalLineReal.xi[]even[]on[]critical[]line\OT1/cmr/m/n/10.9
+5 Uses:
+ []
+
+
+Overfull \hbox (58.4838pt too wide) in paragraph at lines 192--197
+[]\OT1/cmr/bx/n/10.95 Theorem 1.8 \OT1/cmr/m/n/10.95 (Spe-cial Val-ues: $\OML/c
+mm/m/it/10.95 ^^X\OT1/cmr/m/n/10.95 (1) \OML/cmm/m/it/10.95 < \OT1/cmr/m/n/10.9
+5 0$ and $\OML/cmm/m/it/10.95 ^^X\OT1/cmr/m/n/10.95 (0) \OML/cmm/m/it/10.95 < \
+OT1/cmr/m/n/10.95 0$)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 CriticalLineR
+eal.xi[]at[]one[]negative$[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 ^^X\OT1/cmr
+/m/n/10.95 (1)) \OML/cmm/m/it/10.95 <
+ []
+
+
+Overfull \hbox (108.0458pt too wide) in paragraph at lines 214--220
+[]\OT1/cmr/bx/n/10.95 Theorem 1.10 \OT1/cmr/m/n/10.95 (Con-ti-nu-ity of $\OML/c
+mm/m/it/10.95 ^^X$ \OT1/cmr/m/n/10.95 along the Crit-i-cal Line)\OT1/cmr/bx/n/1
+0.95 . []\OT1/cmtt/m/it/10.95 CriticalLineReal.continuous[]xi[]on[]critical[]li
+ne\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (28.85213pt too wide) in paragraph at lines 223--230
+[]\OT1/cmr/bx/n/10.95 Theorem 1.11 \OT1/cmr/m/n/10.95 (Sign Change Gives Zero (
+IVT))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 CriticalLineReal.sign[]change
+[]gives[]zero\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+
+[3]
+Overfull \hbox (63.55212pt too wide) in paragraph at lines 287--294
+[]\OT1/cmr/bx/n/10.95 Theorem 2.4 \OT1/cmr/m/n/10.95 ($\OML/cmm/m/it/10.95 ^^X[
+]$ \OT1/cmr/m/n/10.95 is Real on the Imag-i-nary Axis)\OT1/cmr/bx/n/10.95 . []\
+OT1/cmtt/m/it/10.95 RotatedZeta.rotatedXi[]real[]on[]imaginary[]axis\OT1/cmr/m/
+n/10.95 Uses:
+ []
+
+
+Overfull \hbox (116.62166pt too wide) in paragraph at lines 297--304
+[]\OT1/cmr/bx/n/10.95 Theorem 2.5 \OT1/cmr/m/n/10.95 (No Ze-ros on the Imag-i-n
+ary Axis in the Strip)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 RotatedZeta.
+rotatedXi[]no[]zeros[]imaginary[]axis\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (57.53069pt too wide) in paragraph at lines 307--315
+[]\OT1/cmr/bx/n/10.95 Theorem 2.6 \OT1/cmr/m/n/10.95 ($\OML/cmm/m/it/10.95 D[]$
+ \OT1/cmr/m/n/10.95 Sym-me-try of $\OML/cmm/m/it/10.95 ^^X[]$\OT1/cmr/m/n/10.95
+ )\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 RotatedZeta.rotatedXi[]neg, Rota
+tedZeta.rotatedXi[]conj\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+
+[4]
+Overfull \hbox (0.85207pt too wide) in paragraph at lines 318--324
+[]\OT1/cmr/bx/n/10.95 Theorem 2.7 \OT1/cmr/m/n/10.95 (Equiv-a-lence of Stan-dar
+d and Ro-tated RH)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 RotatedZeta.rh[]
+iff[]rotated\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (32.2135pt too wide) in paragraph at lines 327--329
+[]\OT1/cmr/bx/n/10.95 Axiom 2.8 \OT1/cmr/m/n/10.95 (Codi-men-sion-al-ity Ax-iom
+ (Baker Route))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 RotatedZeta.rotation
+[]forbids[]off[]axis\OT1/cmr/m/n/10.95 For
+ []
+
+
+Overfull \hbox (91.51846pt too wide) in paragraph at lines 345--349
+[]\OT1/cmr/bx/n/10.95 Theorem 2.9 \OT1/cmr/m/n/10.95 (Ze-ro-Free Re-gion (de la
+ Vall^^See Poussin))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 CountingArgume
+nt.zero[]free[]region[]is[]partial\OT1/cmr/m/it/10.95 There
+ []
+
+
+Overfull \hbox (42.06812pt too wide) in paragraph at lines 390--397
+[]\OT1/cmr/bx/n/10.95 Theorem 2.14 \OT1/cmr/m/n/10.95 (No Hid-den Spec-tral Com
+-po-nent)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 RotatedZeta.abstract[]no[
+]hidden[]component\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+
+[5]
+Overfull \hbox (13.20082pt too wide) in paragraph at lines 400--406
+[]\OT1/cmr/bx/n/10.95 Theorem 2.15 \OT1/cmr/m/n/10.95 (Fourier Ba-sis Com-plete
+-ness)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 RotatedZeta.fourier[]is[]com
+plete\OT1/cmr/m/n/10.95 Uses: thm:no-
+ []
+
+
+Overfull \hbox (7.41165pt too wide) in paragraph at lines 416--422
+[]\OT1/cmr/bx/n/10.95 Theorem 2.17 \OT1/cmr/m/n/10.95 (Ro-ta-tion is an Isom-e-
+try)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 ExplicitFormulaBridge.rotation
+[]is[]isometry\OT1/cmr/m/it/10.95 The
+ []
+
+
+Overfull \hbox (0.26648pt too wide) in paragraph at lines 435--439
+[]\OT1/cmr/bx/n/10.95 Definition 3.1 \OT1/cmr/m/n/10.95 (Wob-ble Func-tion)\OT1
+/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 Collatz.XiCodimension.wobble\OT1/cmr/m/
+it/10.95 Uses: def:completed-zeta. 
+ []
+
+
+Overfull \hbox (19.58517pt too wide) in paragraph at lines 442--448
+[]\OT1/cmr/bx/n/10.95 Theorem 3.2 \OT1/cmr/m/n/10.95 (Wob-ble is An-ti-sym-met-
+ric)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.wobble[]
+antisymmetric\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (9.60849pt too wide) in paragraph at lines 451--454
+[]\OT1/cmr/bx/n/10.95 Theorem 3.3 \OT1/cmr/m/n/10.95 (Wob-ble De-com-po-si-tion
+)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.wobble[]dec
+omposition\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (155.28029pt too wide) in paragraph at lines 463--468
+[]\OT1/cmr/bx/n/10.95 Theorem 3.4 \OT1/cmr/m/n/10.95 (Pole Con-tri-bu-tion in t
+he Left Strip)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimensio
+n.pole[]contribution[]positive[]left[]strip\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (168.32896pt too wide) in paragraph at lines 471--474
+[]\OT1/cmr/bx/n/10.95 Theorem 3.5 \OT1/cmr/m/n/10.95 (Pole Con-tri-bu-tion in t
+he Right Strip)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimensi
+on.pole[]contribution[]negative[]right[]strip\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (107.71439pt too wide) in paragraph at lines 478--486
+[]\OT1/cmr/bx/n/10.95 Theorem 3.6 \OT1/cmr/m/n/10.95 ($\OML/cmm/m/it/10.95 ^^X[
+]$ \OT1/cmr/m/n/10.95 is Real on the Crit-i-cal Line and Real Axis)\OT1/cmr/bx/
+n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.xi0[]real[]on[]critical[
+]line,
+ []
+
+
+
+[6]
+Overfull \hbox (87.14952pt too wide) in paragraph at lines 489--495
+[]\OT1/cmr/bx/n/10.95 Theorem 3.7 \OT1/cmr/m/n/10.95 (Ze-ros of $\OML/cmm/m/it/
+10.95 ^^X$ \OT1/cmr/m/n/10.95 in the Strip are Iso-lated)\OT1/cmr/bx/n/10.95 . 
+[]\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.xi[]zeros[]isolated[]in[]strip\OT1
+/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (215.15405pt too wide) in paragraph at lines 498--503
+[]\OT1/cmr/bx/n/10.95 Theorem 3.8 \OT1/cmr/m/n/10.95 ($\OML/cmm/m/it/10.95 ^^X[
+]$ \OT1/cmr/m/n/10.95 is Purely Imag-i-nary on the Crit-i-cal Line)\OT1/cmr/bx/
+n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.xi[]deriv[]purely[]imagi
+nary[]on[]critical[]line\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (31.96027pt too wide) in paragraph at lines 508--513
+[]\OT1/cmr/bx/n/10.95 Theorem 3.9 \OT1/cmr/m/n/10.95 (Log-In-de-pen-dence of Pr
+imes)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.no[]log
+[]relation[]primes\OT1/cmr/m/it/10.95 For
+ []
+
+
+Overfull \hbox (38.50916pt too wide) in paragraph at lines 516--522
+[]\OT1/cmr/bx/n/10.95 Theorem 3.10 \OT1/cmr/m/n/10.95 (He-lix Un-cer-tainty Pri
+n-ci-ple)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.hel
+ix[]uncertainty[]2[]3\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (85.93494pt too wide) in paragraph at lines 525--531
+[]\OT1/cmr/bx/n/10.95 Theorem 3.11 \OT1/cmr/m/n/10.95 (At Most One Prime Has $[
+](\OML/cmm/m/it/10.95 t [] p\OT1/cmr/m/n/10.95 ) = 0$)\OT1/cmr/bx/n/10.95 . []\
+OT1/cmtt/m/it/10.95 Collatz.XiCodimension.at[]most[]one[]sin[]zero\OT1/cmr/m/n/
+10.95 Uses:
+ []
+
+
+Overfull \hbox (38.48083pt too wide) in paragraph at lines 536--541
+[]\OT1/cmr/bx/n/10.95 Theorem 3.12 \OT1/cmr/m/n/10.95 (Zero Forces Ex-act Hit)\
+OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.zeta[]zero[]f
+orces[]exact[]hit\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (93.04666pt too wide) in paragraph at lines 544--550
+[]\OT1/cmr/bx/n/10.95 Theorem 3.13 \OT1/cmr/m/n/10.95 (Pos-i-tive Imag-i-nary P
+art at Hy-po-thet-i-cal Zero)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Colla
+tz.XiCodimension.exact[]hit[]im[]pos\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (120.42117pt too wide) in paragraph at lines 553--556
+[]\OT1/cmr/bx/n/10.95 Axiom 3.14 \OT1/cmr/m/n/10.95 (Baker's The-o-rem Ap-plied
+ to the Eu-ler Prod-uct)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 Collatz.XiC
+odimension.baker[]forbids[]pole[]hit\OT1/cmr/m/it/10.95 Uses:
+ []
+
+
+
+[7]
+Overfull \hbox (115.73665pt too wide) in paragraph at lines 570--575
+[]\OT1/cmr/bx/n/10.95 Theorem 3.15 \OT1/cmr/m/n/10.95 (Strip Non-va-n-ish-ing (
+Baker Route))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension
+.spiral[]euler[]non[]cancellation\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (38.02496pt too wide) in paragraph at lines 578--582
+[]\OT1/cmr/bx/n/10.95 Theorem 3.16 \OT1/cmr/m/n/10.95 (Of-f-Axis Zeta Non-va-n-
+ish-ing)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.XiCodimension.off[
+]axis[]zeta[]ne[]zero\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (8.73228pt too wide) in paragraph at lines 578--582
+\OT1/cmr/m/it/10.95 For $[] \OML/cmm/m/it/10.95 < []\OT1/cmr/m/n/10.95 (\OML/cm
+m/m/it/10.95 s\OT1/cmr/m/n/10.95 ) \OML/cmm/m/it/10.95 < \OT1/cmr/m/n/10.95 1$ 
+\OT1/cmr/m/it/10.95 and $[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 s\OT1/cmr/m/
+n/10.95 ) \OMS/cmsy/m/n/10.95 6\OT1/cmr/m/n/10.95 = 0$\OT1/cmr/m/it/10.95 : $\O
+ML/cmm/m/it/10.95 ^^P\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 s\OT1/cmr/m/n/10.9
+5 ) \OMS/cmsy/m/n/10.95 6\OT1/cmr/m/n/10.95 = 0$\OT1/cmr/m/it/10.95 . This is t
+he main con-clu-sion of \OT1/cmtt/m/it/10.95 XiCodimension.lean\OT1/cmr/m/it/10
+.95 . 
+ []
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 585.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\chi' on input line 585.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 585.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 594--596
+
+ []
+
+
+Overfull \hbox (15.88443pt too wide) in paragraph at lines 602--607
+[]\OT1/cmr/bx/n/10.95 Theorem 4.2 \OT1/cmr/m/n/10.95 (Func-tional Equa-tion via
+ $\OML/cmm/m/it/10.95 ^^_$\OT1/cmr/m/n/10.95 )\OT1/cmr/bx/n/10.95 . []\OT1/cmtt
+/m/it/10.95 AFEInfrastructure.functional[]equation[]chi\OT1/cmr/m/n/10.95 Uses:
+
+ []
+
+
+! LaTeX Error: Unicode character ℝ (U+211D)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.614 ... \lean{Gammaℝ\_div\_Gammaℝ\_one\_sub}
+                                                  .
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+! LaTeX Error: Unicode character ℝ (U+211D)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.614 ... \lean{Gammaℝ\_div\_Gammaℝ\_one\_sub}
+                                                  .
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+Overfull \hbox (45.239pt too wide) in paragraph at lines 618--621
+[]\OT1/cmr/bx/n/10.95 Theorem 4.4 \OT1/cmr/m/n/10.95 ($\OML/cmm/m/it/10.95 ^^_$
+ \OT1/cmr/m/n/10.95 Norm At-ten-u-a-tion for Large $\OMS/cmsy/m/n/10.95 j\OML/c
+mm/m/it/10.95 t\OMS/cmsy/m/n/10.95 j$\OT1/cmr/m/n/10.95 )\OT1/cmr/bx/n/10.95 . 
+[]\OT1/cmtt/m/it/10.95 AFEInfrastructure.chi[]attenuation[]large[]t\OT1/cmr/m/n
+/10.95 Uses:
+ []
+
+
+Overfull \hbox (15.2924pt too wide) in paragraph at lines 631--635
+[]\OT1/cmr/bx/n/10.95 Theorem 4.5 \OT1/cmr/m/n/10.95 (Co-sine Ex-po-nen-tial Lo
+wer Bound)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 AFEInfrastructure.cos[]e
+xp[]lower[]bound\OT1/cmr/m/it/10.95 For
+ []
+
+
+
+[8]
+Overfull \hbox (162.49696pt too wide) in paragraph at lines 647--651
+[]\OT1/cmr/bx/n/10.95 Definition 5.1 \OT1/cmr/m/n/10.95 (Ze-ro-In-put The-ory)\
+OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 ZeroInputTheory\OT1/cmr/m/n/10.95 Th
+e \OT1/cmr/m/it/10.95 zero-input the-ory \OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.9
+5 DirichletCompensatedNormLockingHypothesis\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (141.43866pt too wide) in paragraph at lines 660--665
+[]\OT1/cmr/bx/n/10.95 Theorem 5.2 \OT1/cmr/m/n/10.95 (Strip Non-va-n-ish-ing (C
+om-bined Route))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.WeylIntegr
+ation.strip[]nonvanishing[]zero[]input\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (15.54228pt too wide) in paragraph at lines 673--680
+[]\OT1/cmr/bx/n/10.95 Theorem 5.3 \OT1/cmr/m/n/10.95 (Ze-ro-In-put The-ory Clos
+ed)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.WeylIntegration.zero[]i
+nput[]theory\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (36.52013pt too wide) in paragraph at lines 673--680
+\OT1/cmr/m/it/10.95 the strip. The EMD (Euler--Maclaurin) con-ver-gence the-o-r
+em (\OT1/cmtt/m/it/10.95 dirichlet[]tube[]to[]zeta[]transfer[]emd\OT1/cmr/m/it/
+10.95 )
+ []
+
+
+Overfull \hbox (139.17607pt too wide) in paragraph at lines 683--688
+[]\OT1/cmr/bx/n/10.95 Theorem 5.4 \OT1/cmr/m/n/10.95 (Asymp-totic Non-va-n-ish-
+ing of the Spi-ral)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 Collatz.WeylInt
+egration.spiral[]asymptotic[]nonvanishing\OT1/cmr/m/it/10.95 For
+ []
+
+
+Overfull \hbox (25.60513pt too wide) in paragraph at lines 683--688
+\OML/cmm/m/it/10.95 N[];  S\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 s; N\OT1/cmr
+/m/n/10.95 ) \OMS/cmsy/m/n/10.95 6\OT1/cmr/m/n/10.95 = 0$\OT1/cmr/m/it/10.95 . 
+\OT1/cmr/m/n/10.95 Proof. \OT1/cmtt/m/it/10.95 BakerUncertainty.spiral[]nonvani
+shing[]sans[]baker \OT1/cmr/m/it/10.95 proves $\OMS/cmsy/m/n/10.95 k\OML/cmm/m/
+it/10.95 S\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 s; N\OT1/cmr/m/n/10.95 )\OMS/
+cmsy/m/n/10.95 k ^^U
+ []
+
+
+Overfull \hbox (12.25784pt too wide) in paragraph at lines 717--722
+[]\OT1/cmr/bx/n/10.95 Theorem 6.3 \OT1/cmr/m/n/10.95 (Per-Prime Con-struc-tive 
+In-ter-fer-ence)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 HarmonicRH.prime[]
+harmonic[]nonneg\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+
+[9]
+Overfull \hbox (25.38826pt too wide) in paragraph at lines 747--753
+[]\OT1/cmr/bx/n/10.95 Theorem 6.6 \OT1/cmr/m/n/10.95 (Log--Lin-ear In-de-pen-de
+nce of Primes (Gen-eral))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 HarmonicR
+H.log[]primes[]ne[]zero\OT1/cmr/m/it/10.95 Let
+ []
+
+
+Overfull \hbox (7.50803pt too wide) in paragraph at lines 782--785
+[]\OT1/cmr/bx/n/10.95 Definition 7.1 \OT1/cmr/m/n/10.95 (Weier-strass $\OML/cmm
+/m/it/10.95 E[]$ \OT1/cmr/m/n/10.95 Fac-tor)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m
+/n/10.95 HadamardFactorization.E[]1$\OML/cmm/m/it/10.95 E[]\OT1/cmr/m/n/10.95 (
+\OML/cmm/m/it/10.95 z\OT1/cmr/m/n/10.95 ) = (1 \OMS/cmsy/m/n/10.95 ^^@ \OML/cmm
+/m/it/10.95 z\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.95 e[]$\OT1/cmr/m/n/10.95 . P
+roved:
+ []
+
+
+Overfull \hbox (7.83682pt too wide) in paragraph at lines 797--800
+[]\OT1/cmr/bx/n/10.95 Axiom 7.3 \OT1/cmr/m/n/10.95 (Zero Count-ing)\OT1/cmr/bx/
+n/10.95 . []\OT1/cmtt/m/n/10.95 HadamardFactorization.zero[]counting[]bound$\OM
+L/cmm/m/it/10.95 N\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 T\OT1/cmr/m/n/10.95 )
+ \OMS/cmsy/m/n/10.95 ^^T \OML/cmm/m/it/10.95 C \OMS/cmsy/m/n/10.95 ^^A \OML/cmm
+/m/it/10.95 T [] T$
+ []
+
+
+Overfull \hbox (56.81946pt too wide) in paragraph at lines 806--809
+[]\OT1/cmr/bx/n/10.95 Axiom 7.4 \OT1/cmr/m/n/10.95 (Hadamard Par-tial Frac-tion
+)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 HadamardFactorization.xi[]logderiv
+[]partial[]fraction\OT1/cmr/m/it/10.95 Uses:
+ []
+
+
+
+[10]
+Overfull \hbox (13.33131pt too wide) in paragraph at lines 820--823
+[]\OT1/cmr/bx/n/10.95 Axiom 7.5 \OT1/cmr/m/n/10.95 (Log-Deriva-tive Iden-tity)\
+OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 HadamardFactorization.logderiv[]iden
+tity\OT1/cmr/m/it/10.95 Uses: def:xi. 
+ []
+
+
+Overfull \hbox (9.71326pt too wide) in paragraph at lines 834--837
+[]\OT1/cmr/bx/n/10.95 Theorem 7.6 \OT1/cmr/m/n/10.95 (Par-tial Frac-tion of $\O
+MS/cmsy/m/n/10.95 ^^@\OML/cmm/m/it/10.95 ^^P[]=^^P$\OT1/cmr/m/n/10.95 )\OT1/cmr
+/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 HadamardFactorization.xi[]hadamard[]produc
+t\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (83.06705pt too wide) in paragraph at lines 845--849
+[]\OT1/cmr/bx/n/10.95 Theorem 7.7 \OT1/cmr/m/n/10.95 (Hadamard Log-Deriva-tive 
+Bounds)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 HadamardFactorization.hadam
+ard[]logderiv[]bounds\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (97.76036pt too wide) in paragraph at lines 852--855
+[]\OT1/cmr/bx/n/10.95 Theorem 7.8 \OT1/cmr/m/n/10.95 (Zero Re-cip-ro-cal Sum Co
+n-verges)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 HadamardFactorization.zer
+o[]reciprocal[]sum[]converges\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (2.81079pt too wide) in paragraph at lines 863--868
+[]\OT1/cmr/bx/n/10.95 Theorem 7.9 \OT1/cmr/m/n/10.95 (Ex-plicit For-mula for $\
+OML/cmm/m/it/10.95  $\OT1/cmr/m/n/10.95 )\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it
+/10.95 HadamardBridge.explicit[]formula[]psi\OT1/cmr/m/n/10.95 Uses: thm:xi-
+ []
+
+
+Overfull \hbox (30.49121pt too wide) in paragraph at lines 871--874
+[]\OT1/cmr/bx/n/10.95 Theorem 7.10 \OT1/cmr/m/n/10.95 (RH $\OMS/cmsy/m/n/10.95 
+)$ $\OML/cmm/m/it/10.95  $ \OT1/cmr/m/n/10.95 Er-ror Bound)\OT1/cmr/bx/n/10.95 
+. []\OT1/cmtt/m/it/10.95 HadamardBridge.rh[]implies[]psi[]error\OT1/cmr/m/n/10.
+95 Uses: thm:explicit-
+ []
+
+
+
+[11]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 925.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 925.
+
+
+
+[12]
+Overfull \hbox (142.37585pt too wide) in paragraph at lines 989--994
+[]\OT1/cmr/bx/n/10.95 Axiom 8.5 \OT1/cmr/m/n/10.95 (On--Line Spec-tral Com-plet
+e-ness (von Man-goldt + Beurling---Malli-avin))\OT1/cmr/bx/n/10.95 . []\OT1/cmt
+t/m/n/10.95 MellinVonMangoldt.onLineBasis\OT1/cmr/m/it/10.95 Uses:
+ []
+
+
+Overfull \hbox (54.25787pt too wide) in paragraph at lines 1008--1014
+[]\OT1/cmr/bx/n/10.95 Axiom 8.6 \OT1/cmr/m/n/10.95 (Of-f--Line Or-thog-o-nal Wi
+t-ness (Mellin))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 MellinVonMangoldt.o
+ffLineHiddenComponent\OT1/cmr/m/it/10.95 Uses:
+ []
+
+
+Overfull \hbox (20.51382pt too wide) in paragraph at lines 1026--1031
+[]\OT1/cmr/bx/n/10.95 Theorem 8.7 \OT1/cmr/m/n/10.95 (Ex-po-nen-tial Growth Out
+-side $\OML/cmm/m/it/10.95 L[]$\OT1/cmr/m/n/10.95 )\OT1/cmr/bx/n/10.95 . []\OT1
+/cmtt/m/it/10.95 MellinVonMangoldt.not[]memLp[]exp[]nonzero\OT1/cmr/m/it/10.95 
+For
+ []
+
+
+
+[13]
+Overfull \hbox (40.17976pt too wide) in paragraph at lines 1042--1051
+[]\OT1/cmr/bx/n/10.95 Theorem 8.9 \OT1/cmr/m/n/10.95 (Von Man-goldt Mode Bounde
+d)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 MellinVonMangoldt.vonMangoldt[]m
+ode[]bounded\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (16.15335pt too wide) in paragraph at lines 1054--1060
+[]\OT1/cmr/bx/n/10.95 Theorem 8.10 \OT1/cmr/m/n/10.95 (Ex-plicit For-mula Com-p
+lete-ness)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 explicit[]formula[]compl
+eteness[]proved\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 1088.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `superscript' on input line 1088.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 1088.
+
+
+
+[14]
+Overfull \hbox (35.37506pt too wide) in paragraph at lines 1125--1130
+[]\OT1/cmr/bx/n/10.95 Axiom 9.3 \OT1/cmr/m/n/10.95 (Mo-to-hashi Of-f--Line Wit-
+ness)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 MotohashiRH.motohashiOffLineWi
+tness\OT1/cmr/m/it/10.95 Uses: def:maass-
+ []
+
+
+Overfull \hbox (40.97089pt too wide) in paragraph at lines 1158--1161
+[]\OT1/cmr/bx/n/10.95 Theorem 9.4 \OT1/cmr/m/n/10.95 (Mo-to-hashi Ex-cludes Of-
+f--Line Ze-ros)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 MotohashiRH.motohas
+hi[]excludes[]offLine\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (69.40886pt too wide) in paragraph at lines 1162--1168
+\OT1/cmr/m/it/10.95 thog-o-nal to ev-ery el-e-ment of the Maass ba-sis The-o-re
+m []9.2[]. By The-o-rem []2.14[] (\OT1/cmtt/m/it/10.95 abstract[]no[]hidden[]co
+mponent\OT1/cmr/m/it/10.95 ,
+ []
+
+
+Overfull \hbox (32.27156pt too wide) in paragraph at lines 1171--1178
+[]\OT1/cmr/bx/n/10.95 Theorem 9.5 \OT1/cmr/m/n/10.95 (RH: Mo-to-hashi Spec-tral
+ Route)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 MotohashiRH.riemann[]hypoth
+esis[]motohashi\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (77.50131pt too wide) in paragraph at lines 1183--1186
+[]\OT1/cmr/bx/n/10.95 Axiom 9.6 \OT1/cmr/m/n/10.95 (Mo-to-hashi Spec-tral Ex-cl
+u-sion (Con-sol-i-dated))\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/n/10.95 MotohashiR
+H.motohashi[]spectral[]exclusion\OT1/cmr/m/n/10.95 For
+ []
+
+
+Overfull \hbox (0.99852pt too wide) in paragraph at lines 1187--1190
+[]\OT1/cmr/m/n/10.95 Combines Sel-berg com-plete-ness (The-o-rem []9.2[]) + Mo-
+to-hashi wit-ness (The-o-rem []9.3[]) + Hilbert
+ []
+
+
+Overfull \hbox (55.1471pt too wide) in paragraph at lines 1193--1196
+[]\OT1/cmr/bx/n/10.95 Theorem 9.7 \OT1/cmr/m/n/10.95 (RH: Mo-to-hashi 1-Ax-iom 
+Route)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 MotohashiRH.riemann[]hypothe
+sis[]motohashi[]1ax\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (69.35817pt too wide) in paragraph at lines 1202--1214
+ [][] 
+ []
+
+
+
+[15]
+Overfull \hbox (75.6418pt too wide) in paragraph at lines 1246--1256
+[]\OT1/cmr/bx/n/10.95 Theorem 10.2 \OT1/cmr/m/n/10.95 (RH: Fourier Spec-tral Ro
+ute (\OT1/cmr/m/sc/10.95 primary\OT1/cmr/m/n/10.95 ))\OT1/cmr/bx/n/10.95 . []\O
+T1/cmtt/m/it/10.95 riemann[]hypothesis[]fourier[]unconditional\OT1/cmr/m/n/10.9
+5 Uses:
+ []
+
+
+Overfull \hbox (38.56776pt too wide) in paragraph at lines 1259--1267
+[]\OT1/cmr/bx/n/10.95 Theorem 10.3 \OT1/cmr/m/n/10.95 (RH: Mo-to-hashi Spec-tra
+l Route)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 MotohashiRH.riemann[]hypot
+hesis[]motohashi\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+Overfull \hbox (51.79659pt too wide) in paragraph at lines 1270--1279
+[]\OT1/cmr/bx/n/10.95 Theorem 10.4 \OT1/cmr/m/n/10.95 (RH: Con-di-tional/Rotati
+on Route)\OT1/cmr/bx/n/10.95 . []\OT1/cmtt/m/it/10.95 ExplicitFormulaBridge.rie
+mann[]hypothesis\OT1/cmr/m/n/10.95 Uses:
+ []
+
+
+
+[16]
+Overfull \hbox (95.27713pt too wide) in paragraph at lines 1297--1315
+ [][] 
+ []
+
+
+Overfull \hbox (67.85913pt too wide) in paragraph at lines 1329--1333
+[]\OT1/cmtt/m/n/10.95 motohashi[]spectral[]exclusion \OT1/cmr/m/n/10.95 (Mo-to-
+hashiRH.lean): same state-ment, com-bin-ing \OT1/cmtt/m/n/10.95 selbergMaassBas
+is
+ []
+
+
+Overfull \hbox (105.72498pt too wide) in paragraph at lines 1329--1333
+\OT1/cmr/m/n/10.95 + \OT1/cmtt/m/n/10.95 motohashiOffLineWitness \OT1/cmr/m/n/1
+0.95 + \OT1/cmtt/m/n/10.95 abstract[]no[]hidden[]component\OT1/cmr/m/n/10.95 . 
+Yields \OT1/cmtt/m/n/10.95 riemann[]hypothesis[]motohashi[]1ax
+ []
+
+
+
+[17]
+Overfull \hbox (1.65712pt too wide) in paragraph at lines 1385--1391
+\OT1/cmr/m/n/10.95 sharp: for Beurl-ing gen-er-al-ized prime sys-tems with $\U/
+msb/m/n/10.95 Q$\OT1/cmr/m/n/10.95 -commensurable log-a-rithms ($[] \OML/cmm/m/
+it/10.95 b[]= [] b[] \OMS/cmsy/m/n/10.95 2
+ []
+
+
+Overfull \hbox (51.87471pt too wide) detected at line 1407
+[] [] \OML/cmm/m/it/10.95 ^^P \OMS/cmsy/m/n/10.95 6\OT1/cmr/m/n/10.95 = 0[] [] 
+[] [] []
+ []
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/bx/sc' undefined
+(Font)              using `OT1/cmr/bx/n' instead on input line 1409.
+
+
+
+[18]
+Overfull \hbox (0.23834pt too wide) in paragraph at lines 1426--1428
+\OT1/cmr/m/it/10.95 Mechanisms\OT1/cmr/m/n/10.95 : Sel-berg com-plete-ness (sel
+f-adjoint Lapla-cian) $\OMS/cmsy/m/n/10.95 !$ \OT1/cmtt/m/n/10.95 abstract[]no[
+]hidden[]component\OT1/cmr/m/n/10.95 .
+ []
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[19]
+
+[20] (./blueprint_rh.aux)
+ ***********
+LaTeX2e <2025-06-01> patch level 1
+L3 programming layer <2025-07-20>
+ ***********
+
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package rerunfilecheck Warning: File `blueprint_rh.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `blueprint_rh.out':
+(rerunfilecheck)             Before: AC2FA22FC9C29263C56C2AB9E3DC016B;6516
+(rerunfilecheck)             After:  F1539275D4B700ED781E5DBE2A5D17A0;6470.
+ ) 
+Here is how much of TeX's memory you used:
+ 13436 strings out of 467801
+ 218154 string characters out of 5431917
+ 654845 words of memory out of 5000000
+ 41761 multiletter control sequences out of 15000+600000
+ 642304 words of font info for 100 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 75i,10n,79p,499b,639s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb
+></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb
+></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb>
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
+/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></
+usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></us
+r/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/
+local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/lo
+cal/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loca
+l/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/
+texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/tex
+live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texliv
+e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2
+025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/20
+25/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2025
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2025/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2025/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/local/texlive/2025/tex
+mf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2025
+/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/
+2025/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/20
+25/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
+Output written on blueprint_rh.pdf (20 pages, 391928 bytes).
+PDF statistics:
+ 631 PDF objects out of 1000 (max. 8388607)
+ 523 compressed objects within 6 object streams
+ 171 named destinations out of 1000 (max. 500000)
+ 241 words of extra memory for PDF output out of 10000 (max. 10000000)
+

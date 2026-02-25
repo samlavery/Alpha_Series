@@ -1,0 +1,10 @@
+\contentsline {section}{\numberline {1}The Incompressibility Obstruction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Strain Eigenvalues and the Trace-Free Constraint}{3}{section.2}%
+\contentsline {section}{\numberline {3}PDE Infrastructure Axioms}{4}{section.3}%
+\contentsline {section}{\numberline {4}The Equidistribution Cancellation Mechanism}{5}{section.4}%
+\contentsline {section}{\numberline {5}The Critical Circle}{5}{section.5}%
+\contentsline {section}{\numberline {6}The Stokes Spectral Gap}{6}{section.6}%
+\contentsline {section}{\numberline {7}The Regularity Theorem}{6}{section.7}%
+\contentsline {section}{\numberline {8}Axiom Summary}{7}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Zero-Axiom Results (Novel Contributions)}{7}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}What Remains for the Millennium Problem}{7}{subsection.8.2}%

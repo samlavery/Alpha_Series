@@ -1,0 +1,15 @@
+\contentsline {section}{\numberline {1}The Bracket Obstruction}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Abelian Counterexample}{3}{subsection.1.1}%
+\contentsline {section}{\numberline {2}The Spectral Gap Theorem}{3}{section.2}%
+\contentsline {section}{\numberline {3}The Center of a Lie Algebra}{3}{section.3}%
+\contentsline {section}{\numberline {4}The Mass Gap Theorem}{3}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Vacuum Energy Corollaries}{4}{subsection.4.1}%
+\contentsline {section}{\numberline {5}The Yang--Mills Mass Gap Theorem}{4}{section.5}%
+\contentsline {section}{\numberline {6}Quantum and Operator Forms}{5}{section.6}%
+\contentsline {section}{\numberline {7}Lattice Yang--Mills and the Clay Theorem}{5}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Uniform Gap and Continuum Limit}{5}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Osterwalder--Schrader Axiom and Continuum Limit}{6}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Axiom Summary}{6}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Custom Axioms}{6}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Zero-Axiom Results}{7}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}What Remains for the Clay Problem}{7}{subsection.8.3}%
